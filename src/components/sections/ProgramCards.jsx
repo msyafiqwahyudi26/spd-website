@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '@/lib/api';
-import { INITIAL_EVENTS } from '../../data/events';
 import EmptyState from '../ui/EmptyState';
 import { SkeletonCard } from '../ui/Skeleton';
 import { resolveMedia } from '@/config/media';
@@ -74,16 +73,15 @@ export default function ProgramCards({ limit = null, showIntro = true }) {
 
   useEffect(() => {
     // Programs have their own endpoint now (separate from dated events).
-    // Fall back to INITIAL_EVENTS only if the admin hasn't created any
-    // program rows yet — that static list has plausible starter content.
+    // If the admin hasn't created any, render EmptyState below instead of
+    // substituting events — showing events-as-programs was misleading.
     const fetchPrograms = async () => {
       setIsLoading(true);
       try {
         const data = await api('/programs');
-        const list = Array.isArray(data) ? data : [];
-        setPrograms(list.length > 0 ? list : INITIAL_EVENTS);
+        setPrograms(Array.isArray(data) ? data : []);
       } catch {
-        setPrograms(INITIAL_EVENTS);
+        setPrograms([]);
       } finally {
         setIsLoading(false);
       }

@@ -16,10 +16,10 @@ const FALLBACK_NAV = [
   { id: 'nav-publikasi', label: 'Publikasi',    url: '/publikasi' },
 ];
 const FALLBACK_LAYANAN = [
-  { id: 'srv-riset',         label: 'Riset & Analisis Kebijakan', url: '/program' },
+  { id: 'srv-riset',         label: 'Riset & Analisis Kebijakan', url: '/publikasi' },
   { id: 'srv-kampanye',      label: 'Kampanye Digital',           url: '/program' },
-  { id: 'srv-adv-publik',    label: 'Advokasi Publik',            url: '/program' },
-  { id: 'srv-adv-kebijakan', label: 'Advokasi Kebijakan',         url: '/program' },
+  { id: 'srv-adv-publik',    label: 'Advokasi Publik',            url: '/tentang-kami' },
+  { id: 'srv-adv-kebijakan', label: 'Advokasi Kebijakan',         url: '/publikasi' },
 ];
 
 // Social icons are static SVGs; the href comes from settings.social.* and
@@ -268,7 +268,7 @@ export default function Footer() {
           src={logoSrc}
           alt=""
           onError={(e) => { e.currentTarget.src = logo; }}
-          className="h-37 w-auto grayscale"
+          className="h-9 w-auto grayscale"
         />
       </Link>
     </footer>

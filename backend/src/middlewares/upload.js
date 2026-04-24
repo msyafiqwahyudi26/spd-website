@@ -14,7 +14,9 @@ for (const dir of [IMAGES_DIR, DOCS_DIR, MEDIA_DIR]) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
 
-const ALLOWED = /^(image\/(jpeg|png|gif|webp|svg\+xml)|application\/pdf)$/;
+// SVG intentionally excluded — SVG can contain inline <script> tags and
+// would be served from the same domain, creating a stored-XSS vector.
+const ALLOWED = /^(image\/(jpeg|png|gif|webp)|application\/pdf)$/;
 
 function destinationFor(mime) {
   if (typeof mime === 'string' && mime === 'application/pdf') return DOCS_DIR;
@@ -42,7 +44,7 @@ function fileFilter(req, file, cb) {
   if (ALLOWED.test(file.mimetype)) {
     cb(null, true);
   } else {
-    const err = new Error('Hanya file gambar (jpg, png, gif, webp, svg) atau PDF yang diizinkan');
+    const err = new Error('Hanya file gambar (jpg, png, gif, webp) atau PDF yang diizinkan');
     err.status = 400;
     err.clientMessage = err.message;
     cb(err);
