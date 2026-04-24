@@ -1,0 +1,4 @@
+# Shell scripts and nginx configs run on Linux — force LF endings
+# so Windows CRLF doesn't break them when committed from this repo.
+*.sh    text eol=lf
+*.conf  text eol=lf
