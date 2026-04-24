@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import Hero from '../../components/sections/Hero';
-import Image from '../../components/ui/Image';
 import AboutSubNav from './SubNav';
 import { api } from '@/lib/api';
 import { useSettings } from '../../hooks/useSettings';
-import { SIAPA_KAMI_IMAGES, PERJALANAN } from '../../data/about';
+import { PERJALANAN } from '../../data/about';
 
 const DEFAULT_INTRO = `Sindikasi Pemilu dan Demokrasi (SPD) adalah organisasi masyarakat sipil yang didirikan pada tahun 2016 dengan komitmen untuk mempelajari dan memperkuat isu-isu pemilu dan demokrasi di Indonesia secara konsisten.
 
@@ -41,14 +40,9 @@ export default function Profil() {
       <section className="py-16 px-4 bg-white">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-slate-800 mb-6">Siapa Kami</h2>
-          <div className="space-y-4 text-slate-600 leading-relaxed text-sm mb-10">
+          <div className="space-y-4 text-slate-600 leading-relaxed text-sm">
             {introText.split(/\n\n+/).map((para, i) => (
               <p key={i}>{para}</p>
-            ))}
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            {SIAPA_KAMI_IMAGES.map((img) => (
-              <Image key={img.id} src={img.src} className="h-48 rounded-lg" gradient="from-slate-100 to-slate-200" />
             ))}
           </div>
         </div>
