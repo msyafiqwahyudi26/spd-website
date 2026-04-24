@@ -14,11 +14,17 @@ const TENTANG_ITEMS = [
   { id: 'tk-laporan',  tkey: 'about.laporan',   href: '/tentang-kami/laporan-tahunan' },
 ];
 
+const PUBLIKASI_ITEMS = [
+  { id: 'pub-semua', tkey: 'publikasi.semua', href: '/publikasi' },
+  { id: 'pub-riset', tkey: 'publikasi.riset', href: '/publikasi?tipe=riset' },
+  { id: 'pub-buku',  tkey: 'publikasi.buku',  href: '/publikasi?tipe=buku' },
+];
+
 const NAV_LINKS = [
   { id: 'nav-home',      tkey: 'nav.home',      href: '/beranda' },
   { id: 'nav-about',     tkey: 'nav.about',     href: '/tentang-kami', children: TENTANG_ITEMS },
   { id: 'nav-program',   tkey: 'nav.program',   href: '/program' },
-  { id: 'nav-publikasi', tkey: 'nav.publikasi', href: '/publikasi' },
+  { id: 'nav-publikasi', tkey: 'nav.publikasi', href: '/publikasi', children: PUBLIKASI_ITEMS },
   { id: 'nav-event',     tkey: 'nav.event',     href: '/event' },
   { id: 'nav-data',      tkey: 'nav.data',      href: '/data-pemilu' },
   { id: 'nav-kontak',    tkey: 'nav.kontak',    href: '/kontak' },
@@ -62,8 +68,14 @@ const SOCIAL_ICONS = {
       <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
     </svg>
   ),
+  youtube: (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5" aria-hidden="true">
+      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" />
+      <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white" />
+    </svg>
+  ),
 };
-const SOCIAL_LABELS = { facebook: 'Facebook', twitter: 'Twitter / X', linkedin: 'LinkedIn', instagram: 'Instagram' };
+const SOCIAL_LABELS = { facebook: 'Facebook', twitter: 'Twitter / X', linkedin: 'LinkedIn', instagram: 'Instagram', youtube: 'YouTube' };
 
 // Thin utility bar above the main nav. Carries social shortcuts (from
 // settings.social, so admin-editable) + a language switch placeholder.
@@ -73,7 +85,7 @@ const SOCIAL_LABELS = { facebook: 'Facebook', twitter: 'Twitter / X', linkedin: 
 function TopBar({ settings }) {
   const { lang, setLang } = useI18n();
   const social = settings.social || {};
-  const keys = ['facebook', 'twitter', 'linkedin', 'instagram'].filter((k) => social[k]);
+  const keys = ['facebook', 'instagram', 'youtube', 'twitter', 'linkedin'].filter((k) => social[k]);
 
   return (
     <div className="bg-slate-900 text-slate-300">
@@ -185,7 +197,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-20">
 
           {/* Logo */}
-          <NavLink to="/beranda" className="flex items-center shrink-0">
+          <NavLink to="/" className="flex items-center shrink-0">
             <img
               src={logoSrc}
               alt={settings.siteName || 'SPD Indonesia'}

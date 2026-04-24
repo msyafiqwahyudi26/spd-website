@@ -34,6 +34,11 @@ const DICT = {
     'about.mitra':     'Mitra Kolaborasi',
     'about.laporan':   'Laporan Tahunan',
 
+    // Publikasi dropdown
+    'publikasi.semua': 'Semua Publikasi',
+    'publikasi.riset': 'Hasil Riset SPD',
+    'publikasi.buku':  'Buku SPD',
+
     // Hero (landing)
     'hero.learnMore':  'Pelajari Lebih Lanjut',
     'hero.viewPrograms': 'Lihat Program Kami',
@@ -82,6 +87,11 @@ const DICT = {
     'about.struktur':  'Organizational Structure',
     'about.mitra':     'Partners',
     'about.laporan':   'Annual Reports',
+
+    // Publications dropdown
+    'publikasi.semua': 'All Publications',
+    'publikasi.riset': 'SPD Research',
+    'publikasi.buku':  'SPD Books',
 
     'hero.learnMore':  'Learn More',
     'hero.viewPrograms': 'View Our Programs',

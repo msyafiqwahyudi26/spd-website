@@ -3,14 +3,18 @@ const { log } = require('../lib/logger');
 const { ok, fail } = require('../lib/response');
 const { validate, v } = require('../lib/validate');
 
-// Keep this list aligned with the frontend icon registry. Admin picks one.
-const ALLOWED_ICONS = ['collaboration', 'data', 'youth', 'policy'];
+// Keep this list aligned with the frontend icon registry (src/data/approachIcons.jsx).
+const ALLOWED_ICONS = [
+  'collaboration', 'data', 'youth', 'policy',
+  'megaphone', 'eye', 'vote', 'lightbulb',
+  'book', 'globe', 'shield', 'users',
+];
 
 function normalizeIcon(val) {
   return ALLOWED_ICONS.includes(val) ? val : 'collaboration';
 }
 
-const toPublic = (r) => ({ id: r.id, iconKey: r.iconKey, title: r.title, description: r.description, sortOrder: r.sortOrder });
+const toPublic = (r) => ({ id: r.id, iconKey: r.iconKey, iconUrl: r.iconUrl || '', title: r.title, description: r.description, sortOrder: r.sortOrder });
 
 exports.list = async (req, res, next) => {
   try {
@@ -33,8 +37,9 @@ exports.create = async (req, res, next) => {
     const maxOrder = await prisma.approach.aggregate({ _max: { sortOrder: true } });
     const sortOrder = (maxOrder._max.sortOrder ?? -1) + 1;
 
+    const iconUrl = typeof req.body.iconUrl === 'string' ? req.body.iconUrl.trim().slice(0, 500) : '';
     const created = await prisma.approach.create({
-      data: { iconKey, title: data.title, description: data.description || '', sortOrder },
+      data: { iconKey, iconUrl, title: data.title, description: data.description || '', sortOrder },
     });
 
     log('approach_create', 'approach', {
@@ -61,6 +66,7 @@ exports.update = async (req, res, next) => {
       where: { id },
       data: {
         iconKey:     req.body.iconKey !== undefined ? normalizeIcon(req.body.iconKey) : existing.iconKey,
+        iconUrl:     req.body.iconUrl !== undefined ? req.body.iconUrl.trim().slice(0, 500) : (existing.iconUrl || ''),
         title:       data.title       !== undefined ? data.title       : existing.title,
         description: data.description !== undefined ? data.description : existing.description,
       },

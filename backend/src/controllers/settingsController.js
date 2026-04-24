@@ -19,6 +19,7 @@ const DEFAULTS = {
   socialTwitter: '',
   socialLinkedin: '',
   socialInstagram: '',
+  socialYoutube: '',
 };
 
 function toPublic(row) {
@@ -45,6 +46,7 @@ function toPublic(row) {
       twitter:   src.socialTwitter   || '',
       linkedin:  src.socialLinkedin  || '',
       instagram: src.socialInstagram || '',
+      youtube:   src.socialYoutube   || '',
     },
   };
 }
@@ -96,6 +98,7 @@ exports.update = async (req, res, next) => {
     if (typeof social.twitter   === 'string') data.socialTwitter   = social.twitter.trim().slice(0, 500);
     if (typeof social.linkedin  === 'string') data.socialLinkedin  = social.linkedin.trim().slice(0, 500);
     if (typeof social.instagram === 'string') data.socialInstagram = social.instagram.trim().slice(0, 500);
+    if (typeof social.youtube   === 'string') data.socialYoutube   = social.youtube.trim().slice(0, 500);
 
     const existing = await getRow();
     const updated = await prisma.setting.update({

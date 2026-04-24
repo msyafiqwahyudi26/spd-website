@@ -4,6 +4,7 @@ import AboutSubNav from './SubNav';
 import { api } from '@/lib/api';
 import { useSettings } from '../../hooks/useSettings';
 import { MISI_ITEMS, CORE_VALUES } from '../../data/about';
+import { resolveMediaUrl } from '@/lib/media';
 
 const DEFAULT_VISION =
   'Menjadi pusat kerja kolaboratif multihak dalam mempromosikan penguatan demokrasi dan reformasi kepemiluan.';
@@ -55,15 +56,17 @@ export default function VisiMisi() {
   const missionList = missions && missions.length > 0
     ? missions
     : MISI_ITEMS.map(m => ({ id: m.id, text: m.text }));
-  // Core values: API rows have iconKey; static fallback has icon JSX.
+  // Core values: API rows have iconKey + optional iconUrl; static fallback has icon JSX.
   // Merge into a uniform { id, title, description, iconNode } shape.
+  // Custom iconUrl takes precedence over preset iconKey.
   const coreValueList = coreValues && coreValues.length > 0
-    ? coreValues.map(cv => ({
-        id: cv.id,
-        title: cv.title,
-        description: cv.description,
-        iconNode: CV_ICONS[cv.iconKey] || CV_ICONS.collaboration,
-      }))
+    ? coreValues.map(cv => {
+        const resolvedUrl = cv.iconUrl ? resolveMediaUrl(cv.iconUrl) : '';
+        const iconNode = resolvedUrl
+          ? <img src={resolvedUrl} alt="" className="w-6 h-6 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+          : (CV_ICONS[cv.iconKey] || CV_ICONS.collaboration);
+        return { id: cv.id, title: cv.title, description: cv.description, iconNode };
+      })
     : CORE_VALUES.map(cv => ({ id: cv.id, title: cv.title, description: cv.description, iconNode: cv.icon }));
 
   return (

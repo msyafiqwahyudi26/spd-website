@@ -198,8 +198,11 @@ app.use((err, req, res, next) => {
 
 const PORT = parseInt(process.env.PORT, 10) || 5000;
 
-const server = app.listen(PORT, () => {
-  console.log(`SPD Backend running on http://localhost:${PORT}`);
+// R7: Bind to 127.0.0.1 (loopback only) so the port is never reachable
+// directly from the internet — all public traffic must go through Nginx.
+const BIND_HOST = process.env.NODE_ENV === 'production' ? '127.0.0.1' : '0.0.0.0';
+const server = app.listen(PORT, BIND_HOST, () => {
+  console.log(`SPD Backend running on http://${BIND_HOST}:${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/api`);
 });
 

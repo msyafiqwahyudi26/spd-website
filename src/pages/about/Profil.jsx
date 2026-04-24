@@ -64,18 +64,26 @@ export default function Profil() {
               dalam ekosistem kepemiluan Indonesia.
             </p>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {timeline.map((item) => (
-              <div key={item.id} className="bg-white rounded-xl border border-slate-100 p-5 flex gap-5">
-                <div className="shrink-0 w-20 text-right">
-                  <span className="text-xs font-bold text-orange-500">{item.year}</span>
+              <div key={item.id} className="bg-white rounded-xl border border-slate-100 p-5 flex gap-4 items-start">
+                {/* Year badge */}
+                <div className="shrink-0 pt-0.5">
+                  <span className="inline-block bg-orange-500 text-white text-sm font-bold px-3 py-1.5 rounded-lg leading-tight whitespace-nowrap">
+                    {item.year}
+                  </span>
                 </div>
-                <div className="border-l border-slate-200 pl-5 pb-2">
+                {/* Divider */}
+                <div className="w-px self-stretch bg-slate-200 shrink-0 mt-1" />
+                {/* Content */}
+                <div className="flex-1 pb-1">
                   {item.tag && (
                     <span className="text-[10px] font-bold text-orange-500 tracking-widest uppercase block mb-1">{item.tag}</span>
                   )}
-                  <h3 className="font-semibold text-slate-800 text-sm mb-1">{item.title}</h3>
-                  {item.description && <p className="text-xs text-slate-500 leading-relaxed">{item.description}</p>}
+                  <h3 className="font-semibold text-slate-800 text-sm leading-snug mb-1">{item.title}</h3>
+                  {item.description && (
+                    <p className="text-xs text-slate-500 leading-relaxed">{item.description}</p>
+                  )}
                 </div>
               </div>
             ))}

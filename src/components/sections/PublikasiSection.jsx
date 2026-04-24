@@ -88,7 +88,7 @@ function ArrowButton({ direction, onClick, disabled }) {
   );
 }
 
-export default function PublikasiSection({ isPage = false }) {
+export default function PublikasiSection({ isPage = false, contentTypeFilter = null }) {
   const trackRef = useRef(null);
   const drag = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false });
   const [grabbing, setGrabbing] = useState(false);
@@ -130,9 +130,15 @@ export default function PublikasiSection({ isPage = false }) {
     return () => window.removeEventListener('publikasi_updated', handleUpdate);
   }, []);
 
-  const categories = ['Semua', ...Array.from(new Set(publikasiList.map((p) => p.category)))];
+  // When a contentTypeFilter is active, pre-filter the list so the
+  // category dropdown only shows categories relevant to that type.
+  const baseList = contentTypeFilter
+    ? publikasiList.filter(p => p.contentType === contentTypeFilter)
+    : publikasiList;
 
-  const filteredAndSorted = publikasiList.filter((item) => {
+  const categories = ['Semua', ...Array.from(new Set(baseList.map((p) => p.category)))];
+
+  const filteredAndSorted = baseList.filter((item) => {
     if (!item) return false;
     const title = (item.title ?? '').toLowerCase();
     const description = (item.description ?? '').toLowerCase();

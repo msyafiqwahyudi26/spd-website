@@ -1,53 +1,106 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSettings } from '../../hooks/useSettings';
 import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 import { inputCls, Toast, Field, Spinner } from './shared';
 import MediaPicker from './MediaPicker';
+import { ICON_KEYS, ICON_COMPONENTS } from '../../data/approachIcons';
 
-/* ── Reusable image-picker field (replaces URL inputs for logo/hero/etc) ─ */
+/* ── Reusable image-picker field — supports direct upload + pick from library ─ */
 
 function ImagePickerField({ label, hint, value, onChange, disabled }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const fileRef = useRef(null);
   const preview = value ? resolveMediaUrl(value) : null;
+
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError('');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const created = await api('/media', { method: 'POST', body: formData });
+      onChange(created.url);
+    } catch (err) {
+      setUploadError(err?.message || 'Gagal mengunggah');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
   return (
     <div>
       <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
       <div className="flex items-start gap-3">
+        {/* Preview thumbnail */}
         <div className="w-20 h-16 rounded-lg bg-slate-50 border border-slate-200 shrink-0 overflow-hidden flex items-center justify-center">
           {preview ? (
             <img src={preview} alt="" className="max-w-full max-h-full object-contain" />
           ) : (
-            <span className="text-[10px] text-slate-400 uppercase text-center px-1">Kosong</span>
+            <svg className="w-6 h-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M2.25 6A2.25 2.25 0 014.5 3.75h15A2.25 2.25 0 0121.75 6v12a2.25 2.25 0 01-2.25 2.25h-15A2.25 2.25 0 012.25 18V6z" />
+            </svg>
           )}
         </div>
+
         <div className="flex-1 min-w-0 space-y-1.5">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {/* Direct upload button */}
+            <label className={`inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 px-3 py-1.5 rounded-md cursor-pointer transition-colors ${(disabled || uploading) ? 'opacity-60 pointer-events-none' : ''}`}>
+              {uploading ? (
+                <Spinner small />
+              ) : (
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                </svg>
+              )}
+              {uploading ? 'Mengunggah…' : 'Upload Foto'}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                disabled={disabled || uploading}
+                onChange={handleUpload}
+                className="hidden"
+              />
+            </label>
+
+            {/* Pick from library */}
             <button
               type="button"
               onClick={() => setPickerOpen(true)}
-              disabled={disabled}
-              className="text-xs font-semibold text-orange-500 hover:text-orange-600 border border-orange-100 hover:border-orange-300 px-3 py-1.5 rounded-md disabled:opacity-60"
+              disabled={disabled || uploading}
+              className="text-xs font-semibold text-slate-600 hover:text-slate-800 border border-slate-200 hover:border-slate-300 bg-white px-3 py-1.5 rounded-md disabled:opacity-60 transition-colors"
             >
-              Pilih dari Media
+              Pilih dari Pustaka
             </button>
+
             {value && (
               <button
                 type="button"
                 onClick={() => onChange('')}
                 disabled={disabled}
-                className="text-xs font-medium text-slate-500 hover:text-red-500 px-3 py-1.5 rounded-md border border-slate-200 disabled:opacity-60"
+                className="text-xs font-medium text-slate-400 hover:text-red-500 px-3 py-1.5 rounded-md border border-slate-200 disabled:opacity-60 transition-colors"
               >
                 Hapus
               </button>
             )}
           </div>
-          {hint && <p className="text-xs text-slate-400">{hint}</p>}
+
+          {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
+          {hint && !uploadError && <p className="text-xs text-slate-400">{hint}</p>}
           {value && (
             <p className="text-[11px] text-slate-400 font-mono truncate" title={value}>{value}</p>
           )}
         </div>
       </div>
+
       <MediaPicker
         open={pickerOpen}
         filter="image"
@@ -303,17 +356,102 @@ function MissionRow({ item, pending, onCommit, onDelete }) {
 
 /* ── Approach (Pendekatan Kami) CRUD — inline inside Organisasi tab ─────── */
 
-const ICON_OPTIONS = [
-  { value: 'collaboration', label: 'Kolaborasi (jaringan)' },
-  { value: 'data',          label: 'Data (grafik batang)' },
-  { value: 'youth',         label: 'Komunitas (orang)' },
-  { value: 'policy',        label: 'Kebijakan (dokumen)' },
-];
+/**
+ * Visual icon picker — shows preset SVG icons as clickable tiles,
+ * plus an "Upload Ikon" button for custom uploaded icons.
+ * Props:
+ *   iconKey   — currently selected preset key (string)
+ *   iconUrl   — currently set custom icon URL (string, overrides iconKey when non-empty)
+ *   onIconKey — (key: string) => void
+ *   onIconUrl — (url: string) => void
+ *   disabled  — bool
+ */
+function IconPicker({ iconKey, iconUrl, onIconKey, onIconUrl, disabled }) {
+  const [uploading, setUploading] = useState(false);
+  const [uploadErr, setUploadErr] = useState('');
+  const fileRef = useRef(null);
+
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadErr('');
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const created = await api('/media', { method: 'POST', body: fd });
+      onIconUrl(created.url);
+    } catch (err) {
+      setUploadErr(err?.message || 'Gagal mengunggah');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  const customPreview = iconUrl ? resolveMediaUrl(iconUrl) : null;
+
+  return (
+    <div>
+      <label className="block text-xs font-medium text-slate-600 mb-2">Ikon</label>
+      <div className="flex flex-wrap gap-2 items-start">
+        {/* Preset icon tiles */}
+        {ICON_KEYS.map((key) => {
+          const Comp = ICON_COMPONENTS[key];
+          const active = !iconUrl && iconKey === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              disabled={disabled || uploading}
+              onClick={() => { onIconKey(key); onIconUrl(''); }}
+              title={key}
+              className={`w-10 h-10 rounded-lg flex items-center justify-center border-2 transition-all ${
+                active
+                  ? 'border-orange-500 bg-orange-50 text-orange-500'
+                  : 'border-slate-200 bg-white text-slate-400 hover:border-orange-300 hover:text-orange-400'
+              } disabled:opacity-50`}
+            >
+              <Comp className="w-6 h-6" />
+            </button>
+          );
+        })}
+
+        {/* Custom icon: preview tile */}
+        {customPreview && (
+          <div className="relative w-10 h-10 rounded-lg border-2 border-orange-500 bg-orange-50 overflow-hidden flex items-center justify-center">
+            <img src={customPreview} alt="" className="w-full h-full object-contain" />
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={() => onIconUrl('')}
+              className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] leading-none disabled:opacity-50"
+              title="Hapus ikon kustom"
+            >×</button>
+          </div>
+        )}
+
+        {/* Upload button */}
+        <label className={`w-10 h-10 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center cursor-pointer transition-colors hover:border-orange-300 hover:bg-orange-50 ${(disabled || uploading) ? 'opacity-50 pointer-events-none' : ''}`} title="Upload ikon kustom">
+          {uploading ? (
+            <Spinner small />
+          ) : (
+            <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+          )}
+          <input ref={fileRef} type="file" accept="image/*" disabled={disabled || uploading} onChange={handleUpload} className="hidden" />
+        </label>
+      </div>
+      {uploadErr && <p className="text-xs text-red-500 mt-1">{uploadErr}</p>}
+    </div>
+  );
+}
 
 function InlineApproachSection({ onNotify }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ iconKey: 'collaboration', title: '', description: '' });
+  const [form, setForm] = useState({ iconKey: 'collaboration', iconUrl: '', title: '', description: '' });
   const [saving, setSaving] = useState(false);
   const [pendingId, setPendingId] = useState(null);
 
@@ -335,10 +473,10 @@ function InlineApproachSection({ onNotify }) {
     try {
       const created = await api('/approaches', {
         method: 'POST',
-        body: JSON.stringify({ iconKey: form.iconKey, title, description: form.description.trim() }),
+        body: JSON.stringify({ iconKey: form.iconKey, iconUrl: form.iconUrl, title, description: form.description.trim() }),
       });
       setItems((prev) => [...prev, created]);
-      setForm({ iconKey: 'collaboration', title: '', description: '' });
+      setForm({ iconKey: 'collaboration', iconUrl: '', title: '', description: '' });
       onNotify('Pendekatan ditambahkan');
     } catch (err) { onNotify(err.message || 'Gagal menambah pendekatan'); }
     finally { setSaving(false); }
@@ -368,23 +506,26 @@ function InlineApproachSection({ onNotify }) {
     <div>
       <h3 className="text-sm font-bold text-slate-700 mb-1">Pendekatan Kami</h3>
       <p className="text-xs text-slate-500 mb-4">
-        Kartu pilar yang tampil di halaman Beranda. Pilih ikon dari daftar tetap.
+        Kartu pilar yang tampil di halaman Beranda. Pilih ikon atau unggah ikon kustom.
       </p>
-      <form onSubmit={add} className="grid grid-cols-1 md:grid-cols-[160px_1fr_auto] gap-3 items-end mb-4">
-        <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">Ikon</label>
-          <select className={inputCls} value={form.iconKey} onChange={(e) => setForm({ ...form, iconKey: e.target.value })} disabled={saving}>
-            {ICON_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-          </select>
+      <form onSubmit={add} className="space-y-3 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-3 items-end">
+          <IconPicker
+            iconKey={form.iconKey}
+            iconUrl={form.iconUrl}
+            onIconKey={(k) => setForm({ ...form, iconKey: k })}
+            onIconUrl={(u) => setForm({ ...form, iconUrl: u })}
+            disabled={saving}
+          />
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Judul</label>
+            <input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Kolaborasi Multi-Pihak" disabled={saving} />
+          </div>
+          <button type="submit" disabled={saving || !form.title.trim()} className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap">
+            {saving && <Spinner small />} Tambah
+          </button>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">Judul</label>
-          <input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Kolaborasi Multi-Pihak" disabled={saving} />
-        </div>
-        <button type="submit" disabled={saving || !form.title.trim()} className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap">
-          {saving && <Spinner small />} Tambah
-        </button>
-        <div className="md:col-span-3">
           <label className="block text-xs font-medium text-slate-600 mb-1">Deskripsi</label>
           <textarea className={inputCls + ' resize-none'} rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Penjelasan singkat pilar ini" disabled={saving} />
         </div>
@@ -403,25 +544,35 @@ function InlineApproachSection({ onNotify }) {
 }
 
 function ApproachRow({ item, pending, onCommit, onDelete }) {
-  const [iconKey, setIconKey] = useState(item.iconKey);
-  const [title, setTitle] = useState(item.title);
+  const [iconKey, setIconKey]       = useState(item.iconKey);
+  const [iconUrl, setIconUrl]       = useState(item.iconUrl || '');
+  const [title, setTitle]           = useState(item.title);
   const [description, setDescription] = useState(item.description || '');
   useEffect(() => {
     setIconKey(item.iconKey);
+    setIconUrl(item.iconUrl || '');
     setTitle(item.title);
     setDescription(item.description || '');
-  }, [item.iconKey, item.title, item.description]);
-  const dirty = iconKey !== item.iconKey || title !== item.title || description !== (item.description || '');
+  }, [item.iconKey, item.iconUrl, item.title, item.description]);
+  const dirty =
+    iconKey !== item.iconKey ||
+    iconUrl !== (item.iconUrl || '') ||
+    title !== item.title ||
+    description !== (item.description || '');
   return (
     <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-2">
-      <div className="grid grid-cols-1 md:grid-cols-[160px_1fr_auto] gap-2 items-start">
-        <select className={inputCls} value={iconKey} onChange={(e) => setIconKey(e.target.value)} disabled={pending}>
-          {ICON_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-        </select>
+      <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-2 items-start">
+        <IconPicker
+          iconKey={iconKey}
+          iconUrl={iconUrl}
+          onIconKey={setIconKey}
+          onIconUrl={setIconUrl}
+          disabled={pending}
+        />
         <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} disabled={pending} />
         <div className="flex items-start gap-1.5 pt-0.5">
           {dirty && (
-            <button onClick={() => onCommit(item.id, { iconKey, title: title.trim(), description: description.trim() })} disabled={pending || !title.trim()} className="text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-60 px-2.5 py-1.5 rounded-md">Simpan</button>
+            <button onClick={() => onCommit(item.id, { iconKey, iconUrl, title: title.trim(), description: description.trim() })} disabled={pending || !title.trim()} className="text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-60 px-2.5 py-1.5 rounded-md">Simpan</button>
           )}
           <button onClick={() => onDelete(item.id)} disabled={pending} className="text-slate-400 hover:text-red-500 disabled:opacity-50 transition-colors px-2 py-1.5" title="Hapus">
             {pending ? <Spinner small /> : (
@@ -440,7 +591,7 @@ function ApproachRow({ item, pending, onCommit, onDelete }) {
 function InlineCoreValueSection({ onNotify }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ iconKey: 'collaboration', title: '', description: '' });
+  const [form, setForm] = useState({ iconKey: 'collaboration', iconUrl: '', title: '', description: '' });
   const [saving, setSaving] = useState(false);
   const [pendingId, setPendingId] = useState(null);
 
@@ -462,10 +613,10 @@ function InlineCoreValueSection({ onNotify }) {
     try {
       const created = await api('/core-values', {
         method: 'POST',
-        body: JSON.stringify({ iconKey: form.iconKey, title, description: form.description.trim() }),
+        body: JSON.stringify({ iconKey: form.iconKey, iconUrl: form.iconUrl, title, description: form.description.trim() }),
       });
       setItems((prev) => [...prev, created]);
-      setForm({ iconKey: 'collaboration', title: '', description: '' });
+      setForm({ iconKey: 'collaboration', iconUrl: '', title: '', description: '' });
       onNotify('Core value ditambahkan');
     } catch (err) { onNotify(err.message || 'Gagal menambah core value'); }
     finally { setSaving(false); }
@@ -495,23 +646,26 @@ function InlineCoreValueSection({ onNotify }) {
     <div>
       <h3 className="text-sm font-bold text-slate-700 mb-1">Core Value</h3>
       <p className="text-xs text-slate-500 mb-4">
-        Kartu nilai yang tampil di halaman Visi &amp; Misi. Gunakan ikon yang sama dengan Pendekatan.
+        Kartu nilai yang tampil di halaman Visi &amp; Misi. Pilih ikon atau unggah ikon kustom.
       </p>
-      <form onSubmit={add} className="grid grid-cols-1 md:grid-cols-[160px_1fr_auto] gap-3 items-end mb-4">
-        <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">Ikon</label>
-          <select className={inputCls} value={form.iconKey} onChange={(e) => setForm({ ...form, iconKey: e.target.value })} disabled={saving}>
-            {ICON_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-          </select>
+      <form onSubmit={add} className="space-y-3 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-3 items-end">
+          <IconPicker
+            iconKey={form.iconKey}
+            iconUrl={form.iconUrl}
+            onIconKey={(k) => setForm({ ...form, iconKey: k })}
+            onIconUrl={(u) => setForm({ ...form, iconUrl: u })}
+            disabled={saving}
+          />
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Judul</label>
+            <input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="cth: Kolaboratif" disabled={saving} />
+          </div>
+          <button type="submit" disabled={saving || !form.title.trim()} className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap">
+            {saving && <Spinner small />} Tambah
+          </button>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">Judul</label>
-          <input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="cth: Kolaboratif" disabled={saving} />
-        </div>
-        <button type="submit" disabled={saving || !form.title.trim()} className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap">
-          {saving && <Spinner small />} Tambah
-        </button>
-        <div className="md:col-span-3">
           <label className="block text-xs font-medium text-slate-600 mb-1">Deskripsi</label>
           <textarea className={inputCls + ' resize-none'} rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Penjelasan singkat nilai ini" disabled={saving} />
         </div>
@@ -786,13 +940,26 @@ function CategoriesSection({ onNotify }) {
   );
 }
 
+/* ── Hardcoded site defaults — mirrors what each page shows when DB is empty ─
+   Keeping them here (not duplicated in each page) means the admin always sees
+   the effective content in the form fields and can edit it directly.          */
+
+const CONTENT_DEFAULTS = {
+  heroSubtitle: 'Pusat kerja kolaboratif multihak dalam mempromosikan penguatan demokrasi dan reformasi kepemiluan Indonesia',
+  vision: 'Menjadi pusat kerja kolaboratif multihak dalam mempromosikan penguatan demokrasi dan reformasi kepemiluan.',
+  aboutIntro:
+    'Sindikasi Pemilu dan Demokrasi (SPD) adalah organisasi masyarakat sipil yang didirikan pada tahun 2016 dengan komitmen untuk mempelajari dan memperkuat isu-isu pemilu dan demokrasi di Indonesia secara konsisten.\n\n' +
+    'Sebagai organisasi yang berfokus pada kolaborasi multihak, SPD bertujuan untuk memperkuat ekosistem pemilu melalui inisiatif kerja kolaboratif antara organisasi masyarakat sipil (CSO), komunitas kreatif, civic-tech, komunitas bisnis, dan stakeholder lainnya.\n\n' +
+    'SPD berkomitmen menjadi pusat kerja kolaboratif yang mendorong transparansi, akuntabilitas, dan inovasi dalam penyelenggaraan demokrasi dan kepemiluan Indonesia.',
+};
+
 /* ── Main tabbed page ────────────────────────────────────────────────────── */
 
 const TABS = [
   { id: 'hero',     label: 'Hero',            desc: 'Nama situs, subjudul, logo, dan gambar hero' },
   { id: 'tentang',  label: 'Tentang',         desc: 'Deskripsi, visi, misi, pendekatan, dan core value' },
   { id: 'footer',   label: 'Footer',          desc: 'Tautan yang tampil di footer (Navigasi & Layanan)' },
-  { id: 'sosial',   label: 'Media Sosial',    desc: 'Tautan Facebook, Twitter, LinkedIn, Instagram' },
+  { id: 'sosial',   label: 'Media Sosial',    desc: 'Tautan Instagram, YouTube, Facebook, Twitter, LinkedIn' },
   { id: 'beranda',  label: 'Halaman Beranda', desc: 'Statistik yang tampil di banner' },
   { id: 'sistem',   label: 'Sistem',           desc: 'Email kontak, kategori publikasi, gambar fallback' },
 ];
@@ -807,9 +974,9 @@ export default function SettingsManager() {
     logo:     settings.images.logo,
     hero:     settings.images.hero,
     placeholder: settings.images.placeholder,
-    vision:       settings.content?.vision       || '',
-    aboutIntro:   settings.content?.aboutIntro   || '',
-    heroSubtitle: settings.content?.heroSubtitle || '',
+    vision:       settings.content?.vision       || CONTENT_DEFAULTS.vision,
+    aboutIntro:   settings.content?.aboutIntro   || CONTENT_DEFAULTS.aboutIntro,
+    heroSubtitle: settings.content?.heroSubtitle || CONTENT_DEFAULTS.heroSubtitle,
     cta1Label: settings.hero?.cta1?.label || '',
     cta1Href:  settings.hero?.cta1?.href  || '',
     cta2Label: settings.hero?.cta2?.label || '',
@@ -818,6 +985,7 @@ export default function SettingsManager() {
     twitter:   settings.social?.twitter   || '',
     linkedin:  settings.social?.linkedin  || '',
     instagram: settings.social?.instagram || '',
+    youtube:   settings.social?.youtube   || '',
   });
 
   // Track the baseline so we can detect dirty state and surface it in the UI.
@@ -829,9 +997,9 @@ export default function SettingsManager() {
       logo:     settings.images.logo,
       hero:     settings.images.hero,
       placeholder: settings.images.placeholder,
-      vision:       settings.content?.vision       || '',
-      aboutIntro:   settings.content?.aboutIntro   || '',
-      heroSubtitle: settings.content?.heroSubtitle || '',
+      vision:       settings.content?.vision       || CONTENT_DEFAULTS.vision,
+      aboutIntro:   settings.content?.aboutIntro   || CONTENT_DEFAULTS.aboutIntro,
+      heroSubtitle: settings.content?.heroSubtitle || CONTENT_DEFAULTS.heroSubtitle,
       cta1Label: settings.hero?.cta1?.label || '',
       cta1Href:  settings.hero?.cta1?.href  || '',
       cta2Label: settings.hero?.cta2?.label || '',
@@ -840,6 +1008,7 @@ export default function SettingsManager() {
       twitter:   settings.social?.twitter   || '',
       linkedin:  settings.social?.linkedin  || '',
       instagram: settings.social?.instagram || '',
+      youtube:   settings.social?.youtube   || '',
     };
     setForm(next);
     setBaseline(next);
@@ -873,6 +1042,7 @@ export default function SettingsManager() {
           twitter:   form.twitter,
           linkedin:  form.linkedin,
           instagram: form.instagram,
+          youtube:   form.youtube,
         },
       });
       setToast('Pengaturan berhasil disimpan');
@@ -904,27 +1074,28 @@ export default function SettingsManager() {
       </div>
 
       {/* Tab bar */}
-      <nav className="flex gap-1 bg-white border border-slate-200 rounded-xl p-1 shadow-sm overflow-x-auto" role="tablist">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            role="tab"
-            aria-selected={tab === t.id}
-            onClick={() => setTab(t.id)}
-            className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${
-              tab === t.id
-                ? 'bg-orange-50 text-orange-600'
-                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </nav>
-
-      <p className="text-xs text-slate-400 -mt-3">
-        {TABS.find((t) => t.id === tab)?.desc}
-      </p>
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <nav className="flex gap-0.5 p-1.5 overflow-x-auto scrollbar-hide" role="tablist">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={tab === t.id}
+              onClick={() => setTab(t.id)}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${
+                tab === t.id
+                  ? 'bg-orange-500 text-white shadow-sm'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </nav>
+        <div className="px-4 py-2 border-t border-slate-100 bg-slate-50">
+          <p className="text-xs text-slate-500">{TABS.find((t) => t.id === tab)?.desc}</p>
+        </div>
+      </div>
 
       {/* Hero, Tentang, Sosial, and Sistem all commit through the primary
           Save. Footer has its own inline CRUD via FooterLinksSection. */}
@@ -937,16 +1108,16 @@ export default function SettingsManager() {
                 <p className="text-sm text-slate-500 mt-1">Apa yang visitor lihat pertama kali: nama, subjudul, logo, dan gambar hero.</p>
               </div>
               <div className="p-6 space-y-6">
-                <Field label="Nama Situs">
+                <Field label="Nama Situs" hint="Tampil di header, footer, dan tab browser.">
                   <input className={inputCls} value={form.siteName} onChange={e => setForm({ ...form, siteName: e.target.value })} />
                 </Field>
-                <Field label="Subjudul Beranda" hint="Satu kalimat positioning singkat di bawah nama situs.">
+                <Field label="Subjudul Beranda" hint="Kalimat yang tampil di bawah nama situs pada halaman Hero.">
                   <textarea
                     rows={2}
                     className={inputCls + ' resize-none'}
                     value={form.heroSubtitle}
                     onChange={e => setForm({ ...form, heroSubtitle: e.target.value })}
-                    placeholder="Pusat kerja kolaboratif multihak dalam penguatan demokrasi dan reformasi kepemiluan Indonesia."
+                    placeholder="Pusat kerja kolaboratif multihak dalam mempromosikan penguatan demokrasi dan reformasi kepemiluan Indonesia."
                   />
                 </Field>
 
@@ -990,22 +1161,22 @@ export default function SettingsManager() {
                 <p className="text-sm text-slate-500 mt-1">Semua narasi yang tampil di halaman Tentang Kami.</p>
               </div>
               <div className="p-6 space-y-6">
-                <Field label="Deskripsi / Siapa Kami" hint="Paragraf pembuka di halaman Profil. Pisahkan paragraf dengan baris kosong.">
+                <Field label="Deskripsi / Siapa Kami" hint="Tampil di halaman Profil. Pisahkan paragraf dengan baris kosong.">
                   <textarea
                     rows={5}
                     className={inputCls + ' resize-y'}
                     value={form.aboutIntro}
                     onChange={e => setForm({ ...form, aboutIntro: e.target.value })}
-                    placeholder="Sindikasi Pemilu dan Demokrasi (SPD) adalah organisasi masyarakat sipil..."
+                    placeholder="Sindikasi Pemilu dan Demokrasi (SPD) adalah organisasi masyarakat sipil yang berfokus pada penguatan demokrasi dan reformasi kepemiluan di Indonesia."
                   />
                 </Field>
-                <Field label="Visi" hint="Teks visi di halaman Visi & Misi.">
+                <Field label="Visi" hint="Tampil di halaman Visi & Misi.">
                   <textarea
                     rows={3}
                     className={inputCls + ' resize-none'}
                     value={form.vision}
                     onChange={e => setForm({ ...form, vision: e.target.value })}
-                    placeholder="Menjadi pusat kerja kolaboratif multihak..."
+                    placeholder="Menjadi pusat kerja kolaboratif multihak dalam memperkuat demokrasi dan kepemiluan yang inklusif di Indonesia."
                   />
                 </Field>
                 <div className="border-t border-slate-100 pt-5">
@@ -1025,13 +1196,24 @@ export default function SettingsManager() {
             <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-slate-100">
                 <h2 className="text-lg font-bold text-slate-800">Tautan Media Sosial</h2>
-                <p className="text-sm text-slate-500 mt-1">Kosongkan satu field untuk menyembunyikan ikonnya.</p>
+                <p className="text-sm text-slate-500 mt-1">Ikon akan tampil di header dan footer. Kosongkan satu field untuk menyembunyikan ikonnya.</p>
               </div>
-              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Facebook"><input className={inputCls} value={form.facebook} onChange={e => setForm({ ...form, facebook: e.target.value })} placeholder="https://facebook.com/..." /></Field>
-                <Field label="Twitter / X"><input className={inputCls} value={form.twitter} onChange={e => setForm({ ...form, twitter: e.target.value })} placeholder="https://x.com/..." /></Field>
-                <Field label="LinkedIn"><input className={inputCls} value={form.linkedin} onChange={e => setForm({ ...form, linkedin: e.target.value })} placeholder="https://linkedin.com/..." /></Field>
-                <Field label="Instagram"><input className={inputCls} value={form.instagram} onChange={e => setForm({ ...form, instagram: e.target.value })} placeholder="https://instagram.com/..." /></Field>
+              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                <Field label="Instagram" hint="Tempel URL lengkap akun Instagram SPD">
+                  <input className={inputCls} value={form.instagram} onChange={e => setForm({ ...form, instagram: e.target.value })} placeholder="https://instagram.com/spdindonesia" />
+                </Field>
+                <Field label="YouTube" hint="Tempel URL channel YouTube SPD">
+                  <input className={inputCls} value={form.youtube} onChange={e => setForm({ ...form, youtube: e.target.value })} placeholder="https://youtube.com/@spdindonesia" />
+                </Field>
+                <Field label="Facebook">
+                  <input className={inputCls} value={form.facebook} onChange={e => setForm({ ...form, facebook: e.target.value })} placeholder="https://facebook.com/spdindonesia" />
+                </Field>
+                <Field label="Twitter / X">
+                  <input className={inputCls} value={form.twitter} onChange={e => setForm({ ...form, twitter: e.target.value })} placeholder="https://x.com/spdindonesia" />
+                </Field>
+                <Field label="LinkedIn">
+                  <input className={inputCls} value={form.linkedin} onChange={e => setForm({ ...form, linkedin: e.target.value })} placeholder="https://linkedin.com/company/spdindonesia" />
+                </Field>
               </div>
             </section>
           )}
@@ -1057,17 +1239,17 @@ export default function SettingsManager() {
             </section>
           )}
 
-          {/* Sticky save bar for Organisasi + Media */}
-          <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-5 py-3 shadow-sm sticky bottom-4">
-            <p className="text-xs text-slate-500">
+          {/* Sticky save bar */}
+          <div className={`flex items-center justify-between rounded-xl px-5 py-3 shadow-sm sticky bottom-4 border transition-colors ${dirty ? 'bg-orange-50 border-orange-200' : 'bg-white border-slate-200'}`}>
+            <p className={`text-xs font-medium ${dirty ? 'text-orange-700' : 'text-slate-400'}`}>
               {dirty
-                ? <>Ada perubahan belum tersimpan.</>
-                : <>Tidak ada perubahan.</>}
+                ? '⚠ Ada perubahan yang belum disimpan'
+                : '✓ Semua perubahan sudah tersimpan'}
             </p>
             <button
               type="submit"
               disabled={savingSettings || !dirty}
-              className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors"
+              className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors"
             >
               {savingSettings && <Spinner small />}
               {savingSettings ? 'Menyimpan...' : 'Simpan Pengaturan'}

@@ -14,8 +14,16 @@ const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
 const EMAIL    = process.env.ADMIN_EMAIL    || 'admin@spdindonesia.org';
-const PASSWORD = process.env.ADMIN_PASSWORD || 'AdminSindikasi27!';
+// R13: No hardcoded fallback password — must be set via ADMIN_PASSWORD env var in production.
+// For local dev, set it in backend/.env before running.
+const PASSWORD = process.env.ADMIN_PASSWORD;
 const NAME     = process.env.ADMIN_NAME     || 'Admin SPD Indonesia';
+
+if (!PASSWORD) {
+  console.error('[reset-admin] ADMIN_PASSWORD env var is required. Set it in .env before running.');
+  console.error('  Example: ADMIN_PASSWORD="MySecurePass123!" node scripts/reset-admin.js');
+  process.exit(1);
+}
 
 async function main() {
   if (typeof PASSWORD !== 'string' || PASSWORD.length < 8) {

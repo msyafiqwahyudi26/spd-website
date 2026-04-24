@@ -91,13 +91,16 @@ fi
 # ── 8. Frontend install + build ──────────────────────────────────────
 log "Installing frontend deps and building Vite bundle"
 cd "${APP_DIR}"
-npm install
-npm run build
+# B5: Use npm ci (not npm install) so prod matches package-lock.json exactly.
+npm ci
+# B3: Set VITE_API_URL so the bundle hits the same-origin /api proxy, not localhost.
+VITE_API_URL=/api npm run build
 
 # ── 9. Backend install (production only) ─────────────────────────────
 log "Installing backend deps (production)"
 cd "${BACKEND_DIR}"
-npm install --production
+# B5: npm ci for reproducible installs.
+npm ci --omit=dev
 
 # ── 10. Backend .env (placeholders — EDIT BEFORE GOING LIVE) ─────────
 ENV_FILE="${BACKEND_DIR}/.env"
@@ -115,7 +118,7 @@ PORT=5000
 # Prisma schema currently declares provider="sqlite".
 # Keep SQLite (simplest) OR switch schema.prisma to postgresql and
 # point DATABASE_URL at a real Postgres instance.
-DATABASE_URL="file:./prisma/prod.db"
+DATABASE_URL="file:/var/www/spd-website/backend/prisma/prod.db"
 
 # REQUIRED. Min 32 chars. Auto-generated below — keep or replace.
 JWT_SECRET="${JWT_PLACEHOLDER}"
@@ -143,9 +146,9 @@ fi
 log "Generating Prisma client and pushing schema"
 cd "${BACKEND_DIR}"
 npx prisma generate
-# db push is fine for SQLite on first boot; switch to `migrate deploy`
-# once you start shipping migrations.
-npx prisma db push --accept-data-loss || warn "prisma db push failed — check DATABASE_URL"
+# B2: Removed --accept-data-loss — that flag can silently truncate tables on schema drift.
+# db push without it is safe for additive changes (new columns/tables only).
+npx prisma db push || warn "prisma db push failed — check DATABASE_URL and schema"
 
 # Make sure uploads dir exists and is writable
 mkdir -p "${BACKEND_DIR}/uploads" "${BACKEND_DIR}/logs"

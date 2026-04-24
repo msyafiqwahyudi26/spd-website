@@ -28,10 +28,13 @@ function Row({ item, onUpdate, onDelete }) {
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-start gap-4">
-      <div className="shrink-0 w-20 text-right">
-        <span className="text-xs font-bold text-orange-500">{item.year}</span>
+      <div className="shrink-0 pt-0.5">
+        <span className="inline-block bg-orange-500 text-white text-sm font-bold px-3 py-1.5 rounded-lg leading-tight whitespace-nowrap">
+          {item.year}
+        </span>
       </div>
-      <div className="flex-1 min-w-0 border-l border-slate-200 pl-4">
+      <div className="w-px self-stretch bg-slate-200 shrink-0 mt-1" />
+      <div className="flex-1 min-w-0">
         {editing ? (
           <div className="space-y-2.5">
             <div className="grid grid-cols-1 md:grid-cols-[100px_140px_1fr] gap-2.5">

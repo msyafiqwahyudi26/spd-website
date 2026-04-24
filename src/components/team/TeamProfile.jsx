@@ -39,7 +39,6 @@ export function TeamCard({ member, onOpen, large = false }) {
       <p className={`font-semibold text-slate-800 mt-3 transition-colors duration-200 group-hover:text-orange-600 ${large ? 'text-base' : 'text-sm'}`}>
         {member.name}
       </p>
-      <p className="text-xs text-orange-500 mt-0.5">{member.role}</p>
     </button>
   );
 }
@@ -91,9 +90,6 @@ export default function TeamGrid({ featured, members = [] }) {
         <div className="flex justify-center mb-10">
           <div className="text-center">
             <TeamCard member={featured} large onOpen={setSelected} />
-            <span className="mt-3 inline-block text-xs bg-orange-50 text-orange-600 border border-orange-100 rounded-full px-3 py-1 font-medium">
-              Pimpinan
-            </span>
           </div>
         </div>
       )}

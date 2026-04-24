@@ -7,7 +7,7 @@ export const DEFAULT_SETTINGS = {
   images: { logo: '', hero: '', placeholder: '' },
   content: { vision: '', aboutIntro: '', heroSubtitle: '' },
   hero: { cta1: { label: '', href: '' }, cta2: { label: '', href: '' } },
-  social: { facebook: '', twitter: '', linkedin: '', instagram: '' },
+  social: { facebook: '', twitter: '', linkedin: '', instagram: '', youtube: '' },
 };
 
 // Local-only seed used until the API responds. Real values come from the DB.
@@ -56,6 +56,7 @@ function normalizeSettings(s) {
       twitter:   s.social?.twitter   ?? '',
       linkedin:  s.social?.linkedin  ?? '',
       instagram: s.social?.instagram ?? '',
+      youtube:   s.social?.youtube   ?? '',
     },
   };
 }

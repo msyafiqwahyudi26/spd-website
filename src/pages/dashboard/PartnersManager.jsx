@@ -1,52 +1,92 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 import { Toast, Spinner, Field, ErrorState, inputCls } from './shared';
 import MediaPicker from './MediaPicker';
 
-// Partner logo field — picker only, no direct URL input. Every partner
-// logo flows through the Media library so assets are traceable and re-
-// usable. Matches TeamManager's photo field pattern.
+// Partner logo field — supports direct upload AND picking from Media library.
 function LogoField({ value, onChange, disabled }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [uploading, setUploading]   = useState(false);
+  const [uploadErr, setUploadErr]   = useState('');
+  const fileRef = useRef(null);
   const preview = value ? resolveMediaUrl(value) : null;
+
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadErr('');
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const created = await api('/media', { method: 'POST', body: fd });
+      onChange(created.url);
+    } catch (err) {
+      setUploadErr(err?.message || 'Gagal mengunggah');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
   return (
     <div>
       <label className="block text-sm font-medium text-slate-700 mb-1">Logo mitra</label>
       <div className="flex items-start gap-3">
+        {/* Preview thumbnail */}
         <div className="w-20 h-16 rounded-lg bg-slate-50 border border-slate-200 shrink-0 overflow-hidden flex items-center justify-center">
           {preview ? (
             <img src={preview} alt="" className="max-w-full max-h-full object-contain" />
           ) : (
-            <span className="text-[10px] text-slate-400 uppercase text-center px-1">Tanpa logo</span>
+            <svg className="w-6 h-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M2.25 6A2.25 2.25 0 014.5 3.75h15A2.25 2.25 0 0121.75 6v12a2.25 2.25 0 01-2.25 2.25h-15A2.25 2.25 0 012.25 18V6z" />
+            </svg>
           )}
         </div>
+
         <div className="flex-1 min-w-0 space-y-1.5">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {/* Direct upload */}
+            <label className={`inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 px-3 py-1.5 rounded-md cursor-pointer transition-colors ${(disabled || uploading) ? 'opacity-60 pointer-events-none' : ''}`}>
+              {uploading ? <Spinner small /> : (
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                </svg>
+              )}
+              {uploading ? 'Mengunggah…' : 'Upload Logo'}
+              <input ref={fileRef} type="file" accept="image/*" disabled={disabled || uploading} onChange={handleUpload} className="hidden" />
+            </label>
+
+            {/* Pick from library */}
             <button
               type="button"
               onClick={() => setPickerOpen(true)}
-              disabled={disabled}
-              className="text-xs font-semibold text-orange-500 hover:text-orange-600 border border-orange-100 hover:border-orange-300 px-3 py-1.5 rounded-md disabled:opacity-60"
+              disabled={disabled || uploading}
+              className="text-xs font-semibold text-slate-600 hover:text-slate-800 border border-slate-200 hover:border-slate-300 bg-white px-3 py-1.5 rounded-md disabled:opacity-60 transition-colors"
             >
               Pilih dari Media
             </button>
+
             {value && (
               <button
                 type="button"
                 onClick={() => onChange('')}
                 disabled={disabled}
-                className="text-xs font-medium text-slate-500 hover:text-red-500 px-3 py-1.5 rounded-md border border-slate-200 disabled:opacity-60"
+                className="text-xs font-medium text-slate-400 hover:text-red-500 px-3 py-1.5 rounded-md border border-slate-200 disabled:opacity-60 transition-colors"
               >
                 Hapus
               </button>
             )}
           </div>
+
+          {uploadErr && <p className="text-xs text-red-500">{uploadErr}</p>}
           {value && (
             <p className="text-[11px] text-slate-400 font-mono truncate" title={value}>{value}</p>
           )}
         </div>
       </div>
+
       <MediaPicker
         open={pickerOpen}
         filter="image"

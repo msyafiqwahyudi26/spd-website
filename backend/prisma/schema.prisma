@@ -132,11 +132,12 @@ model Setting {
   heroCta2Label  String   @default("")
   heroCta2Href   String   @default("")
   // Footer social URLs. Empty = hide the icon.
-  socialFacebook String   @default("")
-  socialTwitter  String   @default("")
-  socialLinkedin String   @default("")
-  socialInstagram String  @default("")
-  updatedAt      DateTime @updatedAt @default(now())
+  socialFacebook  String   @default("")
+  socialTwitter   String   @default("")
+  socialLinkedin  String   @default("")
+  socialInstagram String   @default("")
+  socialYoutube   String   @default("")
+  updatedAt       DateTime @updatedAt @default(now())
 }
 
 model Category {
@@ -222,6 +223,8 @@ model CoreValue {
   // Same icon registry vocabulary as Approach — shared dropdown reduces
   // cognitive load for admins.
   iconKey     String   @default("collaboration")
+  // Optional custom icon URL (uploaded via Media). Takes precedence over iconKey.
+  iconUrl     String   @default("")
   title       String
   description String   @default("")
   sortOrder   Int      @default(0)
@@ -237,6 +240,8 @@ model Approach {
   // (collaboration / data / youth / ...). Keeps icons SVG-in-code while
   // letting admin edit title + description freely.
   iconKey     String   @default("collaboration")
+  // Optional custom icon URL (uploaded via Media). Takes precedence over iconKey.
+  iconUrl     String   @default("")
   title       String
   description String   @default("")
   sortOrder   Int      @default(0)
