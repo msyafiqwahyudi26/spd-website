@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="Timeline 2018 — Journal SINTA 2">
+  <rect width="400" height="400" fill="#EAF0F7"/>
+  <g transform="translate(130,180)">
+    <rect x="0" y="0" width="140" height="170" rx="4" fill="#FFFFFF" stroke="#0A2540" stroke-width="3"/>
+    <rect x="16" y="20" width="108" height="6" fill="#0A2540"/>
+    <rect x="16" y="36" width="84"  height="6" fill="#6B7280" opacity="0.6"/>
+    <rect x="16" y="54" width="108" height="3" fill="#E5E7EB"/>
+    <rect x="16" y="66" width="108" height="3" fill="#E5E7EB"/>
+    <rect x="16" y="78" width="92"  height="3" fill="#E5E7EB"/>
+    <rect x="16" y="120" width="50" height="18" rx="2" fill="#B91C2C"/>
+    <text x="41" y="133" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="10" fill="#FFFFFF">SINTA 2</text>
+  </g>
+  <text x="200" y="110" text-anchor="middle" font-family="'Source Serif 4', Georgia, serif" font-weight="700" font-size="34" fill="#0A2540">2018</text>
+  <text x="200" y="380" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="12" fill="#0A2540" letter-spacing="1.6">JURNAL DEMOKRASI</text>
+</svg>

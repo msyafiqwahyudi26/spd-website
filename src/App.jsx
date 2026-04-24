@@ -1,0 +1,100 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Layout from './components/layout/Layout';
+import ErrorBoundary from './components/ErrorBoundary';
+import Landing from './pages/Landing';
+import About from './pages/About';
+import AboutProfil from './pages/about/Profil';
+import AboutVisiMisi from './pages/about/VisiMisi';
+import AboutStruktur from './pages/about/Struktur';
+import AboutMitra from './pages/about/Mitra';
+import AboutLaporan from './pages/about/LaporanTahunan';
+import Program from './pages/Program';
+import Publikasi from './pages/Publikasi';
+import PublikasiDetail from './pages/PublikasiDetail';
+import Event from './pages/Event';
+import EventDetail from './pages/EventDetail';
+import DataPemilu from './pages/DataPemilu';
+import Kontak from './pages/Kontak';
+
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import RequireAdmin from './components/RequireAdmin';
+import DashboardOverview from './pages/dashboard/Overview';
+import PublikasiManager from './pages/dashboard/PublikasiManager';
+import EventManager from './pages/dashboard/EventManager';
+import SettingsManager from './pages/dashboard/SettingsManager';
+import MessagesManager from './pages/dashboard/MessagesManager';
+import UsersManager from './pages/dashboard/UsersManager';
+import AnalyticsPage from './pages/dashboard/AnalyticsPage';
+import LogsPage from './pages/dashboard/LogsPage';
+import MediaManager from './pages/dashboard/MediaManager';
+import PartnersManager from './pages/dashboard/PartnersManager';
+import TeamManager from './pages/dashboard/TeamManager';
+import TimelineManager from './pages/dashboard/TimelineManager';
+import ReportsManager from './pages/dashboard/ReportsManager';
+import ComingSoon from './pages/dashboard/ComingSoon';
+
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
+          {/* Public routes with Layout (Header + Footer) */}
+          <Route element={<Layout />}>
+            <Route index element={<Landing />} />
+
+            {/* Tentang Kami */}
+            <Route path="/tentang-kami" element={<About />} />
+            <Route path="/tentang-kami/profil" element={<AboutProfil />} />
+            <Route path="/tentang-kami/visi-misi" element={<AboutVisiMisi />} />
+            <Route path="/tentang-kami/struktur" element={<AboutStruktur />} />
+            <Route path="/tentang-kami/mitra" element={<AboutMitra />} />
+            <Route path="/tentang-kami/laporan-tahunan" element={<AboutLaporan />} />
+
+            {/* Program */}
+            <Route path="/program" element={<Program />} />
+
+            {/* Publikasi */}
+            <Route path="/publikasi" element={<Publikasi />} />
+            <Route path="/publikasi/:slug" element={<PublikasiDetail />} />
+
+            {/* Event */}
+            <Route path="/event" element={<Event />} />
+            <Route path="/event/:slug" element={<EventDetail />} />
+
+            {/* Lainnya */}
+            <Route path="/data-pemilu" element={<DataPemilu />} />
+            <Route path="/kontak" element={<Kontak />} />
+          </Route>
+
+          {/* Auth */}
+          <Route path="/login" element={<Login />} />
+
+          {/* Dashboard */}
+          <Route path="/dashboard" element={<Dashboard />}>
+            <Route index              element={<DashboardOverview />} />
+            {/* Content routes — accessible to admin and publisher */}
+            <Route path="publikasi"   element={<PublikasiManager />} />
+            <Route path="event"       element={<EventManager />} />
+            {/* Admin-only routes — publishers get redirected to /dashboard */}
+            <Route element={<RequireAdmin />}>
+              <Route path="settings"    element={<SettingsManager />} />
+              <Route path="pesan"       element={<MessagesManager />} />
+              <Route path="pengguna"    element={<UsersManager />} />
+              <Route path="analitik"    element={<AnalyticsPage />} />
+              <Route path="logs"        element={<LogsPage />} />
+              <Route path="media"        element={<MediaManager />} />
+              <Route path="mitra"        element={<PartnersManager />} />
+              <Route path="tim"          element={<TeamManager />} />
+              <Route path="perjalanan"   element={<TimelineManager />} />
+              <Route path="laporan"      element={<ReportsManager />} />
+              <Route path="subscribers"  element={<ComingSoon title="Pelanggan"     description="Kelola daftar pelanggan newsletter." />} />
+              <Route path="email-logs"   element={<ComingSoon title="Riwayat Email" description="Riwayat pengiriman email sistem." />} />
+            </Route>
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
+  );
+}

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Pilkada Fest — Semarang">
+  <rect width="800" height="600" fill="#8A1321"/>
+  <g opacity="0.15" fill="#FFFFFF">
+    <path d="M0,0 L800,0 L800,140 L0,200 Z"/>
+  </g>
+  <g opacity="0.25" fill="#FFFFFF">
+    <rect x="60"  y="260" width="90"  height="280" rx="4"/>
+    <rect x="170" y="240" width="90"  height="300" rx="4"/>
+    <rect x="280" y="220" width="90"  height="320" rx="4"/>
+    <rect x="390" y="260" width="90"  height="280" rx="4"/>
+    <rect x="500" y="240" width="90"  height="300" rx="4"/>
+    <rect x="610" y="260" width="90"  height="280" rx="4"/>
+  </g>
+  <text x="40" y="80" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF" opacity="0.85" letter-spacing="2">FESTIVAL 10 / 10</text>
+  <text x="40" y="560" font-family="'Source Serif 4', Georgia, serif" font-size="26" font-weight="600" fill="#FFFFFF">PilkadaFest</text>
+  <text x="40" y="586" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#FFFFFF" opacity="0.85">Semarang · Partisipasi publik</text>
+</svg>

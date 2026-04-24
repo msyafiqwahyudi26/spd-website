@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="Timeline 2011 — Founding">
+  <rect width="400" height="400" fill="#EAF0F7"/>
+  <g transform="translate(200,180)" fill="#0A2540" opacity="0.85">
+    <circle r="62"/>
+  </g>
+  <g transform="translate(200,180)" fill="#FFFFFF">
+    <text text-anchor="middle" y="8" font-family="'Source Serif 4', Georgia, serif" font-weight="700" font-size="30">2011</text>
+  </g>
+  <text x="200" y="300" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="14" fill="#0A2540" letter-spacing="2">BERDIRI</text>
+  <text x="200" y="324" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#6B7280">Kelompok studi pemilu · Yogyakarta</text>
+</svg>

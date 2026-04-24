@@ -1,0 +1,65 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_KEY }}
+          port:     ${{ secrets.VPS_PORT }}
+          script_stop: true
+          command_timeout: 10m
+          script: |
+            set -euo pipefail
+
+            APP_DIR="${{ secrets.VPS_APP_DIR }}"
+            BRANCH="${GITHUB_REF_NAME:-main}"
+
+            echo "→ Deploying $BRANCH to $APP_DIR"
+            cd "$APP_DIR"
+
+            # Hard-sync working tree to origin/<branch>. Fails loudly if the
+            # VPS has local drift (never edit on the server).
+            git fetch --prune --tags origin "$BRANCH"
+            git reset --hard "origin/$BRANCH"
+
+            echo "→ Installing backend deps"
+            cd "$APP_DIR/backend"
+            npm ci --omit=dev
+            npx prisma generate
+
+            echo "→ Applying database migrations"
+            npx prisma migrate deploy
+
+            echo "→ Building frontend"
+            cd "$APP_DIR"
+            npm ci
+            npm run build
+
+            echo "→ Reloading PM2"
+            cd "$APP_DIR/backend"
+            # Starts on first deploy, zero-downtime reload afterwards.
+            pm2 reload ecosystem.config.cjs --env production --update-env \
+              || pm2 start ecosystem.config.cjs --env production
+            pm2 save
+
+            echo "→ Smoke test"
+            sleep 2
+            curl -fsS http://127.0.0.1:5000/api > /dev/null
+
+            echo "✓ Deploy complete"

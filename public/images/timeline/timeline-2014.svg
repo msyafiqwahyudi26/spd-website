@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="Timeline 2014 — First electoral research">
+  <rect width="400" height="400" fill="#F7F8FA"/>
+  <g transform="translate(90,240)">
+    <rect x="0"  y="40" width="36" height="56" fill="#0A2540"/>
+    <rect x="50" y="16" width="36" height="80" fill="#0A2540" opacity="0.82"/>
+    <rect x="100" y="30" width="36" height="66" fill="#0A2540" opacity="0.65"/>
+    <rect x="150" y="0"  width="36" height="96" fill="#B91C2C"/>
+    <rect x="200" y="22" width="36" height="74" fill="#0A2540" opacity="0.5"/>
+  </g>
+  <text x="200" y="150" text-anchor="middle" font-family="'Source Serif 4', Georgia, serif" font-weight="700" font-size="42" fill="#0A2540">2014</text>
+  <text x="200" y="340" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="13" fill="#0A2540" letter-spacing="1.6">RISET PARTISIPASI</text>
+</svg>

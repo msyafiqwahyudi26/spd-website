@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Riset partisipatif — NTT">
+  <rect width="800" height="600" fill="#5B7C6F"/>
+  <g opacity="0.15" fill="#FFFFFF">
+    <path d="M0,420 Q200,360 400,400 T800,380 L800,600 L0,600 Z"/>
+  </g>
+  <g opacity="0.4" stroke="#FFFFFF" stroke-width="2" fill="none">
+    <path d="M120,240 L280,200 L360,260 L480,200 L620,240"/>
+    <circle cx="120" cy="240" r="6" fill="#FFFFFF"/>
+    <circle cx="280" cy="200" r="6" fill="#FFFFFF"/>
+    <circle cx="360" cy="260" r="6" fill="#FFFFFF"/>
+    <circle cx="480" cy="200" r="6" fill="#FFFFFF"/>
+    <circle cx="620" cy="240" r="6" fill="#FFFFFF"/>
+  </g>
+  <text x="40" y="80" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF" opacity="0.8" letter-spacing="2">RISET LAPANGAN 04 / 10</text>
+  <text x="40" y="560" font-family="'Source Serif 4', Georgia, serif" font-size="26" font-weight="600" fill="#FFFFFF">Riset Partisipatif</text>
+  <text x="40" y="586" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#FFFFFF" opacity="0.85">Nusa Tenggara Timur · 2025</text>
+</svg>

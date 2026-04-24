@@ -1,0 +1,253 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import logo from '../../assets/logo-spd.svg';
+import { useSettings } from '../../hooks/useSettings';
+import { resolveMedia } from '../../config/media';
+import { api } from '@/lib/api';
+
+const NAVIGASI = [
+  { id: 'nav-home', label: 'Beranda', href: '/' },
+  { id: 'nav-about', label: 'Tentang Kami', href: '/tentang-kami' },
+  { id: 'nav-program', label: 'Program', href: '/program' },
+  { id: 'nav-publikasi', label: 'Publikasi', href: '/publikasi' },
+];
+
+// Layanan links point to the Program page until dedicated service sub-pages
+// exist. Keeping the labels preserves the information architecture from the
+// reference design while avoiding dead routes.
+const LAYANAN = [
+  { id: 'srv-riset', label: 'Riset & Analisis Kebijakan', href: '/program' },
+  { id: 'srv-kampanye', label: 'Kampanye Digital', href: '/program' },
+  { id: 'srv-adv-publik', label: 'Advokasi Publik', href: '/program' },
+  { id: 'srv-adv-kebijakan', label: 'Advokasi Kebijakan', href: '/program' },
+];
+
+// Social icons are static SVGs; the href comes from settings.social.* and
+// each link is rendered only when its URL is non-empty. Admin controls
+// visibility + targets from the Settings page.
+const SOCIAL_ICONS = {
+  facebook: (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  ),
+  twitter: (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  ),
+  linkedin: (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+      <rect x="2" y="9" width="4" height="12" />
+      <circle cx="4" cy="4" r="2" />
+    </svg>
+  ),
+  instagram: (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
+    </svg>
+  ),
+};
+
+const SOCIAL_LABELS = { facebook: 'Facebook', twitter: 'Twitter / X', linkedin: 'LinkedIn', instagram: 'Instagram' };
+
+function NewsletterForm() {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState({ kind: 'idle', message: '' });
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (status.kind === 'loading') return;
+    const value = email.trim();
+    if (!value) {
+      setStatus({ kind: 'error', message: 'Masukkan email Anda.' });
+      return;
+    }
+    setStatus({ kind: 'loading', message: '' });
+    try {
+      await api('/subscribers', {
+        method: 'POST',
+        body: JSON.stringify({ email: value }),
+      });
+      setStatus({ kind: 'success', message: 'Terima kasih, kami akan mengirimi Anda update.' });
+      setEmail('');
+    } catch (err) {
+      setStatus({
+        kind: 'error',
+        message: err?.message || 'Gagal berlangganan. Coba lagi sebentar.',
+      });
+    }
+  };
+
+  // After success, show a thank-you state briefly, then reset so a second
+  // subscribe (different email, shared device) is still possible without reload.
+  useEffect(() => {
+    if (status.kind !== 'success') return undefined;
+    const t = setTimeout(() => setStatus({ kind: 'idle', message: '' }), 4000);
+    return () => clearTimeout(t);
+  }, [status.kind]);
+
+  const statusClass = {
+    error: 'text-red-400',
+    loading: 'text-slate-400',
+  }[status.kind] || '';
+
+  if (status.kind === 'success') {
+    return (
+      <div role="status" aria-live="polite" className="bg-slate-800/60 border border-emerald-500/30 rounded-md px-4 py-3 flex items-start gap-3">
+        <svg className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+        </svg>
+        <p className="text-xs text-emerald-100 leading-snug">{status.message}</p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-2" noValidate>
+      <div className="flex">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={status.kind === 'loading'}
+          placeholder="Email Anda"
+          className="flex-1 min-w-0 bg-slate-800 border border-slate-700 text-white text-sm px-3 py-2.5 rounded-l-md placeholder:text-slate-500 focus:outline-none focus:border-orange-500 transition-colors duration-200 disabled:opacity-70"
+        />
+        <button
+          type="submit"
+          disabled={status.kind === 'loading'}
+          aria-label="Kirim"
+          className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 px-3.5 rounded-r-md transition-colors duration-200 flex items-center justify-center shrink-0 disabled:opacity-70"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-white">
+            <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
+          </svg>
+        </button>
+      </div>
+      {status.message && (
+        <p className={`text-xs ${statusClass}`} role="status" aria-live="polite">
+          {status.message}
+        </p>
+      )}
+    </form>
+  );
+}
+
+export default function Footer() {
+  const { settings } = useSettings();
+  const logoSrc = resolveMedia(logo, settings.images?.logo);
+  return (
+    <footer className="bg-slate-900 text-white relative">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+
+          {/* Col 1 — SPD Info */}
+          <div className="sm:col-span-2 lg:col-span-1">
+            <p className="text-base font-bold text-white mb-3 leading-snug">
+              {settings.siteName}
+            </p>
+            <p className="text-sm text-slate-400 leading-relaxed mb-6">
+              Pusat kerja kolaboratif multihak untuk mempelajari dan memperkuat
+              isu-isu pemilu dan demokrasi di Indonesia secara konsisten.
+            </p>
+            <div className="flex gap-2">
+              {['facebook', 'twitter', 'linkedin', 'instagram'].map((key) => {
+                const url = settings.social?.[key];
+                if (!url) return null;
+                return (
+                  <a
+                    key={key}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={SOCIAL_LABELS[key]}
+                    className="w-8 h-8 rounded-md bg-slate-700 hover:bg-orange-500 flex items-center justify-center text-white transition-colors duration-200"
+                  >
+                    {SOCIAL_ICONS[key]}
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Col 2 — Navigasi */}
+          <div>
+            <h4 className="text-sm font-semibold text-white mb-4 tracking-wide">
+              Navigasi
+            </h4>
+            <ul className="space-y-2.5">
+              {NAVIGASI.map((item) => (
+                <li key={item.id}>
+                  <Link
+                    to={item.href}
+                    className="text-sm text-slate-400 hover:text-orange-500 transition-colors duration-200"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Col 3 — Layanan */}
+          <div>
+            <h4 className="text-sm font-semibold text-white mb-4 tracking-wide">
+              Layanan
+            </h4>
+            <ul className="space-y-2.5">
+              {LAYANAN.map((item) => (
+                <li key={item.id}>
+                  <Link
+                    to={item.href}
+                    className="text-sm text-slate-400 hover:text-orange-500 transition-colors duration-200"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Col 4 — Newsletter */}
+          <div>
+            <h4 className="text-sm font-semibold text-white mb-3 tracking-wide">
+              Newsletter
+            </h4>
+            <p className="text-sm text-slate-400 leading-relaxed mb-4">
+              Dapatkan update terbaru tentang perkembangan pemilu Indonesia.
+            </p>
+            <NewsletterForm />
+          </div>
+
+        </div>
+      </div>
+
+      {/* Bottom bar */}
+      <div className="border-t border-slate-800">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
+          <p className="text-xs text-slate-500 text-center">
+            © 2026 SPD-Indonesia. Hak cipta dilindungi undang-undang.
+          </p>
+        </div>
+      </div>
+
+      {/* Hidden Login Access */}
+      <Link
+        to="/login"
+        className="absolute bottom-3 right-4 sm:bottom-3 sm:right-6 opacity-40 hover:opacity-100 transition-opacity duration-300"
+        aria-label="Admin Access"
+      >
+        <img
+          src={logoSrc}
+          alt=""
+          onError={(e) => { e.currentTarget.src = logo; }}
+          className="h-37 w-auto grayscale"
+        />
+      </Link>
+    </footer>
+  );
+}

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Sekolah Jubir Warga — Makassar">
+  <rect width="800" height="600" fill="#B91C2C"/>
+  <g fill="#FFFFFF" opacity="0.12">
+    <rect x="80"  y="360" width="120" height="200"/>
+    <rect x="220" y="300" width="120" height="260"/>
+    <rect x="360" y="280" width="120" height="280"/>
+    <rect x="500" y="320" width="120" height="240"/>
+    <rect x="640" y="360" width="100" height="200"/>
+  </g>
+  <g stroke="#FFFFFF" stroke-width="3" fill="none" opacity="0.4">
+    <path d="M140 360 L140 240"/>
+    <path d="M280 300 L280 180"/>
+    <path d="M420 280 L420 160"/>
+    <path d="M560 320 L560 200"/>
+    <path d="M690 360 L690 240"/>
+  </g>
+  <text x="40" y="80" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF" opacity="0.8" letter-spacing="2">PELATIHAN 02 / 10</text>
+  <text x="40" y="560" font-family="'Source Serif 4', Georgia, serif" font-size="26" font-weight="600" fill="#FFFFFF">Sekolah Jubir Warga</text>
+  <text x="40" y="586" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#FFFFFF" opacity="0.85">Makassar · Batch 9</text>
+</svg>

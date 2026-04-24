@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400" width="300" height="400" role="img" aria-label="Team portrait placeholder — Erik Kurniawan">
+  <defs>
+    <linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EAF0F7"/>
+      <stop offset="1" stop-color="#C9D5E3"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="400" fill="url(#bg1)"/>
+  <circle cx="150" cy="160" r="56" fill="#0A2540" opacity="0.65"/>
+  <path d="M60,400 C60,310 90,260 150,260 C210,260 240,310 240,400 Z" fill="#0A2540" opacity="0.65"/>
+  <rect x="0" y="340" width="300" height="60" fill="#0A2540" opacity="0.85"/>
+  <text x="150" y="364" text-anchor="middle" font-family="'Source Serif 4', Georgia, serif" font-weight="600" font-size="15" fill="#FFFFFF">Erik Kurniawan</text>
+  <text x="150" y="384" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="500" font-size="11" fill="#C9D5E3" letter-spacing="0.5">DIREKTUR EKSEKUTIF</text>
+</svg>

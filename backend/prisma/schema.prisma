@@ -1,0 +1,213 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  password   String
+  name       String
+  role       String   @default("admin")
+  // Auth provider: "local" for email+password, "google" for Google Workspace.
+  // providerId stores the external identifier (e.g. Google sub) so a single
+  // user can be uniquely identified by (provider, providerId).
+  provider   String   @default("local")
+  providerId String?
+  createdAt  DateTime @default(now())
+
+  @@unique([provider, providerId], name: "provider_providerId")
+}
+
+model Publication {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  category    String
+  description String   @default("")
+  author      String   @default("")
+  readTime    String   @default("")
+  date        String   @default("")
+  fullContent String   @default("[]")
+  image       String?
+  gallery     String   @default("[]")
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  // Human-readable date string shown to visitors (e.g. "20 November 2024").
+  date        String    @default("")
+  // Machine-readable start timestamp for chronological sort / "upcoming"
+  // filters. Nullable so legacy rows without a parseable date still work.
+  startsAt    DateTime?
+  location    String    @default("")
+  description String    @default("")
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([createdAt])
+  @@index([startsAt])
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  status    String   @default("unread")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model Log {
+  id        String   @id @default(cuid())
+  action    String
+  entity    String
+  entityId  String?
+  userId    String?
+  userName  String   @default("")
+  details   String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model Setting {
+  id             Int      @id @default(1)
+  siteName       String   @default("SPD Indonesia")
+  email          String   @default("kontak@spdindonesia.org")
+  logoUrl        String   @default("")
+  heroUrl        String   @default("")
+  placeholderUrl String   @default("")
+  // Institutional text fields (long-form, editable from Settings page).
+  visionText     String   @default("")
+  // Footer social URLs. Empty = hide the icon.
+  socialFacebook String   @default("")
+  socialTwitter  String   @default("")
+  socialLinkedin String   @default("")
+  socialInstagram String  @default("")
+  updatedAt      DateTime @updatedAt @default(now())
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  value     String   @unique
+  color     String   @default("text-slate-500")
+  bg        String   @default("bg-slate-100")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([sortOrder])
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  // Optional semantic key, e.g. "homepage.hero", "footer.logo".
+  // Unique so a key maps to exactly one asset at any time.
+  key       String?  @unique
+  url       String
+  type      String   @default("")
+  filename  String   @default("")
+  size      Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+model Partner {
+  id         String   @id @default(cuid())
+  name       String
+  logoUrl    String?
+  websiteUrl String?
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+model Stat {
+  id        String   @id @default(cuid())
+  value     String   // string so "9" and "100+" both work
+  label     String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+model TeamMember {
+  id         String   @id @default(cuid())
+  name       String
+  role       String
+  expertise  String   @default("")
+  bio        String   @default("")
+  photoUrl   String?
+  featured   Boolean  @default(false)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+model Milestone {
+  id          String   @id @default(cuid())
+  // Free-form year so ranges like "2016-2017" work. Sorted by sortOrder.
+  year        String
+  tag         String   @default("TONGGAK")
+  title       String
+  description String   @default("")
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+model MissionItem {
+  id        String   @id @default(cuid())
+  text      String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+model AnnualReport {
+  id        String   @id @default(cuid())
+  year      Int      @unique
+  title     String
+  summary   String   @default("")
+  fileUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([year])
+}
+
+model Subscriber {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  status         String    @default("active") // active | unsubscribed
+  createdAt      DateTime  @default(now())
+  unsubscribedAt DateTime?
+
+  @@index([createdAt])
+}

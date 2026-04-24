@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400" width="300" height="400" role="img" aria-label="Book cover — Jubir Warga: Panduan Praktis">
+  <rect width="300" height="400" fill="#B91C2C"/>
+  <line x1="24" y1="0" x2="24" y2="400" stroke="#FFFFFF" stroke-opacity="0.15" stroke-width="2"/>
+  <text x="32" y="40" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#FFFFFF" opacity="0.55" letter-spacing="4">SERI PEMILU</text>
+  <text x="32" y="280" font-family="'Source Serif 4', Georgia, serif" font-weight="700" font-size="26" fill="#FFFFFF">
+    <tspan x="32" dy="0">Jubir Warga</tspan>
+    <tspan x="32" dy="30">Panduan</tspan>
+    <tspan x="32" dy="30">Praktis</tspan>
+  </text>
+  <text x="32" y="370" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#F5D6D9">Fadhil H.</text>
+</svg>
