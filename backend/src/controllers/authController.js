@@ -91,3 +91,52 @@ exports.me = async (req, res, next) => {
     next(err);
   }
 };
+
+// Self-service profile update. Lets the signed-in user change their own
+// name and rotate their own password — without needing another admin or
+// shell access to `admin:reset`. Role and email are intentionally not
+// editable here (email is login identity; role change is a permissions
+// decision that belongs in UsersManager).
+exports.updateMe = async (req, res, next) => {
+  try {
+    const existing = await prisma.user.findUnique({ where: { id: req.user.userId } });
+    if (!existing) return fail(res, 404, 'User tidak ditemukan');
+
+    const name = typeof req.body.name === 'string' ? req.body.name.trim().slice(0, 200) : undefined;
+    const currentPassword = typeof req.body.currentPassword === 'string' ? req.body.currentPassword : '';
+    const newPassword = typeof req.body.newPassword === 'string' ? req.body.newPassword.trim() : '';
+
+    const data = {};
+
+    if (name && name !== existing.name) data.name = name;
+
+    if (newPassword) {
+      if (newPassword.length < 8) return fail(res, 400, 'Password baru minimal 8 karakter');
+      if (existing.provider !== 'local') return fail(res, 400, 'Akun ini tidak memakai password lokal');
+      if (!currentPassword) return fail(res, 400, 'Password saat ini diperlukan untuk mengubah password');
+      const verified = await bcrypt.compare(currentPassword, existing.password);
+      if (!verified) return fail(res, 401, 'Password saat ini salah');
+      data.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    if (Object.keys(data).length === 0) {
+      return ok(res, { id: existing.id, email: existing.email, name: existing.name, role: existing.role });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: existing.id },
+      data,
+      select: { id: true, email: true, name: true, role: true },
+    });
+
+    log('update_profile', 'auth', {
+      userId:   existing.id,
+      userName: updated.name,
+      details:  Object.keys(data).join(', '),
+    });
+
+    return ok(res, updated);
+  } catch (err) {
+    next(err);
+  }
+};

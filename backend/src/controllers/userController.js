@@ -48,6 +48,54 @@ exports.create = async (req, res, next) => {
   }
 };
 
+exports.update = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.user.findUnique({ where: { id } });
+    if (!existing) return fail(res, 404, 'User tidak ditemukan');
+
+    // Optional fields. Undefined = leave unchanged.
+    const name = req.body.name !== undefined ? String(req.body.name).trim().slice(0, 200) : undefined;
+    const role = req.body.role !== undefined ? (req.body.role === 'publisher' ? 'publisher' : 'admin') : undefined;
+    const newPassword = typeof req.body.password === 'string' ? req.body.password.trim() : '';
+
+    // Guardrails: an admin can't lock themselves out of admin access by
+    // demoting their own account — the last admin standing must stay admin.
+    if (role === 'publisher' && id === req.user.userId) {
+      return fail(res, 400, 'Tidak dapat menurunkan peran akun sendiri');
+    }
+
+    const data = {};
+    if (name !== undefined && name.length > 0) data.name = name;
+    if (role !== undefined)                    data.role = role;
+    if (newPassword) {
+      if (newPassword.length < 6) return fail(res, 400, 'Password minimal 6 karakter');
+      data.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    if (Object.keys(data).length === 0) {
+      return ok(res, { id: existing.id, email: existing.email, name: existing.name, role: existing.role, createdAt: existing.createdAt });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data,
+      select: { id: true, email: true, name: true, role: true, createdAt: true },
+    });
+
+    log('update_user', 'user', {
+      entityId: id,
+      userId:   req.user.userId,
+      userName: req.user.name || '',
+      details:  Object.keys(data).join(', '),
+    });
+
+    return ok(res, updated);
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.remove = async (req, res, next) => {
   try {
     const { id } = req.params;

@@ -25,12 +25,27 @@ function formatBytes(n) {
 function UploadForm({ onUploaded }) {
   const fileInputRef = useRef(null);
   const [file, setFile]         = useState(null);
+  const [preview, setPreview]   = useState(null);  // createObjectURL of selected image
   const [key, setKey]           = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError]       = useState('');
 
+  // Generate a pre-upload thumbnail URL for the selected file (images only).
+  // Revoked on unmount or whenever the selection changes so the URL never
+  // leaks memory. PDFs skip preview — no browser-generated thumbnail.
+  useEffect(() => {
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      setPreview(null);
+      return undefined;
+    }
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
   const reset = () => {
     setFile(null);
+    setPreview(null);
     setKey('');
     setError('');
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -68,15 +83,25 @@ function UploadForm({ onUploaded }) {
   return (
     <form onSubmit={submit} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Gambar" hint="Maksimal 5 MB. JPG, PNG, WEBP, GIF, atau SVG.">
+        <Field label="Gambar atau PDF" hint="Maksimal 5 MB. JPG, PNG, WEBP, GIF, SVG, atau PDF.">
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/*,application/pdf"
             onChange={(e) => setFile(e.target.files?.[0] || null)}
             disabled={submitting}
             className="block w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-slate-100 file:text-slate-700 file:text-xs file:font-semibold hover:file:bg-slate-200"
           />
+          {preview && (
+            <div className="mt-2 flex items-start gap-3">
+              <div className="w-24 h-16 rounded-md bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                <img src={preview} alt="Pratinjau" className="max-w-full max-h-full object-contain" />
+              </div>
+              <p className="text-xs text-slate-500 leading-snug">
+                Pratinjau sebelum unggah. Klik <strong>Unggah</strong> untuk mengirim ke server.
+              </p>
+            </div>
+          )}
         </Field>
         <Field label="Key (opsional)" hint="Gunakan key standar agar langsung tampil di frontend.">
           <input
@@ -133,15 +158,26 @@ function MediaCard({ item, onAssignKey, onDelete }) {
     }
   };
 
+  const isPdf = item.type === 'application/pdf';
+
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col">
-      <div className="aspect-[4/3] bg-slate-100 relative">
-        <img
-          src={resolveMediaUrl(item.url)}
-          alt={item.filename || ''}
-          className="absolute inset-0 w-full h-full object-cover"
-          loading="lazy"
-        />
+      <div className="aspect-[4/3] bg-slate-100 relative flex items-center justify-center">
+        {isPdf ? (
+          <div className="text-center">
+            <svg className="w-10 h-10 mx-auto text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span className="text-[10px] font-bold text-slate-500 mt-1 block">PDF</span>
+          </div>
+        ) : (
+          <img
+            src={resolveMediaUrl(item.url)}
+            alt={item.filename || ''}
+            className="absolute inset-0 w-full h-full object-cover"
+            loading="lazy"
+          />
+        )}
       </div>
       <div className="p-3.5 flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2 min-w-0">
@@ -232,6 +268,7 @@ export default function MediaManager() {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(false);
   const [toast,   setToast]   = useState('');
+  const [filter,  setFilter]  = useState('all'); // all | image | pdf
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -288,11 +325,48 @@ export default function MediaManager() {
       <div>
         <h1 className="text-2xl font-bold text-slate-800">Media</h1>
         <p className="text-sm text-slate-500 mt-0.5">
-          Unggah gambar dan beri key agar otomatis tampil di frontend (mis. <code className="text-[11px] bg-slate-100 px-1.5 py-0.5 rounded">homepage.hero</code>, <code className="text-[11px] bg-slate-100 px-1.5 py-0.5 rounded">footer.logo</code>).
+          Pusat semua aset gambar dan PDF yang dipakai di situs dan dashboard.
         </p>
       </div>
 
+      {/* Short usage primer — admins sometimes forget which key maps to what. */}
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Alur pemakaian</p>
+        <ol className="text-sm text-slate-600 leading-relaxed space-y-1 list-decimal list-inside">
+          <li>Unggah gambar/PDF di formulir di bawah.</li>
+          <li>Pratinjau muncul di grid setelah unggahan.</li>
+          <li>Beri <em>key</em> semantik bila ingin otomatis tampil di halaman publik — mis. <code className="text-[11px] bg-white px-1.5 py-0.5 rounded border border-slate-200">homepage.hero</code>, <code className="text-[11px] bg-white px-1.5 py-0.5 rounded border border-slate-200">footer.logo</code>, atau <code className="text-[11px] bg-white px-1.5 py-0.5 rounded border border-slate-200">collage.1</code>…<code className="text-[11px] bg-white px-1.5 py-0.5 rounded border border-slate-200">collage.8</code>.</li>
+          <li>Untuk foto tim / logo mitra / PDF laporan: unggah tanpa key, lalu pilih dari dialog "Pilih dari Media" di halaman Tim, Mitra, atau Laporan.</li>
+        </ol>
+      </div>
+
       <UploadForm onUploaded={handleUploaded} />
+
+      {/* Type filter — helps admin find that one PDF fast when the grid has
+          dozens of images mixed in. Counts reflect the current dataset. */}
+      {items.length > 0 && (() => {
+        const imgCount = items.filter((m) => m.type && m.type.startsWith('image/')).length;
+        const pdfCount = items.filter((m) => m.type === 'application/pdf').length;
+        return (
+          <div className="flex gap-1 bg-white border border-slate-200 rounded-lg p-1 w-fit shadow-sm" role="group" aria-label="Filter media">
+            {[
+              { id: 'all',   label: `Semua (${items.length})` },
+              { id: 'image', label: `Gambar (${imgCount})` },
+              { id: 'pdf',   label: `PDF (${pdfCount})` },
+            ].map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id)}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                  filter === f.id ? 'bg-orange-50 text-orange-600' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        );
+      })()}
 
       {error ? (
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
@@ -315,18 +389,34 @@ export default function MediaManager() {
           <p className="text-sm font-medium text-slate-600">Belum ada media.</p>
           <p className="text-xs text-slate-400 mt-1">Unggah gambar pertama di formulir di atas.</p>
         </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {items.map((item) => (
-            <MediaCard
-              key={item.id}
-              item={item}
-              onAssignKey={handleAssignKey}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
-      )}
+      ) : (() => {
+        const visible = items.filter((m) => {
+          if (filter === 'all') return true;
+          if (filter === 'image') return m.type && m.type.startsWith('image/');
+          if (filter === 'pdf')   return m.type === 'application/pdf';
+          return true;
+        });
+        if (visible.length === 0) {
+          return (
+            <div className="bg-white border border-dashed border-slate-300 rounded-xl p-10 text-center">
+              <p className="text-sm font-medium text-slate-600">Tidak ada item untuk filter ini.</p>
+              <p className="text-xs text-slate-400 mt-1">Ubah filter atau unggah file baru.</p>
+            </div>
+          );
+        }
+        return (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {visible.map((item) => (
+              <MediaCard
+                key={item.id}
+                item={item}
+                onAssignKey={handleAssignKey}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        );
+      })()}
 
       {toast && <Toast message={toast} onDone={() => setToast('')} />}
     </div>

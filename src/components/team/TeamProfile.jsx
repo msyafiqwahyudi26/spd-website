@@ -55,7 +55,16 @@ export function TeamMemberModal({ member, onClose }) {
           <div>
             <h3 className="text-xl font-bold text-slate-800">{member.name}</h3>
             <p className="text-sm font-semibold text-orange-500 mt-1 mb-4">{member.role}</p>
-            <p className="text-sm text-slate-600 leading-relaxed mb-5">{member.bio}</p>
+            {/* Preserve the admin's paragraph breaks — they write bios
+                with blank lines between paragraphs; public output should
+                render them as distinct paragraphs, not one mashed block. */}
+            {member.bio && (
+              <div className="text-sm text-slate-600 leading-relaxed mb-5 space-y-3">
+                {member.bio.split(/\n\s*\n/).map((para, i) => (
+                  <p key={i} className="whitespace-pre-line">{para}</p>
+                ))}
+              </div>
+            )}
             {member.expertise && (
               <div className="pt-4 border-t border-slate-100 text-xs text-slate-500">
                 Fokus: <span className="font-semibold text-slate-700">{member.expertise}</span>

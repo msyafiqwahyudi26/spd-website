@@ -37,6 +37,59 @@ function StatCard({ title, value, path, accent = false }) {
   );
 }
 
+function EmailConfigWarning({ status }) {
+  const [sending, setSending] = useState(false);
+  const [result, setResult]   = useState(null);
+
+  const sendTest = async () => {
+    setSending(true);
+    setResult(null);
+    try {
+      const r = await api('/system/email-test', { method: 'POST' });
+      setResult({ ok: true, msg: `Terkirim ke ${r.target}` });
+    } catch (err) {
+      setResult({ ok: false, msg: err?.message || 'Gagal mengirim' });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
+      <div className="flex items-start gap-4">
+        <svg className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-bold text-amber-900">Email belum dikonfigurasi</h3>
+          <p className="text-xs text-amber-900/80 mt-1 leading-relaxed">
+            Backend tidak dapat mengirim email. Notifikasi pelanggan baru, pesan kontak, dan balasan admin
+            akan gagal sampai kredensial SMTP disetel di <code className="text-[11px] bg-white/60 px-1 py-0.5 rounded">backend/.env</code>.
+          </p>
+          <p className="text-xs text-amber-900/80 mt-2">
+            Diperlukan: <code className="text-[11px] bg-white/60 px-1 py-0.5 rounded">{status.missingKeys.join(', ') || 'EMAIL_HOST, EMAIL_USER, EMAIL_PASS'}</code>
+          </p>
+          <div className="mt-3 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={sendTest}
+              disabled={sending}
+              className="text-xs font-semibold text-amber-900 bg-white border border-amber-300 hover:border-amber-400 px-3 py-1.5 rounded-md disabled:opacity-60"
+            >
+              {sending ? 'Mengirim…' : 'Coba kirim email uji'}
+            </button>
+            {result && (
+              <span className={`text-xs ${result.ok ? 'text-emerald-700' : 'text-red-600'}`}>
+                {result.msg}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RowSkeleton() {
   return (
     <div className="px-5 py-3.5 flex items-center gap-3 animate-pulse">
@@ -58,6 +111,7 @@ export default function Overview() {
   const [totalViews,   setTotalViews]   = useState(0);
   const [loading,      setLoading]      = useState(true);
   const [error,        setError]        = useState(false);
+  const [emailStatus,  setEmailStatus]  = useState(null);  // admin-only
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -87,6 +141,15 @@ export default function Overview() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // Email config is system state the admin needs to see. Silent logs don't
+  // count as telling anyone. Render a banner if unconfigured.
+  useEffect(() => {
+    if (!isAdmin) return;
+    api('/system/email-status')
+      .then((s) => setEmailStatus(s))
+      .catch(() => setEmailStatus(null));
+  }, [isAdmin]);
+
   if (error) {
     return (
       <div className="space-y-6">
@@ -108,6 +171,13 @@ export default function Overview() {
         <h1 className="text-2xl font-bold text-slate-800">Overview</h1>
         <p className="text-sm text-slate-400 mt-0.5">Ringkasan konten dan aktivitas terkini</p>
       </div>
+
+      {/* Email configuration warning — shown only when the admin hasn't
+          set SMTP credentials. Subscribe + contact + reply all depend on
+          this. Silent failure is the worst failure mode; surface it. */}
+      {isAdmin && emailStatus && !emailStatus.configured && (
+        <EmailConfigWarning status={emailStatus} />
+      )}
 
       <div className={`grid grid-cols-2 ${isAdmin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`}>
         <StatCard title="Publikasi"    value={loading ? '…' : publications.length}  path={ICON_PATHS.doc}      />

@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Read once at module load. Vite injects env at build time; tests can
-// override via setting `window.__IDLE_TIMEOUT_MINUTES__`.
+// Read once at module load. Vite injects env at build time; override with
+// VITE_IDLE_TIMEOUT_MINUTES in .env.local if a different policy is needed.
+// Default is 5 minutes — short enough to protect unattended admin sessions
+// on shared machines.
 const ENV_MIN = Number.parseFloat(import.meta.env?.VITE_IDLE_TIMEOUT_MINUTES);
-const DEFAULT_MIN = Number.isFinite(ENV_MIN) && ENV_MIN > 0 ? ENV_MIN : 30;
+const DEFAULT_MIN = Number.isFinite(ENV_MIN) && ENV_MIN > 0 ? ENV_MIN : 5;
 
 const ACTIVITY_EVENTS = [
   'mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click',

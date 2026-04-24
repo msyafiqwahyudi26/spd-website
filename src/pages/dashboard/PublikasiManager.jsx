@@ -1,18 +1,27 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { api } from '@/lib/api';
+import { resolveMediaUrl } from '@/lib/media';
 import {
   inputCls, Toast, Spinner, Field, CategoryBadge, SkeletonRows, ErrorState,
   toSlug, makeUniqueSlug,
 } from './shared';
 import { useSettings } from '@/hooks/useSettings';
+import MediaPicker from './MediaPicker';
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
 
 const EMPTY_FORM = {
-  title: '', category: 'RISET', date: '',
+  title: '', category: 'RISET', contentType: 'article', date: '',
   description: '', author: '', readTime: '', fullContent: '',
-  image: '', gallery: '',
+  image: '', pdfUrl: '', gallery: '',
 };
+
+const CONTENT_TYPES = [
+  { value: 'article',  label: 'Artikel / Opini', hint: 'Tulisan naratif — opini, esai, komentar.' },
+  { value: 'research', label: 'Riset',           hint: 'Publikasi riset dengan penulis, durasi baca, dan struktur terarah.' },
+  { value: 'book',     label: 'Buku / Laporan',   hint: 'Unduhan PDF ditonjolkan di halaman detail.' },
+];
 
 function parseFullContent(text) {
   if (!text || !text.trim()) return [];
@@ -54,6 +63,7 @@ function normalizeItem(item) {
     slug,
     title: (item.title ?? '').trim(),
     category: item.category ?? 'RISET',
+    contentType: item.contentType ?? 'article',
     categoryColor: item.categoryColor ?? 'text-slate-400',
     date: item.date ?? '',
     description: (item.description ?? '').trim(),
@@ -62,6 +72,7 @@ function normalizeItem(item) {
     href: item.href || `/publikasi/${slug}`,
     fullContent: Array.isArray(item.fullContent) ? item.fullContent : [],
     image: item.image ?? null,
+    pdfUrl: item.pdfUrl ?? null,
     gallery: Array.isArray(item.gallery) ? item.gallery.filter(Boolean) : [],
   };
 }
@@ -71,21 +82,159 @@ function buildFormFromItem(item) {
   return {
     title: item.title ?? '',
     category: item.category ?? 'RISET',
+    contentType: item.contentType ?? 'article',
     date: item.date ?? '',
     description: item.description ?? '',
     author: item.author ?? '',
     readTime: item.readTime ?? '',
     fullContent: stringifyFullContent(item.fullContent),
     image: item.image ?? '',
+    pdfUrl: item.pdfUrl ?? '',
     gallery: stringifyGallery(item.gallery),
   };
 }
 
+function HeroImageField({ value, onChange, disabled }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const preview = value ? resolveMediaUrl(value) : null;
+  return (
+    <div>
+      <label className="block text-sm font-medium text-slate-700 mb-1">Gambar Utama</label>
+      <div className="flex items-start gap-3">
+        <div className="w-40 h-24 rounded-lg bg-slate-50 border border-slate-200 shrink-0 overflow-hidden flex items-center justify-center">
+          {preview ? (
+            <img src={preview} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-[10px] text-slate-400 uppercase text-center px-1">Belum ada gambar</span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              disabled={disabled}
+              className="text-xs font-semibold text-orange-500 hover:text-orange-600 border border-orange-100 hover:border-orange-300 px-3 py-1.5 rounded-md disabled:opacity-60"
+            >
+              Pilih dari Media
+            </button>
+            {value && (
+              <button
+                type="button"
+                onClick={() => onChange('')}
+                disabled={disabled}
+                className="text-xs font-medium text-slate-500 hover:text-red-500 px-3 py-1.5 rounded-md border border-slate-200 disabled:opacity-60"
+              >
+                Hapus
+              </button>
+            )}
+          </div>
+          <p className="text-xs text-slate-400">Gambar hero di halaman detail publikasi. Pilih dari library Media.</p>
+          {value && (
+            <p className="text-[11px] text-slate-400 font-mono truncate" title={value}>{value}</p>
+          )}
+        </div>
+      </div>
+      <MediaPicker open={pickerOpen} filter="image" onClose={() => setPickerOpen(false)} onSelect={(m) => onChange(m.url)} />
+    </div>
+  );
+}
+
+function GalleryField({ value, onChange, disabled }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  // Value is a newline-separated list of URLs; normalize to array for UI.
+  const urls = (value || '').split(/\n+/).map((u) => u.trim()).filter(Boolean);
+
+  const removeAt = (idx) => {
+    const next = urls.filter((_, i) => i !== idx).join('\n');
+    onChange(next);
+  };
+
+  const add = (url) => {
+    if (!url) return;
+    if (urls.includes(url)) return;
+    onChange([...urls, url].join('\n'));
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-slate-700 mb-1">Galeri (opsional)</label>
+      {urls.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+          {urls.map((u, i) => (
+            <div key={u + i} className="relative aspect-[4/3] rounded-md border border-slate-200 overflow-hidden bg-slate-100 group">
+              <img src={resolveMediaUrl(u)} alt="" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => removeAt(i)}
+                disabled={disabled}
+                className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 hover:bg-red-500 hover:text-white text-slate-600 text-xs font-bold shadow-sm opacity-0 group-hover:opacity-100 transition-all"
+                aria-label="Hapus dari galeri"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={() => setPickerOpen(true)}
+        disabled={disabled}
+        className="text-xs font-semibold text-orange-500 hover:text-orange-600 border border-orange-100 hover:border-orange-300 px-3 py-1.5 rounded-md disabled:opacity-60"
+      >
+        + Tambah dari Media
+      </button>
+      <p className="mt-1 text-xs text-slate-400">{urls.length} gambar dalam galeri. Pilih beberapa kali untuk menambahkan.</p>
+      <MediaPicker open={pickerOpen} filter="image" onClose={() => setPickerOpen(false)} onSelect={(m) => { add(m.url); }} />
+    </div>
+  );
+}
+
+function PdfField({ value, onChange, disabled, label = 'File PDF' }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  return (
+    <div className="mb-6">
+      <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          disabled={disabled}
+          className="text-xs font-semibold text-orange-500 hover:text-orange-600 border border-orange-100 hover:border-orange-300 px-3 py-1.5 rounded-md disabled:opacity-60"
+        >
+          Pilih PDF dari Media
+        </button>
+        {value && (
+          <>
+            <span className="text-[11px] font-mono text-slate-500 truncate max-w-[50%]" title={value}>{value}</span>
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              disabled={disabled}
+              className="text-xs font-medium text-slate-500 hover:text-red-500 px-3 py-1.5 rounded-md border border-slate-200 disabled:opacity-60"
+            >
+              Hapus
+            </button>
+          </>
+        )}
+      </div>
+      {!value && (
+        <p className="mt-1 text-xs text-slate-400">Kosongkan untuk menerbitkan tanpa file PDF.</p>
+      )}
+      <MediaPicker open={pickerOpen} filter="pdf" onClose={() => setPickerOpen(false)} onSelect={(m) => onChange(m.url)} />
+    </div>
+  );
+}
+
 /* ── Form ────────────────────────────────────────────────────────────────── */
 
-function PublikasiForm({ initial, onSave, onCancel, saving, categories }) {
+function PublikasiForm({ initial, onSave, onCancel, saving, categories, isAdmin }) {
   const [form, setForm] = useState(initial);
   const [errors, setErrors] = useState({});
+  // Publishers can't publish books (server enforces via 403); filter the
+  // dropdown so the option isn't even offered.
+  const availableTypes = isAdmin ? CONTENT_TYPES : CONTENT_TYPES.filter((t) => t.value !== 'book');
 
   const set = (key, val) => {
     setForm(f => ({ ...f, [key]: val }));
@@ -110,6 +259,7 @@ function PublikasiForm({ initial, onSave, onCancel, saving, categories }) {
     onSave({
       title: form.title.trim(),
       category: form.category,
+      contentType: form.contentType || 'article',
       categoryColor: catMeta.color,
       date: form.date.trim(),
       description: form.description.trim(),
@@ -117,6 +267,7 @@ function PublikasiForm({ initial, onSave, onCancel, saving, categories }) {
       readTime: form.readTime.trim() || null,
       fullContent: parseFullContent(form.fullContent),
       image: form.image.trim() || null,
+      pdfUrl: form.pdfUrl.trim() || null,
       gallery: parseGallery(form.gallery),
     });
   };
@@ -179,7 +330,35 @@ function PublikasiForm({ initial, onSave, onCancel, saving, categories }) {
               placeholder="cth: 7 menit baca"
             />
           </Field>
+
+          <Field label="Tipe Konten" hint={CONTENT_TYPES.find(t => t.value === form.contentType)?.hint}>
+            <div className="relative">
+              <select
+                className={inputCls + ' appearance-none pr-9 cursor-pointer'}
+                value={form.contentType}
+                onChange={e => set('contentType', e.target.value)}
+              >
+                {availableTypes.map(t => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
+              <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </Field>
         </div>
+
+        {/* PDF attachment — relevant only for research and book types. */}
+        {form.contentType !== 'article' && (
+          <PdfField
+            value={form.pdfUrl}
+            onChange={(v) => set('pdfUrl', v)}
+            disabled={saving}
+            label={form.contentType === 'book' ? 'File PDF Buku' : 'File PDF Riset (opsional)'}
+          />
+        )}
 
         <div className="space-y-5 mb-6">
           <Field label="Deskripsi *" error={errors.description}>
@@ -205,40 +384,8 @@ function PublikasiForm({ initial, onSave, onCancel, saving, categories }) {
             />
           </Field>
 
-          <Field
-            label="Gambar Utama (URL)"
-            hint="URL gambar yang tampil sebagai hero di halaman detail."
-          >
-            <input
-              className={inputCls}
-              value={form.image}
-              onChange={e => set('image', e.target.value)}
-              placeholder="https://example.com/gambar.jpg"
-            />
-            {form.image.trim() && (
-              <div className="mt-2 w-full h-32 rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
-                <img
-                  src={form.image.trim()}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                  onError={e => { e.currentTarget.style.display = 'none'; }}
-                />
-              </div>
-            )}
-          </Field>
-
-          <Field
-            label="Galeri (opsional)"
-            hint="Satu URL per baris, atau pisahkan dengan koma."
-          >
-            <textarea
-              rows={4}
-              className={inputCls + ' resize-none font-mono text-xs'}
-              value={form.gallery}
-              onChange={e => set('gallery', e.target.value)}
-              placeholder={'https://example.com/foto1.jpg\nhttps://example.com/foto2.jpg'}
-            />
-          </Field>
+          <HeroImageField value={form.image} onChange={(v) => set('image', v)} disabled={saving} />
+          <GalleryField value={form.gallery} onChange={(v) => set('gallery', v)} disabled={saving} />
         </div>
 
         <div className="flex gap-3 pt-2 border-t border-slate-100">
@@ -265,6 +412,11 @@ function PublikasiForm({ initial, onSave, onCancel, saving, categories }) {
 /* ── Manager ─────────────────────────────────────────────────────────────── */
 
 export default function PublikasiManager() {
+  // Dashboard provides the signed-in user via outlet context. Publishers
+  // shouldn't see Edit/Hapus on book-type publications — server enforces
+  // it with a 403, but hiding the buttons avoids dead-click UX.
+  const outlet = useOutletContext();
+  const isAdmin = outlet?.user?.role === 'admin';
   const { categories } = useSettings();
   const [publications, setPublications] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
@@ -378,6 +530,7 @@ export default function PublikasiManager() {
               onCancel={handleCancel}
               saving={saving}
               categories={categories}
+              isAdmin={isAdmin}
             />
           </div>
         </div>
@@ -469,16 +622,20 @@ export default function PublikasiManager() {
                             >Batal</button>
                           </>
                         ) : (
-                          <>
-                            <button
-                              onClick={() => openEdit(pub)}
-                              className="text-xs font-semibold text-orange-500 border border-orange-200 hover:border-orange-400 hover:bg-orange-50 px-3 py-1.5 rounded-lg transition-colors"
-                            >Edit</button>
-                            <button
-                              onClick={() => setDeleteConfirmId(pub.id)}
-                              className="text-xs font-semibold text-red-400 border border-red-100 hover:border-red-300 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
-                            >Hapus</button>
-                          </>
+                          (!isAdmin && pub.contentType === 'book') ? (
+                            <span className="text-[11px] text-slate-400 italic">Khusus admin</span>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => openEdit(pub)}
+                                className="text-xs font-semibold text-orange-500 border border-orange-200 hover:border-orange-400 hover:bg-orange-50 px-3 py-1.5 rounded-lg transition-colors"
+                              >Edit</button>
+                              <button
+                                onClick={() => setDeleteConfirmId(pub.id)}
+                                className="text-xs font-semibold text-red-400 border border-red-100 hover:border-red-300 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+                              >Hapus</button>
+                            </>
+                          )
                         )}
                       </div>
                     </div>

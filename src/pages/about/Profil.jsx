@@ -3,9 +3,17 @@ import Hero from '../../components/sections/Hero';
 import Image from '../../components/ui/Image';
 import AboutSubNav from './SubNav';
 import { api } from '@/lib/api';
+import { useSettings } from '../../hooks/useSettings';
 import { SIAPA_KAMI_IMAGES, PERJALANAN } from '../../data/about';
 
+const DEFAULT_INTRO = `Sindikasi Pemilu dan Demokrasi (SPD) adalah organisasi masyarakat sipil yang didirikan pada tahun 2016 dengan komitmen untuk mempelajari dan memperkuat isu-isu pemilu dan demokrasi di Indonesia secara konsisten.
+
+Sebagai organisasi yang berfokus pada kolaborasi multihak, SPD bertujuan untuk memperkuat ekosistem pemilu melalui inisiatif kerja kolaboratif antara organisasi masyarakat sipil (CSO), komunitas kreatif, civic-tech, komunitas bisnis, dan stakeholder lainnya.
+
+SPD berkomitmen menjadi pusat kerja kolaboratif yang mendorong transparansi, akuntabilitas, dan inovasi dalam penyelenggaraan demokrasi dan kepemiluan Indonesia.`;
+
 export default function Profil() {
+  const { settings } = useSettings();
   const [milestones, setMilestones] = useState(null);
 
   useEffect(() => {
@@ -18,6 +26,7 @@ export default function Profil() {
 
   // Show static PERJALANAN until API responds or when admin hasn't added any.
   const timeline = milestones === null || milestones.length === 0 ? PERJALANAN : milestones;
+  const introText = (settings.content?.aboutIntro || '').trim() || DEFAULT_INTRO;
 
   return (
     <>
@@ -33,22 +42,9 @@ export default function Profil() {
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-slate-800 mb-6">Siapa Kami</h2>
           <div className="space-y-4 text-slate-600 leading-relaxed text-sm mb-10">
-            <p>
-              Sindikasi Pemilu dan Demokrasi (SPD) adalah organisasi masyarakat sipil yang didirikan pada tahun
-              2016 dengan komitmen untuk mempelajari dan memperkuat isu-isu pemilu dan demokrasi di Indonesia
-              secara konsisten.
-            </p>
-            <p>
-              Sebagai organisasi yang berfokus pada kolaborasi multihak, SPD bertujuan untuk memperkuat ekosistem
-              pemilu melalui inisiatif kerja kolaboratif antara organisasi masyarakat sipil (CSO), komunitas kreatif,
-              civic-tech, komunitas bisnis, dan stakeholder lainnya. Kami juga aktif mengembangkan program pusat data
-              pemilu dan inisiatif pertukaran data antara pihak-pihak yang peduli dengan isu pemilu dan demokrasi
-              Indonesia.
-            </p>
-            <p>
-              SPD berkomitmen menjadi pusat kerja kolaboratif yang mendorong transparansi, akuntabilitas, dan inovasi
-              dalam penyelenggaraan demokrasi dan kepemiluan Indonesia.
-            </p>
+            {introText.split(/\n\n+/).map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
           </div>
           <div className="grid grid-cols-3 gap-4">
             {SIAPA_KAMI_IMAGES.map((img) => (

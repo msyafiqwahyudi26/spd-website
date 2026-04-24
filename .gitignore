@@ -7,16 +7,36 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+backend/node_modules
+
+# Build output
 dist
 dist-ssr
+backend/logs
+backend/logs/*
+
+# Runtime state — never commit
+backend/uploads
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+*.db
+*.db-journal
+
+# Environment — NEVER commit; .example files are fine
+.env
+.env.local
+.env.*.local
+backend/.env
 *.local
 
-# Editor directories and files
+# Editor / OS
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj

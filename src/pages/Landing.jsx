@@ -5,38 +5,39 @@ import ProgramCards from '../components/sections/ProgramCards';
 import PublikasiSection from '../components/sections/PublikasiSection';
 import DashboardSection from '../components/sections/DashboardSection';
 import ContactSection from '../components/sections/ContactSection';
-import PhotoCollage from '../components/sections/PhotoCollage';
 import Button from '../components/ui/Button';
-import MEDIA from '../config/media';
+import { useI18n } from '../i18n';
+import { useSettings } from '../hooks/useSettings';
 
-// 8 slots: featured tile cycles through the first 3, the remaining 5
-// populate static tiles. Captions come from the static media registry
-// until the admin uploads real images via the Media manager.
-const COLLAGE_FALLBACK = MEDIA.collage.slice(0, 8).map((c, i) => ({
-  src: c.src,
-  caption: c.caption || '',
-  id: `fallback-${i}`,
-}));
+const DEFAULT_HERO_SUBTITLE =
+  'Pusat kerja kolaboratif multihak dalam mempromosikan penguatan demokrasi dan reformasi kepemiluan Indonesia';
 
 export default function Landing() {
+  const { t } = useI18n();
+  const { settings } = useSettings();
+  const heroSubtitle = (settings.content?.heroSubtitle || '').trim() || DEFAULT_HERO_SUBTITLE;
+
+  // CTAs: admin-editable via Settings → Hero tab. Fall back to i18n
+  // defaults when the admin hasn't set anything. CTA1 is the outline
+  // "learn more"-style button; CTA2 is the filled primary action.
+  const cta1Label = settings.hero?.cta1?.label?.trim() || t('hero.learnMore');
+  const cta1Href  = settings.hero?.cta1?.href?.trim()  || '/tentang-kami';
+  const cta2Label = settings.hero?.cta2?.label?.trim() || t('hero.viewPrograms');
+  const cta2Href  = settings.hero?.cta2?.href?.trim()  || '/program';
+
   return (
     <>
       <Hero
-        title="Sindikasi Pemilu dan Demokrasi"
-        subtitle="Pusat kerja kolaboratif multihak dalam mempromosikan penguatan demokrasi dan reformasi kepemiluan Indonesia"
+        title={settings.siteName || 'Sindikasi Pemilu dan Demokrasi'}
+        subtitle={heroSubtitle}
       >
-        <Button href="/tentang-kami" variant="outline">Pelajari Lebih Lanjut</Button>
-        <Button href="/program" variant="navy">Lihat Program Kami</Button>
+        <Button href={cta1Href} variant="outline">{cta1Label}</Button>
+        <Button href={cta2Href} variant="navy">{cta2Label}</Button>
       </Hero>
       <QuickEntry />
       <FeatureCards />
       <PublikasiSection />
       <ProgramCards limit={3} />
-      <PhotoCollage
-        fallback={COLLAGE_FALLBACK}
-        title="Momen Kegiatan"
-        subtitle="Cuplikan diskusi, sekolah, dan kolaborasi SPD di berbagai kota."
-      />
       <DashboardSection />
       <ContactSection />
     </>

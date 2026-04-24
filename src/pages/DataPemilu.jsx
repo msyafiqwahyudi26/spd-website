@@ -239,6 +239,22 @@ export default function DataPemilu() {
         title="Platform Data Pemilu SPD"
         subtitle="Portal data pemilu Indonesia dengan visualisasi interaktif untuk mendukung demokrasi yang berbasis data."
       />
+
+      {/* Transparency banner — the dashboard numbers below are placeholders
+          while the live data pipeline is being finalized. Shipping this
+          honestly is better than letting visitors quote mock figures. */}
+      <div className="bg-amber-50 border-b border-amber-200" role="note">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-start gap-3">
+          <svg className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+          </svg>
+          <div className="text-xs sm:text-sm text-amber-900 leading-relaxed">
+            <strong className="font-semibold">Data ilustrasi.</strong>{' '}
+            Dashboard interaktif sedang dalam pengembangan — angka dan grafik di halaman ini adalah contoh untuk menunjukkan tampilan yang direncanakan. Jangan dikutip sebagai rujukan resmi.
+          </div>
+        </div>
+      </div>
+
       <FilterBar filters={filters} onChange={updateFilter} />
       <StatCards stats={STATS} />
       <TrendSection sidebarFilters={sidebarFilters} onSidebarChange={updateSidebar} />

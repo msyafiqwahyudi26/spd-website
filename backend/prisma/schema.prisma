@@ -28,18 +28,46 @@ model Publication {
   title       String
   slug        String   @unique
   category    String
+  // Content type determines how the publication renders on the public site.
+  //   "article"  — default, narrative/opinion text
+  //   "research" — structured research with emphasis on reading time + author
+  //   "book"     — downloadable PDF featured prominently
+  contentType String   @default("article")
   description String   @default("")
   author      String   @default("")
   readTime    String   @default("")
   date        String   @default("")
   fullContent String   @default("[]")
   image       String?
+  // PDF attachment for research reports / books. Stored as URL; upload via
+  // the Media manager (PDFs are accepted in the upload filter).
+  pdfUrl      String?
   gallery     String   @default("[]")
   views       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([createdAt])
+}
+
+// Program is a long-term institutional initiative, NOT a dated event.
+// Events have a schedule (startsAt); Programs don't. The split is
+// conceptual: visitors browsing /program see "what SPD works on
+// continuously", visitors browsing /event see "what's coming up on a
+// calendar". Admin manages each in its own dashboard page.
+model Program {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String   @default("")
+  image       String?
+  // Optional external link when the program lives on another site.
+  link        String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sortOrder])
 }
 
 model Event {
@@ -94,6 +122,15 @@ model Setting {
   placeholderUrl String   @default("")
   // Institutional text fields (long-form, editable from Settings page).
   visionText     String   @default("")
+  // Short "Siapa Kami" intro that tops the About section.
+  aboutIntro     String   @default("")
+  // Positioning sentence under the site name on /beranda Hero and /entry.
+  heroSubtitle   String   @default("")
+  // Hero CTA buttons (two slots). Empty label = use default from i18n.
+  heroCta1Label  String   @default("")
+  heroCta1Href   String   @default("")
+  heroCta2Label  String   @default("")
+  heroCta2Href   String   @default("")
   // Footer social URLs. Empty = hide the icon.
   socialFacebook String   @default("")
   socialTwitter  String   @default("")
@@ -178,6 +215,49 @@ model Milestone {
   updatedAt   DateTime @updatedAt
 
   @@index([sortOrder])
+}
+
+model CoreValue {
+  id          String   @id @default(cuid())
+  // Same icon registry vocabulary as Approach — shared dropdown reduces
+  // cognitive load for admins.
+  iconKey     String   @default("collaboration")
+  title       String
+  description String   @default("")
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+model Approach {
+  id          String   @id @default(cuid())
+  // iconKey picks from a fixed set defined in the frontend icon registry
+  // (collaboration / data / youth / ...). Keeps icons SVG-in-code while
+  // letting admin edit title + description freely.
+  iconKey     String   @default("collaboration")
+  title       String
+  description String   @default("")
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+model FooterLink {
+  id        String   @id @default(cuid())
+  // section: "nav" (kolom Navigasi) atau "layanan" (kolom Layanan).
+  // Rendered in the footer column matching the section key.
+  section   String
+  label     String
+  url       String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([section, sortOrder])
 }
 
 model MissionItem {

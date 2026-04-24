@@ -5,6 +5,7 @@ const requireRole = require('../middlewares/requireRole');
 
 router.get('/',    requireAuth, requireRole('admin'), ctrl.getAll);
 router.post('/',   requireAuth, requireRole('admin'), ctrl.create);
+router.patch('/:id', requireAuth, requireRole('admin'), ctrl.update);
 router.delete('/:id', requireAuth, requireRole('admin'), ctrl.remove);
 
 module.exports = router;

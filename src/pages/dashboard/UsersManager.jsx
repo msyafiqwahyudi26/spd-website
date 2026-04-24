@@ -29,6 +29,37 @@ export default function UsersManager() {
   const [deletingId, setDeletingId] = useState(null);
   const [toast, setToast] = useState(null);
   const [errors, setErrors] = useState({});
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({ name: '', role: 'publisher', password: '' });
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState('');
+
+  const startEdit = (u) => {
+    setEditingId(u.id);
+    setEditForm({ name: u.name, role: u.role, password: '' });
+    setEditError('');
+  };
+  const cancelEdit = () => { setEditingId(null); setEditError(''); };
+  const saveEdit = async () => {
+    if (!editForm.name.trim()) { setEditError('Nama diperlukan'); return; }
+    if (editForm.password && editForm.password.length < 6) {
+      setEditError('Password baru minimal 6 karakter (kosongkan jika tidak diubah)');
+      return;
+    }
+    setEditSaving(true); setEditError('');
+    try {
+      const body = { name: editForm.name.trim(), role: editForm.role };
+      if (editForm.password) body.password = editForm.password;
+      const updated = await api(`/users/${editingId}`, { method: 'PATCH', body: JSON.stringify(body) });
+      setUsers((prev) => prev.map((u) => (u.id === editingId ? updated : u)));
+      setEditingId(null);
+      setToast('Pengguna diperbarui');
+    } catch (err) {
+      setEditError(err.message || 'Gagal memperbarui');
+    } finally {
+      setEditSaving(false);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -184,36 +215,80 @@ export default function UsersManager() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {users.map(u => (
-                <tr key={u.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs font-bold shrink-0">
-                        {u.name.charAt(0).toUpperCase()}
+                editingId === u.id ? (
+                  <tr key={u.id} className="bg-orange-50/30">
+                    <td className="px-6 py-4" colSpan={4}>
+                      <div className="space-y-2.5">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                          <div>
+                            <label className="block text-xs font-medium text-slate-600 mb-1">Nama</label>
+                            <input className={inputCls} value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} disabled={editSaving} />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-600 mb-1">Role</label>
+                            <select className={inputCls} value={editForm.role} onChange={(e) => setEditForm({ ...editForm, role: e.target.value })} disabled={editSaving}>
+                              <option value="admin">Admin</option>
+                              <option value="publisher">Publisher</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-600 mb-1">Password baru (opsional)</label>
+                            <input type="password" className={inputCls} value={editForm.password} onChange={(e) => setEditForm({ ...editForm, password: e.target.value })} placeholder="Kosongkan jika tidak diubah" disabled={editSaving} />
+                          </div>
+                        </div>
+                        {editError && <p className="text-xs text-red-500">{editError}</p>}
+                        <div className="flex items-center gap-2">
+                          <button onClick={saveEdit} disabled={editSaving} className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-60 px-3 py-1.5 rounded-md">
+                            {editSaving && <Spinner small />} Simpan
+                          </button>
+                          <button onClick={cancelEdit} disabled={editSaving} className="text-xs font-medium text-slate-600 hover:text-slate-800 px-3 py-1.5 rounded-md border border-slate-200">
+                            Batal
+                          </button>
+                          <p className="text-[11px] text-slate-400 ml-2">Email tidak dapat diubah.</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-slate-800">{u.name}</p>
-                        <p className="text-xs text-slate-400">{u.email}</p>
+                    </td>
+                  </tr>
+                ) : (
+                  <tr key={u.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs font-bold shrink-0">
+                          {u.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-800">{u.name}</p>
+                          <p className="text-xs text-slate-400">{u.email}</p>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <RoleBadge role={u.role} />
-                  </td>
-                  <td className="px-6 py-4 text-slate-400 hidden md:table-cell">{formatDate(u.createdAt)}</td>
-                  <td className="px-6 py-4 text-right">
-                    {u.id !== currentUser?.id ? (
-                      <button
-                        onClick={() => handleDelete(u.id, u.name)}
-                        disabled={deletingId === u.id}
-                        className="text-xs font-medium text-red-500 hover:text-red-700 disabled:opacity-50 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-50"
-                      >
-                        {deletingId === u.id ? <Spinner small /> : 'Hapus'}
-                      </button>
-                    ) : (
-                      <span className="text-xs text-slate-300 px-3 py-1.5">Akun Anda</span>
-                    )}
-                  </td>
-                </tr>
+                    </td>
+                    <td className="px-6 py-4">
+                      <RoleBadge role={u.role} />
+                    </td>
+                    <td className="px-6 py-4 text-slate-400 hidden md:table-cell">{formatDate(u.createdAt)}</td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="inline-flex items-center gap-1">
+                        <button
+                          onClick={() => startEdit(u)}
+                          className="text-xs font-medium text-orange-500 hover:text-orange-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-orange-50"
+                        >
+                          Edit
+                        </button>
+                        {u.id !== currentUser?.id ? (
+                          <button
+                            onClick={() => handleDelete(u.id, u.name)}
+                            disabled={deletingId === u.id}
+                            className="text-xs font-medium text-red-500 hover:text-red-700 disabled:opacity-50 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-50"
+                          >
+                            {deletingId === u.id ? <Spinner small /> : 'Hapus'}
+                          </button>
+                        ) : (
+                          <span className="text-xs text-slate-300 px-3 py-1.5">Akun Anda</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )
               ))}
             </tbody>
           </table>

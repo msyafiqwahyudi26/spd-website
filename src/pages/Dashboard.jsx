@@ -34,13 +34,33 @@ const NAV_GROUPS = [
       { name: 'Overview',   path: '/dashboard',           exact: true,  icon: 'overview' },
       { name: 'Publikasi',  path: '/dashboard/publikasi',               icon: 'doc'      },
       { name: 'Event',      path: '/dashboard/event',                   icon: 'calendar' },
+      { name: 'Program',    path: '/dashboard/program',                 icon: 'chart'    },
+    ],
+  },
+  {
+    label: 'MEDIA',
+    adminOnly: true,
+    items: [
+      { name: 'Pustaka Media', path: '/dashboard/media',       icon: 'media' },
+    ],
+  },
+  {
+    label: 'TENTANG',
+    adminOnly: true,
+    items: [
+      { name: 'Tim',        path: '/dashboard/tim',         icon: 'users'    },
+      { name: 'Perjalanan', path: '/dashboard/perjalanan',  icon: 'calendar' },
+      { name: 'Laporan',    path: '/dashboard/laporan',     icon: 'doc'      },
+      { name: 'Mitra',      path: '/dashboard/mitra',       icon: 'users'    },
     ],
   },
   {
     label: 'KOMUNIKASI',
     adminOnly: true,
     items: [
-      { name: 'Pesan',      path: '/dashboard/pesan',     badge: 'unread', icon: 'chat' },
+      { name: 'Pesan',         path: '/dashboard/pesan',       badge: 'unread', icon: 'chat' },
+      { name: 'Pelanggan',     path: '/dashboard/subscribers', icon: 'mail'     },
+      { name: 'Riwayat Email', path: '/dashboard/email-logs',  icon: 'mail'     },
     ],
   },
   {
@@ -50,19 +70,6 @@ const NAV_GROUPS = [
       { name: 'Pengguna',   path: '/dashboard/pengguna',  icon: 'users'   },
       { name: 'Analitik',   path: '/dashboard/analitik',  icon: 'chart'   },
       { name: 'Log Sistem', path: '/dashboard/logs',      icon: 'log'     },
-    ],
-  },
-  {
-    label: 'SITUS',
-    adminOnly: true,
-    items: [
-      { name: 'Media',         path: '/dashboard/media',       icon: 'media'    },
-      { name: 'Tim',           path: '/dashboard/tim',         icon: 'users'    },
-      { name: 'Perjalanan',    path: '/dashboard/perjalanan',  icon: 'calendar' },
-      { name: 'Laporan',       path: '/dashboard/laporan',     icon: 'doc'      },
-      { name: 'Mitra',         path: '/dashboard/mitra',       icon: 'users'    },
-      { name: 'Pelanggan',     path: '/dashboard/subscribers', icon: 'mail'     },
-      { name: 'Riwayat Email', path: '/dashboard/email-logs',  icon: 'mail'     },
     ],
   },
   {
@@ -164,17 +171,21 @@ export default function Dashboard() {
 
         {/* User + logout */}
         <div className="border-t border-slate-100 p-3 space-y-1">
-          <div className="px-3 py-2 flex items-center gap-3">
+          <Link
+            to="/dashboard/akun"
+            className="px-3 py-2 flex items-center gap-3 rounded-lg hover:bg-slate-50 transition-colors"
+            title="Kelola akun Anda"
+          >
             <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs font-bold shrink-0">
               {user.name?.charAt(0)?.toUpperCase() ?? 'A'}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-slate-700 truncate">{user.name}</p>
               <p className={`text-[10px] font-medium ${isAdmin ? 'text-slate-500' : 'text-blue-500'}`}>
-                {isAdmin ? 'Admin' : 'Publisher'}
+                {isAdmin ? 'Admin' : 'Publisher'} · Kelola akun
               </p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={logout}
             className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"

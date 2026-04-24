@@ -1,9 +1,54 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
+import { resolveMediaUrl } from '@/lib/media';
 import {
   inputCls, Toast, Spinner, Field, SkeletonRows, ErrorState,
   toSlug, makeUniqueSlug,
 } from './shared';
+import MediaPicker from './MediaPicker';
+
+function EventImageField({ value, onChange, disabled }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const preview = value ? resolveMediaUrl(value) : null;
+  return (
+    <div>
+      <label className="block text-sm font-medium text-slate-700 mb-1">Gambar Event</label>
+      <div className="flex items-start gap-3">
+        <div className="w-40 h-24 rounded-lg bg-slate-50 border border-slate-200 shrink-0 overflow-hidden flex items-center justify-center">
+          {preview ? (
+            <img src={preview} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-[10px] text-slate-400 uppercase text-center px-1">Belum ada gambar</span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              disabled={disabled}
+              className="text-xs font-semibold text-orange-500 hover:text-orange-600 border border-orange-100 hover:border-orange-300 px-3 py-1.5 rounded-md disabled:opacity-60"
+            >
+              Pilih dari Media
+            </button>
+            {value && (
+              <button
+                type="button"
+                onClick={() => onChange('')}
+                disabled={disabled}
+                className="text-xs font-medium text-slate-500 hover:text-red-500 px-3 py-1.5 rounded-md border border-slate-200 disabled:opacity-60"
+              >
+                Hapus
+              </button>
+            )}
+          </div>
+          <p className="text-xs text-slate-400">Gambar header di halaman detail event.</p>
+        </div>
+      </div>
+      <MediaPicker open={pickerOpen} filter="image" onClose={() => setPickerOpen(false)} onSelect={(m) => onChange(m.url)} />
+    </div>
+  );
+}
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
 
@@ -141,27 +186,7 @@ function EventForm({ initial, onSave, onCancel, saving }) {
             />
           </Field>
 
-          <Field
-            label="Gambar (URL)"
-            hint="URL gambar header untuk halaman detail event."
-          >
-            <input
-              className={inputCls}
-              value={form.image}
-              onChange={e => set('image', e.target.value)}
-              placeholder="https://example.com/gambar.jpg"
-            />
-            {form.image.trim() && (
-              <div className="mt-2 w-full h-32 rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
-                <img
-                  src={form.image.trim()}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                  onError={e => { e.currentTarget.style.display = 'none'; }}
-                />
-              </div>
-            )}
-          </Field>
+          <EventImageField value={form.image} onChange={(v) => set('image', v)} disabled={saving} />
         </div>
 
         <div className="flex gap-3 pt-2 border-t border-slate-100">

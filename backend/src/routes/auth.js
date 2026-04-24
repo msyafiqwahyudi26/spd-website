@@ -15,5 +15,6 @@ router.post('/login', loginLimiter, authController.login);
 // provider is enabled in services/authProviders.js.
 router.post('/google', loginLimiter, authController.google);
 router.get('/me', requireAuth, authController.me);
+router.patch('/me', requireAuth, authController.updateMe);
 
 module.exports = router;

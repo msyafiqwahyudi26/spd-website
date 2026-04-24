@@ -27,17 +27,45 @@ exports.subscribe = async (req, res, next) => {
     });
 
     if (isNewOrReactivated) {
+      // 1. Admin notification — SPD team learns there's a new subscriber.
       emailService
         .sendSubscriberNotification({ email: sub.email })
         .then((result) => {
-          if (!result.ok) {
+          if (result.ok) {
+            log('subscriber_notification_sent', 'subscriber', {
+              entityId: sub.id,
+              details: `→ ${emailService.EMAIL_TO}`,
+            });
+          } else {
             log('subscriber_notification_failed', 'subscriber', {
               entityId: sub.id,
               details: result.reason || 'unknown',
             });
           }
         })
-        .catch(() => {});
+        .catch((err) => {
+          log('subscriber_notification_failed', 'subscriber', {
+            entityId: sub.id,
+            details: (err && err.message) || 'unhandled exception',
+          });
+        });
+
+      // 2. Welcome email to the subscriber — honest receipt that the
+      //    action worked. Without this they get zero confirmation.
+      emailService
+        .sendSubscriberWelcome({ email: sub.email })
+        .then((result) => {
+          log(result.ok ? 'subscriber_welcome_sent' : 'subscriber_welcome_failed', 'subscriber', {
+            entityId: sub.id,
+            details: result.ok ? `→ ${sub.email}` : (result.reason || 'unknown'),
+          });
+        })
+        .catch((err) => {
+          log('subscriber_welcome_failed', 'subscriber', {
+            entityId: sub.id,
+            details: (err && err.message) || 'unhandled exception',
+          });
+        });
     }
 
     return ok(res, { message: 'Berhasil berlangganan', email: sub.email }, 201);

@@ -3,23 +3,25 @@ import { NavLink, Link } from 'react-router-dom';
 import logo from '../../assets/logo-spd.svg';
 import { resolveMedia } from '../../config/media';
 import { useSettings } from '../../hooks/useSettings';
+import { useI18n } from '../../i18n';
 
+// Nav tree uses translation keys; labels are resolved at render time.
 const TENTANG_ITEMS = [
-  { id: 'tk-profil', label: 'Profil Lembaga', href: '/tentang-kami/profil' },
-  { id: 'tk-visi', label: 'Visi & Misi', href: '/tentang-kami/visi-misi' },
-  { id: 'tk-struktur', label: 'Struktur Organisasi', href: '/tentang-kami/struktur' },
-  { id: 'tk-mitra', label: 'Mitra Kolaborasi', href: '/tentang-kami/mitra' },
-  { id: 'tk-laporan', label: 'Laporan Tahunan', href: '/tentang-kami/laporan-tahunan' },
+  { id: 'tk-profil',   tkey: 'about.profil',    href: '/tentang-kami/profil' },
+  { id: 'tk-visi',     tkey: 'about.visimisi',  href: '/tentang-kami/visi-misi' },
+  { id: 'tk-struktur', tkey: 'about.struktur',  href: '/tentang-kami/struktur' },
+  { id: 'tk-mitra',    tkey: 'about.mitra',     href: '/tentang-kami/mitra' },
+  { id: 'tk-laporan',  tkey: 'about.laporan',   href: '/tentang-kami/laporan-tahunan' },
 ];
 
 const NAV_LINKS = [
-  { id: 'nav-home', label: 'Beranda', href: '/' },
-  { id: 'nav-about', label: 'Tentang Kami', href: '/tentang-kami', children: TENTANG_ITEMS },
-  { id: 'nav-program', label: 'Program', href: '/program' },
-  { id: 'nav-publikasi', label: 'Publikasi', href: '/publikasi' },
-  { id: 'nav-event', label: 'Event', href: '/event' },
-  { id: 'nav-data', label: 'Data Pemilu', href: '/data-pemilu' },
-  { id: 'nav-kontak', label: 'Kontak', href: '/kontak' },
+  { id: 'nav-home',      tkey: 'nav.home',      href: '/beranda' },
+  { id: 'nav-about',     tkey: 'nav.about',     href: '/tentang-kami', children: TENTANG_ITEMS },
+  { id: 'nav-program',   tkey: 'nav.program',   href: '/program' },
+  { id: 'nav-publikasi', tkey: 'nav.publikasi', href: '/publikasi' },
+  { id: 'nav-event',     tkey: 'nav.event',     href: '/event' },
+  { id: 'nav-data',      tkey: 'nav.data',      href: '/data-pemilu' },
+  { id: 'nav-kontak',    tkey: 'nav.kontak',    href: '/kontak' },
 ];
 
 const navClass = ({ isActive }) =>
@@ -34,6 +36,89 @@ const mobileNavClass = ({ isActive }) =>
     : 'text-slate-700 hover:text-orange-500 hover:bg-orange-50'
   }`;
 
+// Social icons — match the footer; keys correspond to settings.social.*.
+const SOCIAL_ICONS = {
+  facebook: (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5" aria-hidden="true">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  ),
+  twitter: (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5" aria-hidden="true">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  ),
+  linkedin: (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5" aria-hidden="true">
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+      <rect x="2" y="9" width="4" height="12" />
+      <circle cx="4" cy="4" r="2" />
+    </svg>
+  ),
+  instagram: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
+    </svg>
+  ),
+};
+const SOCIAL_LABELS = { facebook: 'Facebook', twitter: 'Twitter / X', linkedin: 'LinkedIn', instagram: 'Instagram' };
+
+// Thin utility bar above the main nav. Carries social shortcuts (from
+// settings.social, so admin-editable) + a language switch placeholder.
+// EN is intentionally a no-op toggle; the slot is ready when real
+// translations land, and today clicking EN is visibly selectable but
+// doesn't change any content.
+function TopBar({ settings }) {
+  const { lang, setLang } = useI18n();
+  const social = settings.social || {};
+  const keys = ['facebook', 'twitter', 'linkedin', 'instagram'].filter((k) => social[k]);
+
+  return (
+    <div className="bg-slate-900 text-slate-300">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-8 text-xs">
+        <div className="flex items-center gap-3">
+          {keys.length > 0 ? (
+            keys.map((k) => (
+              <a
+                key={k}
+                href={social[k]}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={SOCIAL_LABELS[k]}
+                className="text-slate-400 hover:text-orange-400 transition-colors"
+              >
+                {SOCIAL_ICONS[k]}
+              </a>
+            ))
+          ) : (
+            <span className="text-slate-500 text-[11px]">
+              {lang === 'en' ? 'Follow our updates on social media' : 'Ikuti update kami di media sosial'}
+            </span>
+          )}
+        </div>
+        <div className="inline-flex items-center gap-0.5 bg-slate-800 rounded p-0.5" role="group" aria-label="Pilih bahasa">
+          {['id', 'en'].map((code) => (
+            <button
+              key={code}
+              type="button"
+              onClick={() => setLang(code)}
+              aria-pressed={lang === code}
+              className={`px-2 py-0.5 text-[11px] font-semibold rounded transition-colors uppercase ${
+                lang === code ? 'bg-slate-900 text-white' : 'text-slate-400 hover:text-white'
+              }`}
+              title={code === 'en' ? 'Switch to English' : 'Kembali ke Bahasa Indonesia'}
+            >
+              {code}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Caret() {
   return (
     <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -43,10 +128,11 @@ function Caret() {
 }
 
 function DesktopItem({ link }) {
+  const { t } = useI18n();
   if (!link.children) {
     return (
       <NavLink to={link.href} end={link.href === '/'} className={navClass}>
-        {link.label}
+        {t(link.tkey)}
       </NavLink>
     );
   }
@@ -62,7 +148,7 @@ function DesktopItem({ link }) {
           }`
         }
       >
-        {link.label} <Caret />
+        {t(link.tkey)} <Caret />
       </NavLink>
       <div
         className="absolute top-full left-0 z-50 min-w-[240px] bg-white border border-slate-100 rounded-lg shadow-lg p-1.5 mt-1
@@ -77,7 +163,7 @@ function DesktopItem({ link }) {
             to={child.href}
             className="block px-3 py-2 text-sm rounded text-slate-700 hover:bg-orange-50 hover:text-orange-500 transition-colors"
           >
-            {child.label}
+            {t(child.tkey)}
           </Link>
         ))}
       </div>
@@ -88,16 +174,18 @@ function DesktopItem({ link }) {
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { settings } = useSettings();
+  const { t } = useI18n();
   // Dashboard can override settings.images.logo; bundled orange SPD logo is the default.
   const logoSrc = resolveMedia(logo, settings.images?.logo);
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
+      <TopBar settings={settings} />
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-20">
 
           {/* Logo */}
-          <NavLink to="/" className="flex items-center shrink-0">
+          <NavLink to="/beranda" className="flex items-center shrink-0">
             <img
               src={logoSrc}
               alt={settings.siteName || 'SPD Indonesia'}
@@ -146,7 +234,7 @@ export default function Header() {
                   className={mobileNavClass}
                   onClick={() => setMenuOpen(false)}
                 >
-                  {link.label}
+                  {t(link.tkey)}
                 </NavLink>
                 {link.children && (
                   <div className="pl-4 flex flex-col">
@@ -162,7 +250,7 @@ export default function Header() {
                         }
                         onClick={() => setMenuOpen(false)}
                       >
-                        {child.label}
+                        {t(child.tkey)}
                       </NavLink>
                     ))}
                   </div>

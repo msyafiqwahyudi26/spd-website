@@ -121,6 +121,19 @@ const globalApiLimiter = createRateLimit({
 });
 app.use('/api', globalApiLimiter);
 
+// Root friendly response — visitors (or a misconfigured frontend) hitting
+// http://host/ see an informative payload instead of Express's raw
+// "Cannot GET /". Real API work happens under /api/*.
+app.get('/', (req, res) => {
+  return okResponse(res, {
+    status: 'ok',
+    message: 'SPD Backend is running. API base is /api',
+    apiBase: '/api',
+    health: '/api',
+    version: '1.1.0',
+  });
+});
+
 app.get('/api', (req, res) => {
   return okResponse(res, { status: 'ok', message: 'SPD Backend is running', version: '1.1.0' });
 });
@@ -128,6 +141,7 @@ app.get('/api', (req, res) => {
 app.use('/api/auth',         require('./src/routes/auth'));
 app.use('/api/publications', require('./src/routes/publications'));
 app.use('/api/events',       require('./src/routes/events'));
+app.use('/api/programs',     require('./src/routes/programs'));
 app.use('/api/contacts',     require('./src/routes/contacts'));
 app.use('/api/users',        require('./src/routes/users'));
 app.use('/api/analytics',    require('./src/routes/analytics'));
@@ -140,6 +154,10 @@ app.use('/api/stats',        require('./src/routes/stats'));
 app.use('/api/team',            require('./src/routes/team'));
 app.use('/api/milestones',      require('./src/routes/milestones'));
 app.use('/api/missions',        require('./src/routes/missions'));
+app.use('/api/approaches',      require('./src/routes/approaches'));
+app.use('/api/core-values',     require('./src/routes/core-values'));
+app.use('/api/footer-links',    require('./src/routes/footer-links'));
+app.use('/api/system',          require('./src/routes/system'));
 app.use('/api/annual-reports',  require('./src/routes/annual-reports'));
 app.use('/api/subscribers',  require('./src/routes/subscribers'));
 

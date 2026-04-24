@@ -78,6 +78,11 @@ exports.incrementView = async (req, res, next) => {
   }
 };
 
+const ALLOWED_CONTENT_TYPES = ['article', 'research', 'book'];
+function normalizeContentType(val) {
+  return ALLOWED_CONTENT_TYPES.includes(val) ? val : 'article';
+}
+
 exports.create = async (req, res, next) => {
   try {
     const title       = (req.body.title       || '').trim().slice(0, 300);
@@ -86,10 +91,19 @@ exports.create = async (req, res, next) => {
     const author      = (req.body.author      || '').trim().slice(0, 200);
     const readTime    = (req.body.readTime    || '').trim().slice(0, 64);
     const date        = (req.body.date        || '').trim().slice(0, 64);
+    const contentType = normalizeContentType(req.body.contentType);
+    const pdfUrl      = typeof req.body.pdfUrl === 'string' ? req.body.pdfUrl.trim().slice(0, 500) : '';
     const { fullContent, image, gallery } = req.body;
 
     if (!title || !category) {
       return fail(res, 400, 'Judul dan kategori diperlukan');
+    }
+
+    // Books are curated institutional assets — only admin can publish them.
+    // Publishers attempting to set contentType='book' get a 403 rather than
+    // a silent downgrade, because silent behavior is harder to debug.
+    if (contentType === 'book' && req.user?.role !== 'admin') {
+      return fail(res, 403, 'Hanya admin yang dapat menerbitkan buku');
     }
 
     const pub = await prisma.publication.create({
@@ -97,12 +111,14 @@ exports.create = async (req, res, next) => {
         title,
         slug: makeSlug(title),
         category,
+        contentType,
         description,
         author,
         readTime,
         date,
         fullContent: toJsonArray(fullContent),
         image: image || null,
+        pdfUrl: pdfUrl || null,
         gallery: toJsonArray(gallery),
       },
     });
@@ -126,19 +142,30 @@ exports.update = async (req, res, next) => {
     const existing = await prisma.publication.findUnique({ where: { id } });
     if (!existing) return fail(res, 404, 'Publikasi tidak ditemukan');
 
-    const { title, category, description, author, readTime, date, fullContent, image, gallery } = req.body;
+    const { title, category, description, author, readTime, date, fullContent, image, gallery, contentType, pdfUrl } = req.body;
+
+    // Same rule on update: publishers can't flip an existing publication
+    // to contentType='book', nor can they modify one that's already a book.
+    if (contentType === 'book' && req.user?.role !== 'admin') {
+      return fail(res, 403, 'Hanya admin yang dapat menetapkan tipe buku');
+    }
+    if (existing.contentType === 'book' && req.user?.role !== 'admin') {
+      return fail(res, 403, 'Hanya admin yang dapat menyunting buku');
+    }
 
     const pub = await prisma.publication.update({
       where: { id },
       data: {
         title:       title       !== undefined ? title.trim().slice(0, 300)       : existing.title,
         category:    category    !== undefined ? category.trim().slice(0, 64)     : existing.category,
+        contentType: contentType !== undefined ? normalizeContentType(contentType): existing.contentType,
         description: description !== undefined ? description.trim().slice(0, 2000): existing.description,
         author:      author      !== undefined ? author.trim().slice(0, 200)      : existing.author,
         readTime:    readTime    !== undefined ? readTime.trim().slice(0, 64)     : existing.readTime,
         date:        date        !== undefined ? date.trim().slice(0, 64)         : existing.date,
         fullContent: fullContent !== undefined ? toJsonArray(fullContent)         : existing.fullContent,
         image:       image       !== undefined ? (image || null)                  : existing.image,
+        pdfUrl:      pdfUrl      !== undefined ? ((typeof pdfUrl === 'string' ? pdfUrl.trim() : '') || null) : existing.pdfUrl,
         gallery:     gallery     !== undefined ? toJsonArray(gallery)             : existing.gallery,
       },
     });

@@ -27,14 +27,24 @@ exports.create = async (req, res, next) => {
     emailService
       .sendContactNotification({ name: data.name, email: data.email, message: data.message })
       .then((result) => {
-        if (!result.ok) {
+        if (result.ok) {
+          log('contact_notification_sent', 'contact', {
+            entityId: contact.id,
+            details: `→ ${emailService.EMAIL_TO}`,
+          });
+        } else {
           log('contact_notification_failed', 'contact', {
             entityId: contact.id,
             details: result.reason || 'unknown',
           });
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        log('contact_notification_failed', 'contact', {
+          entityId: contact.id,
+          details: (err && err.message) || 'unhandled exception',
+        });
+      });
 
     return ok(res, { message: 'Pesan berhasil dikirim', id: contact.id }, 201);
   } catch (err) {

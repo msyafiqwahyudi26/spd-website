@@ -3,6 +3,7 @@ const fs = require('fs');
 const prisma = require('../lib/prisma');
 const { log } = require('../lib/logger');
 const { ok, fail } = require('../lib/response');
+const { publicPrefixFor } = require('../middlewares/upload');
 
 const KEY_RE = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 
@@ -44,7 +45,10 @@ exports.upload = async (req, res, next) => {
       key = rawKey;
     }
 
-    const url = `/uploads/media/${req.file.filename}`;
+    // URL matches the directory multer picked based on mimetype:
+    //   image/* → /uploads/images/<file>
+    //   application/pdf → /uploads/documents/<file>
+    const url = `${publicPrefixFor(req.file.mimetype)}/${req.file.filename}`;
 
     // If a key is being (re)bound to this new upload, remove the previous
     // row + file so only one asset holds the key at a time.

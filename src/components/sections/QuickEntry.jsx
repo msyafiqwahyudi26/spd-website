@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '@/lib/api';
+import { useI18n } from '@/i18n';
 
 /* ── Shared tile primitive ──────────────────────────────────────────────── */
 
@@ -49,6 +50,7 @@ const ICON_CHART = ICON_DOC;
 /* ── Inline subscribe form used in the subscribe tile ───────────────────── */
 
 function InlineSubscribe() {
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState({ kind: 'idle', msg: '' });
 
@@ -96,7 +98,7 @@ function InlineSubscribe() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={status.kind === 'loading'}
-          placeholder="email@anda.com"
+          placeholder={t('quick.emailPlaceholder')}
           className="flex-1 min-w-0 bg-slate-50 border border-slate-200 text-slate-800 text-xs px-2.5 py-2 rounded-l-md placeholder:text-slate-400 focus:outline-none focus:border-orange-400 transition-colors"
         />
         <button
@@ -104,7 +106,7 @@ function InlineSubscribe() {
           disabled={status.kind === 'loading'}
           className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-semibold px-3 rounded-r-md transition-colors disabled:opacity-70"
         >
-          {status.kind === 'loading' ? '…' : 'Ikut'}
+          {status.kind === 'loading' ? '…' : t('quick.subscribeBtn')}
         </button>
       </div>
       {status.msg && (
@@ -128,6 +130,7 @@ function formatDate(d) {
 }
 
 export default function QuickEntry() {
+  const { t } = useI18n();
   const [pub,  setPub]  = useState(undefined); // undefined = loading, null = empty, object = loaded
   const [evt,  setEvt]  = useState(undefined);
 
@@ -151,61 +154,49 @@ export default function QuickEntry() {
     <section className="py-10 px-4 bg-slate-50 border-b border-slate-100">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-end justify-between mb-5">
-          <p className="text-xs font-semibold tracking-widest text-slate-400 uppercase">Aktivitas terkini</p>
+          <p className="text-xs font-semibold tracking-widest text-slate-400 uppercase">{t('quick.section')}</p>
           <Link to="/publikasi" className="text-xs font-semibold text-slate-500 hover:text-orange-600 transition-colors">
-            Semua publikasi →
+            {t('quick.allPublikasi')} →
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-          {/* Latest publication */}
           <TileShell
-            label="Publikasi Terbaru"
+            label={t('quick.publikasi')}
             headline={
-              pub === undefined ? 'Memuat…' :
-              pub === null      ? 'Belum ada publikasi' :
+              pub === undefined ? t('quick.loading') :
+              pub === null      ? t('quick.empty.pub') :
               pub.title
             }
-            meta={
-              pub && pub !== null
-                ? [pub.category, formatDate(pub.createdAt || pub.date)].filter(Boolean).join(' · ')
-                : null
-            }
+            meta={pub && pub !== null ? [pub.category, formatDate(pub.createdAt || pub.date)].filter(Boolean).join(' · ') : null}
             href={pub && pub !== null ? `/publikasi/${pub.slug}` : '/publikasi'}
             icon={ICON_DOC}
           />
 
-          {/* Latest event */}
           <TileShell
-            label="Event Terbaru"
+            label={t('quick.event')}
             headline={
-              evt === undefined ? 'Memuat…' :
-              evt === null      ? 'Belum ada event' :
+              evt === undefined ? t('quick.loading') :
+              evt === null      ? t('quick.empty.evt') :
               evt.title
             }
-            meta={
-              evt && evt !== null
-                ? [evt.date, evt.location].filter(Boolean).join(' · ')
-                : null
-            }
+            meta={evt && evt !== null ? [evt.date, evt.location].filter(Boolean).join(' · ') : null}
             href={evt && evt !== null ? `/event/${evt.slug}` : '/event'}
             icon={ICON_CAL}
           />
 
-          {/* Data Pemilu dashboard */}
           <TileShell
-            label="Data Pemilu"
-            headline="Dashboard Pemilu Terbuka"
-            meta="Visualisasi data pemilu dan demokrasi Indonesia."
+            label={t('quick.dataPemilu')}
+            headline={t('quick.dashboardTitle')}
+            meta={null}
             href="/data-pemilu"
             icon={ICON_CHART}
           />
 
-          {/* Subscribe */}
           <TileShell
-            label="Berlangganan"
-            headline="Dapatkan update lewat email"
-            meta="Riset, opini, dan analisis terbaru."
+            label={t('quick.subscribe')}
+            headline={t('quick.subscribeHead')}
+            meta={t('quick.subscribeHelp')}
           >
             <InlineSubscribe />
           </TileShell>

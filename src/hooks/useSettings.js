@@ -5,7 +5,8 @@ export const DEFAULT_SETTINGS = {
   siteName: 'SPD Indonesia',
   email: 'kontak@spdindonesia.org',
   images: { logo: '', hero: '', placeholder: '' },
-  content: { vision: '' },
+  content: { vision: '', aboutIntro: '', heroSubtitle: '' },
+  hero: { cta1: { label: '', href: '' }, cta2: { label: '', href: '' } },
   social: { facebook: '', twitter: '', linkedin: '', instagram: '' },
 };
 
@@ -36,7 +37,19 @@ function normalizeSettings(s) {
       placeholder: s.images?.placeholder ?? '',
     },
     content: {
-      vision: s.content?.vision ?? '',
+      vision:       s.content?.vision       ?? '',
+      aboutIntro:   s.content?.aboutIntro   ?? '',
+      heroSubtitle: s.content?.heroSubtitle ?? '',
+    },
+    hero: {
+      cta1: {
+        label: s.hero?.cta1?.label ?? '',
+        href:  s.hero?.cta1?.href  ?? '',
+      },
+      cta2: {
+        label: s.hero?.cta2?.label ?? '',
+        href:  s.hero?.cta2?.href  ?? '',
+      },
     },
     social: {
       facebook:  s.social?.facebook  ?? '',

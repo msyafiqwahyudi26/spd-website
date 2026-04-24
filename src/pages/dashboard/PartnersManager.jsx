@@ -2,6 +2,60 @@ import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 import { Toast, Spinner, Field, ErrorState, inputCls } from './shared';
+import MediaPicker from './MediaPicker';
+
+// Partner logo field — picker only, no direct URL input. Every partner
+// logo flows through the Media library so assets are traceable and re-
+// usable. Matches TeamManager's photo field pattern.
+function LogoField({ value, onChange, disabled }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const preview = value ? resolveMediaUrl(value) : null;
+  return (
+    <div>
+      <label className="block text-sm font-medium text-slate-700 mb-1">Logo mitra</label>
+      <div className="flex items-start gap-3">
+        <div className="w-20 h-16 rounded-lg bg-slate-50 border border-slate-200 shrink-0 overflow-hidden flex items-center justify-center">
+          {preview ? (
+            <img src={preview} alt="" className="max-w-full max-h-full object-contain" />
+          ) : (
+            <span className="text-[10px] text-slate-400 uppercase text-center px-1">Tanpa logo</span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              disabled={disabled}
+              className="text-xs font-semibold text-orange-500 hover:text-orange-600 border border-orange-100 hover:border-orange-300 px-3 py-1.5 rounded-md disabled:opacity-60"
+            >
+              Pilih dari Media
+            </button>
+            {value && (
+              <button
+                type="button"
+                onClick={() => onChange('')}
+                disabled={disabled}
+                className="text-xs font-medium text-slate-500 hover:text-red-500 px-3 py-1.5 rounded-md border border-slate-200 disabled:opacity-60"
+              >
+                Hapus
+              </button>
+            )}
+          </div>
+          {value && (
+            <p className="text-[11px] text-slate-400 font-mono truncate" title={value}>{value}</p>
+          )}
+        </div>
+      </div>
+      <MediaPicker
+        open={pickerOpen}
+        filter="image"
+        onClose={() => setPickerOpen(false)}
+        onSelect={(m) => onChange(m.url)}
+      />
+    </div>
+  );
+}
 
 const EMPTY_FORM = { name: '', logoUrl: '', websiteUrl: '' };
 
@@ -70,14 +124,7 @@ function PartnerRow({ partner, onUpdate, onDelete }) {
               className={inputCls}
               disabled={saving}
             />
-            <input
-              type="text"
-              value={form.logoUrl}
-              onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
-              placeholder="URL logo (mis. /uploads/media/...png)"
-              className={inputCls}
-              disabled={saving}
-            />
+            <LogoField value={form.logoUrl} onChange={(v) => setForm({ ...form, logoUrl: v })} disabled={saving} />
             <input
               type="text"
               value={form.websiteUrl}
@@ -252,16 +299,7 @@ export default function PartnersManager() {
                 disabled={submitting}
               />
             </Field>
-            <Field label="URL logo" hint="Unggah via Media lalu salin URL-nya.">
-              <input
-                type="text"
-                value={form.logoUrl}
-                onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
-                placeholder="/uploads/media/..."
-                className={inputCls}
-                disabled={submitting}
-              />
-            </Field>
+            <div><LogoField value={form.logoUrl} onChange={(v) => setForm({ ...form, logoUrl: v })} disabled={submitting} /></div>
             <Field label="URL website (opsional)">
               <input
                 type="text"

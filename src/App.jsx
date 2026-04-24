@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
+import { I18nProvider } from './i18n';
+import Entry from './pages/Entry';
 import Landing from './pages/Landing';
 import About from './pages/About';
 import AboutProfil from './pages/about/Profil';
@@ -15,6 +17,7 @@ import Event from './pages/Event';
 import EventDetail from './pages/EventDetail';
 import DataPemilu from './pages/DataPemilu';
 import Kontak from './pages/Kontak';
+import NotFound from './pages/NotFound';
 
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -22,6 +25,7 @@ import RequireAdmin from './components/RequireAdmin';
 import DashboardOverview from './pages/dashboard/Overview';
 import PublikasiManager from './pages/dashboard/PublikasiManager';
 import EventManager from './pages/dashboard/EventManager';
+import ProgramManager from './pages/dashboard/ProgramManager';
 import SettingsManager from './pages/dashboard/SettingsManager';
 import MessagesManager from './pages/dashboard/MessagesManager';
 import UsersManager from './pages/dashboard/UsersManager';
@@ -32,17 +36,22 @@ import PartnersManager from './pages/dashboard/PartnersManager';
 import TeamManager from './pages/dashboard/TeamManager';
 import TimelineManager from './pages/dashboard/TimelineManager';
 import ReportsManager from './pages/dashboard/ReportsManager';
+import SubscribersManager from './pages/dashboard/SubscribersManager';
+import ProfilePage from './pages/dashboard/ProfilePage';
 import ComingSoon from './pages/dashboard/ComingSoon';
 
 
 export default function App() {
   return (
     <ErrorBoundary>
+      <I18nProvider>
       <BrowserRouter>
         <Routes>
           {/* Public routes with Layout (Header + Footer) */}
           <Route element={<Layout />}>
-            <Route index element={<Landing />} />
+            {/* Entry = simplified Beranda (same shell, fewer sections). */}
+            <Route index element={<Entry />} />
+            <Route path="/beranda" element={<Landing />} />
 
             {/* Tentang Kami */}
             <Route path="/tentang-kami" element={<About />} />
@@ -66,6 +75,10 @@ export default function App() {
             {/* Lainnya */}
             <Route path="/data-pemilu" element={<DataPemilu />} />
             <Route path="/kontak" element={<Kontak />} />
+
+            {/* Catch-all within the layout so unknown public URLs render
+                the 404 inside the site frame (header + footer). */}
+            <Route path="*" element={<NotFound />} />
           </Route>
 
           {/* Auth */}
@@ -77,6 +90,8 @@ export default function App() {
             {/* Content routes — accessible to admin and publisher */}
             <Route path="publikasi"   element={<PublikasiManager />} />
             <Route path="event"       element={<EventManager />} />
+            <Route path="program"     element={<ProgramManager />} />
+            <Route path="akun"        element={<ProfilePage />} />
             {/* Admin-only routes — publishers get redirected to /dashboard */}
             <Route element={<RequireAdmin />}>
               <Route path="settings"    element={<SettingsManager />} />
@@ -89,12 +104,13 @@ export default function App() {
               <Route path="tim"          element={<TeamManager />} />
               <Route path="perjalanan"   element={<TimelineManager />} />
               <Route path="laporan"      element={<ReportsManager />} />
-              <Route path="subscribers"  element={<ComingSoon title="Pelanggan"     description="Kelola daftar pelanggan newsletter." />} />
+              <Route path="subscribers"  element={<SubscribersManager />} />
               <Route path="email-logs"   element={<ComingSoon title="Riwayat Email" description="Riwayat pengiriman email sistem." />} />
             </Route>
           </Route>
         </Routes>
       </BrowserRouter>
+      </I18nProvider>
     </ErrorBoundary>
   );
 }

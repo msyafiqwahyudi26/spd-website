@@ -10,16 +10,19 @@ export default function DashboardSection() {
           <p className="mt-4 text-slate-500 max-w-xl mx-auto leading-relaxed">
             Visualisasi data pemilu berdasarkan riset dan monitoring yang kami lakukan.
           </p>
+          <p className="mt-3 text-xs font-semibold tracking-wide uppercase text-amber-700">
+            Pratinjau — data ilustrasi
+          </p>
         </div>
         <div className="bg-white border border-slate-200 rounded-xl p-6 sm:p-8 mb-8">
           <LineChart data={DEFAULT_DATA} series={DEFAULT_SERIES} />
           <p className="text-xs text-slate-400 mt-4 text-center">
-            Sumber: Sindikasi Pemilu dan Demokrasi
+            Sumber: Sindikasi Pemilu dan Demokrasi · Angka contoh
           </p>
         </div>
         <div className="flex justify-center">
           <Button href="/data-pemilu" variant="primary">
-            Akses Dashboard Lengkap
+            Lihat Pratinjau Dashboard
           </Button>
         </div>
       </div>

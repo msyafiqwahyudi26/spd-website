@@ -16,9 +16,10 @@ const DEFAULT_ICON = (
 );
 
 function ProgramCard({ program }) {
-  const href = program.slug ? `/event/${program.slug}` : '/program';
-  // Dashboard-editable: each program can carry an `image` field. When present,
-  // it fills the orange visual block; otherwise we show the default icon.
+  // Programs are long-term initiatives. An admin-provided `link` overrides
+  // the default /program route when the program lives elsewhere (e.g. an
+  // external campaign page or a dedicated publication).
+  const href = program.link ? program.link : '/program';
   const image = resolveMedia('', program.image);
 
   return (
@@ -68,26 +69,29 @@ function ProgramCard({ program }) {
  *               /program page already has its own hero, so it sets false.
  */
 export default function ProgramCards({ limit = null, showIntro = true }) {
-  const [events, setEvents] = useState([]);
+  const [programs, setPrograms] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    // Programs have their own endpoint now (separate from dated events).
+    // Fall back to INITIAL_EVENTS only if the admin hasn't created any
+    // program rows yet — that static list has plausible starter content.
+    const fetchPrograms = async () => {
       setIsLoading(true);
       try {
-        const data = await api('/events');
-        setEvents(Array.isArray(data) ? data : []);
-      } catch (e) {
-        console.warn('API fetch failed, using fallback data for Events');
-        setEvents(INITIAL_EVENTS);
+        const data = await api('/programs');
+        const list = Array.isArray(data) ? data : [];
+        setPrograms(list.length > 0 ? list : INITIAL_EVENTS);
+      } catch {
+        setPrograms(INITIAL_EVENTS);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchEvents();
+    fetchPrograms();
   }, []);
 
-  const visible = typeof limit === 'number' ? events.slice(0, limit) : events;
+  const visible = typeof limit === 'number' ? programs.slice(0, limit) : programs;
 
   return (
     <section className="py-16 px-4 bg-slate-50 fade-in-up">

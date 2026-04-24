@@ -76,6 +76,69 @@ async function sendContactNotification({ name, email, message }) {
 }
 
 /**
+ * Admin-triggered test. Sends a minimal "delivery works" email to the
+ * configured inbox so the admin can confirm SMTP credentials without
+ * having to subscribe to their own newsletter. Never throws.
+ */
+async function sendTestEmail() {
+  if (!transporter) return { ok: false, reason: 'EMAIL_NOT_CONFIGURED' };
+  try {
+    await transporter.sendMail({
+      from: EMAIL_FROM || EMAIL_USER,
+      to: EMAIL_TO,
+      subject: stripHeaderChars('[SPD] Uji pengiriman email'),
+      text: `Pengiriman email dari SPD backend berhasil.
+
+Dikirim pada: ${new Date().toISOString()}
+
+Tidak perlu dibalas — ini pesan uji dari administrator.`,
+      html: `
+        <p>Pengiriman email dari <strong>SPD backend</strong> berhasil.</p>
+        <p style="color:#64748b;font-size:13px">Dikirim pada ${new Date().toISOString()}. Tidak perlu dibalas — ini pesan uji dari administrator.</p>
+      `,
+    });
+    return { ok: true, target: EMAIL_TO };
+  } catch (err) {
+    return { ok: false, reason: err && err.message ? err.message : 'UNKNOWN_ERROR' };
+  }
+}
+
+/**
+ * Fire-and-forget welcome email to the subscriber themselves.
+ * Short, friendly, no-surprise. Never throws.
+ */
+async function sendSubscriberWelcome({ email }) {
+  if (!transporter) return { ok: false, reason: 'EMAIL_NOT_CONFIGURED' };
+  try {
+    await transporter.sendMail({
+      from: EMAIL_FROM || EMAIL_USER,
+      to: email,
+      subject: stripHeaderChars('Terima kasih telah berlangganan SPD Indonesia'),
+      text: `Halo,
+
+Terima kasih sudah berlangganan newsletter Sindikasi Pemilu dan Demokrasi (SPD).
+Anda akan menerima riset, opini, dan analisis terbaru kami melalui email ini.
+
+Jika ini bukan Anda, abaikan pesan ini — alamat tidak akan dipakai tanpa
+konfirmasi lebih lanjut.
+
+Salam,
+Tim SPD Indonesia
+`,
+      html: `
+        <p>Halo,</p>
+        <p>Terima kasih sudah berlangganan newsletter <strong>Sindikasi Pemilu dan Demokrasi (SPD)</strong>. Anda akan menerima riset, opini, dan analisis terbaru kami melalui email ini.</p>
+        <p style="color:#64748b;font-size:13px">Jika ini bukan Anda, abaikan pesan ini — alamat tidak akan dipakai tanpa konfirmasi lebih lanjut.</p>
+        <p>Salam,<br/>Tim SPD Indonesia</p>
+      `,
+    });
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, reason: err && err.message ? err.message : 'UNKNOWN_ERROR' };
+  }
+}
+
+/**
  * Fire-and-forget new-subscriber notification to the admin inbox.
  * Never throws; returns { ok, reason? } for optional logging.
  */
@@ -123,6 +186,8 @@ module.exports = {
   sendContactNotification,
   sendContactReply,
   sendSubscriberNotification,
+  sendSubscriberWelcome,
+  sendTestEmail,
   isConfigured: () => isConfigured,
   validateConfig,
   EMAIL_TO,

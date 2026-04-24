@@ -3,6 +3,102 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { INITIAL_PUBLIKASI } from '../data/publikasi';
 import Image from '../components/ui/Image';
+import { resolveMediaUrl } from '@/lib/media';
+
+const TYPE_LABEL = { article: 'Artikel', research: 'Riset', book: 'Buku' };
+
+/**
+ * Book detail layout — 2-column product-page shape.
+ *
+ * Left: cover image (prominent, 3:4 portrait). Right: category badge,
+ * title, author, date, description, big download CTA. If the admin
+ * added fullContent it renders below as a normal body; otherwise the
+ * page ends at the CTA — books rarely need a full article body.
+ */
+function BookLayout({ item, heroSrc, gradient, hasContent }) {
+  return (
+    <article className="bg-white">
+      <div className="max-w-4xl mx-auto px-4 pt-8 pb-2">
+        <Link
+          to="/publikasi"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-orange-500 transition-colors duration-200 group"
+        >
+          <span className="transition-transform duration-200 group-hover:-translate-x-0.5">←</span>
+          Kembali ke Publikasi
+        </Link>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 pt-6 pb-16">
+        <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-10 items-start">
+          {/* Cover */}
+          <div className="mx-auto md:mx-0 w-full max-w-[280px]">
+            <div className="aspect-[3/4] rounded-xl overflow-hidden shadow-lg border border-slate-200">
+              <Image
+                src={heroSrc}
+                alt={item.title}
+                className="w-full h-full"
+                gradient={gradient}
+                icon="logo"
+              />
+            </div>
+          </div>
+
+          {/* Metadata + CTA */}
+          <div>
+            <div className="mb-4 flex items-center gap-2 flex-wrap">
+              <span className={`text-xs font-bold tracking-widest uppercase ${item.categoryColor ?? 'text-slate-400'}`}>
+                {item.category}
+              </span>
+              <span className="text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded bg-orange-100 text-orange-700 border border-orange-200">
+                BUKU
+              </span>
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 leading-tight mb-4">
+              {item.title}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-500 mb-6">
+              {item.author && <span>Oleh <span className="text-slate-700 font-medium">{item.author}</span></span>}
+              <span>{item.date}</span>
+            </div>
+
+            {item.description && (
+              <p className="text-base text-slate-600 leading-relaxed mb-8">{item.description}</p>
+            )}
+
+            {item.pdfUrl ? (
+              <a
+                href={resolveMediaUrl(item.pdfUrl)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-6 py-3 rounded-lg transition-colors shadow-sm"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4-4 4m0 0-4-4m4 4V4" />
+                </svg>
+                Unduh Buku (PDF)
+              </a>
+            ) : (
+              <span className="inline-flex items-center gap-2 text-sm text-slate-400 bg-slate-50 border border-slate-200 px-4 py-3 rounded-lg">
+                File PDF belum tersedia.
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Optional body — only if admin provided fullContent blocks. */}
+        {hasContent && (
+          <div className="mt-16 border-t border-slate-100 pt-10 max-w-3xl mx-auto">
+            {item.fullContent.map((block, i) => (
+              <ContentBlock key={i} block={block} />
+            ))}
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}
 const safeFormatDate = (dateStr) => {
   if (!dateStr) return '—';
   const d = new Date(dateStr);
@@ -104,6 +200,15 @@ export default function PublikasiDetail() {
   const gradient   = GRADIENT_BY_CATEGORY[item.category] ?? 'from-slate-100 to-slate-200';
   const hasContent = Array.isArray(item.fullContent) && item.fullContent.length > 0;
   const gallery    = Array.isArray(item.gallery) && item.gallery.length > 0 ? item.gallery : null;
+  const isBook     = item.contentType === 'book';
+  const isResearch = item.contentType === 'research';
+
+  // Books get a "product page" shape: cover on the left, metadata + download
+  // stacked on the right. Skips the full-width hero image and the body-text
+  // block unless the admin explicitly added fullContent.
+  if (isBook) {
+    return <BookLayout item={item} heroSrc={heroSrc} gradient={gradient} hasContent={hasContent} />;
+  }
 
   return (
     <article className="bg-white">
@@ -121,10 +226,15 @@ export default function PublikasiDetail() {
 
       {/* ── Header ── */}
       <header className="max-w-4xl mx-auto px-4 pt-6 pb-10">
-        <div className="mb-4">
+        <div className="mb-4 flex items-center gap-2 flex-wrap">
           <span className={`text-xs font-bold tracking-widest uppercase ${item.categoryColor ?? 'text-slate-400'}`}>
             {item.category}
           </span>
+          {item.contentType && item.contentType !== 'article' && (
+            <span className="text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+              {TYPE_LABEL[item.contentType] || item.contentType}
+            </span>
+          )}
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 leading-tight mb-6">
@@ -170,6 +280,41 @@ export default function PublikasiDetail() {
           icon="photo"
         />
       </div>
+
+      {/* ── PDF attachment — prominent for books, inline for research ── */}
+      {item.pdfUrl && (
+        <div className="max-w-3xl mx-auto px-4 mb-10">
+          <a
+            href={resolveMediaUrl(item.pdfUrl)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`group flex items-center gap-4 rounded-xl border transition-all ${
+              item.contentType === 'book'
+                ? 'bg-orange-50 border-orange-200 hover:border-orange-400 p-5'
+                : 'bg-slate-50 border-slate-200 hover:border-orange-300 p-4'
+            }`}
+          >
+            <div className={`shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${
+              item.contentType === 'book' ? 'bg-orange-500 text-white' : 'bg-white border border-slate-200 text-slate-500'
+            }`}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-slate-800 group-hover:text-orange-600 transition-colors">
+                {item.contentType === 'book' ? 'Unduh Buku (PDF)' : 'Unduh Laporan (PDF)'}
+              </p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Klik untuk membuka file di tab baru.
+              </p>
+            </div>
+            <svg className="shrink-0 w-5 h-5 text-slate-400 group-hover:text-orange-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-4-4 4m0 0-4-4m4 4V4" />
+            </svg>
+          </a>
+        </div>
+      )}
 
       {/* ── Body ── */}
       <div className="max-w-3xl mx-auto px-4 pb-16">

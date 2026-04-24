@@ -4,22 +4,22 @@ import logo from '../../assets/logo-spd.svg';
 import { useSettings } from '../../hooks/useSettings';
 import { resolveMedia } from '../../config/media';
 import { api } from '@/lib/api';
+import { useI18n } from '@/i18n';
 
-const NAVIGASI = [
-  { id: 'nav-home', label: 'Beranda', href: '/' },
-  { id: 'nav-about', label: 'Tentang Kami', href: '/tentang-kami' },
-  { id: 'nav-program', label: 'Program', href: '/program' },
-  { id: 'nav-publikasi', label: 'Publikasi', href: '/publikasi' },
+// Static fallbacks — shown only when the admin hasn't added any footer
+// links via the dashboard. Keep labels stable so the page isn't empty
+// on a fresh install.
+const FALLBACK_NAV = [
+  { id: 'nav-home',      label: 'Beranda',      url: '/beranda' },
+  { id: 'nav-about',     label: 'Tentang Kami', url: '/tentang-kami' },
+  { id: 'nav-program',   label: 'Program',      url: '/program' },
+  { id: 'nav-publikasi', label: 'Publikasi',    url: '/publikasi' },
 ];
-
-// Layanan links point to the Program page until dedicated service sub-pages
-// exist. Keeping the labels preserves the information architecture from the
-// reference design while avoiding dead routes.
-const LAYANAN = [
-  { id: 'srv-riset', label: 'Riset & Analisis Kebijakan', href: '/program' },
-  { id: 'srv-kampanye', label: 'Kampanye Digital', href: '/program' },
-  { id: 'srv-adv-publik', label: 'Advokasi Publik', href: '/program' },
-  { id: 'srv-adv-kebijakan', label: 'Advokasi Kebijakan', href: '/program' },
+const FALLBACK_LAYANAN = [
+  { id: 'srv-riset',         label: 'Riset & Analisis Kebijakan', url: '/program' },
+  { id: 'srv-kampanye',      label: 'Kampanye Digital',           url: '/program' },
+  { id: 'srv-adv-publik',    label: 'Advokasi Publik',            url: '/program' },
+  { id: 'srv-adv-kebijakan', label: 'Advokasi Kebijakan',         url: '/program' },
 ];
 
 // Social icons are static SVGs; the href comes from settings.social.* and
@@ -139,7 +139,30 @@ function NewsletterForm() {
 
 export default function Footer() {
   const { settings } = useSettings();
+  const { t } = useI18n();
   const logoSrc = resolveMedia(logo, settings.images?.logo);
+
+  const [navLinks, setNavLinks] = useState(null);
+  const [layananLinks, setLayananLinks] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    api('/footer-links')
+      .then((rows) => {
+        if (cancelled) return;
+        const list = Array.isArray(rows) ? rows : [];
+        setNavLinks(list.filter((r) => r.section === 'nav'));
+        setLayananLinks(list.filter((r) => r.section === 'layanan'));
+      })
+      .catch(() => { if (!cancelled) { setNavLinks([]); setLayananLinks([]); } });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Fallback-on-empty: when admin hasn't populated links, use static so the
+  // page doesn't feel unfinished. Once admin adds any link to a section, the
+  // API list takes over for that section.
+  const navItems     = (navLinks     && navLinks.length     > 0) ? navLinks     : FALLBACK_NAV;
+  const layananItems = (layananLinks && layananLinks.length > 0) ? layananLinks : FALLBACK_LAYANAN;
   return (
     <footer className="bg-slate-900 text-white relative">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-8">
@@ -177,13 +200,13 @@ export default function Footer() {
           {/* Col 2 — Navigasi */}
           <div>
             <h4 className="text-sm font-semibold text-white mb-4 tracking-wide">
-              Navigasi
+              {t('footer.nav')}
             </h4>
             <ul className="space-y-2.5">
-              {NAVIGASI.map((item) => (
+              {navItems.map((item) => (
                 <li key={item.id}>
                   <Link
-                    to={item.href}
+                    to={item.url}
                     className="text-sm text-slate-400 hover:text-orange-500 transition-colors duration-200"
                   >
                     {item.label}
@@ -196,13 +219,13 @@ export default function Footer() {
           {/* Col 3 — Layanan */}
           <div>
             <h4 className="text-sm font-semibold text-white mb-4 tracking-wide">
-              Layanan
+              {t('footer.services')}
             </h4>
             <ul className="space-y-2.5">
-              {LAYANAN.map((item) => (
+              {layananItems.map((item) => (
                 <li key={item.id}>
                   <Link
-                    to={item.href}
+                    to={item.url}
                     className="text-sm text-slate-400 hover:text-orange-500 transition-colors duration-200"
                   >
                     {item.label}
@@ -215,10 +238,10 @@ export default function Footer() {
           {/* Col 4 — Newsletter */}
           <div>
             <h4 className="text-sm font-semibold text-white mb-3 tracking-wide">
-              Newsletter
+              {t('footer.newsletter')}
             </h4>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Dapatkan update terbaru tentang perkembangan pemilu Indonesia.
+              {t('footer.newsletterCopy')}
             </p>
             <NewsletterForm />
           </div>
@@ -230,7 +253,7 @@ export default function Footer() {
       <div className="border-t border-slate-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
           <p className="text-xs text-slate-500 text-center">
-            © 2026 SPD-Indonesia. Hak cipta dilindungi undang-undang.
+            {t('footer.copyright')}
           </p>
         </div>
       </div>

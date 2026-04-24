@@ -9,6 +9,12 @@ const DEFAULTS = {
   heroUrl: '',
   placeholderUrl: '',
   visionText: '',
+  aboutIntro: '',
+  heroSubtitle: '',
+  heroCta1Label: '',
+  heroCta1Href:  '',
+  heroCta2Label: '',
+  heroCta2Href:  '',
   socialFacebook: '',
   socialTwitter: '',
   socialLinkedin: '',
@@ -26,7 +32,13 @@ function toPublic(row) {
       placeholder: src.placeholderUrl || '',
     },
     content: {
-      vision: src.visionText || '',
+      vision:       src.visionText   || '',
+      aboutIntro:   src.aboutIntro   || '',
+      heroSubtitle: src.heroSubtitle || '',
+    },
+    hero: {
+      cta1: { label: src.heroCta1Label || '', href: src.heroCta1Href || '' },
+      cta2: { label: src.heroCta2Label || '', href: src.heroCta2Href || '' },
     },
     social: {
       facebook:  src.socialFacebook  || '',
@@ -65,6 +77,7 @@ exports.update = async (req, res, next) => {
     const images  = body.images  || {};
     const content = body.content || {};
     const social  = body.social  || {};
+    const hero    = body.hero    || {};
 
     const data = {};
     if (typeof body.siteName === 'string') data.siteName = body.siteName.trim().slice(0, 200);
@@ -73,6 +86,12 @@ exports.update = async (req, res, next) => {
     if (typeof images.hero === 'string')        data.heroUrl        = images.hero.trim().slice(0, 2000);
     if (typeof images.placeholder === 'string') data.placeholderUrl = images.placeholder.trim().slice(0, 2000);
     if (typeof content.vision === 'string')     data.visionText     = content.vision.trim().slice(0, 2000);
+    if (typeof content.aboutIntro === 'string') data.aboutIntro     = content.aboutIntro.trim().slice(0, 5000);
+    if (typeof content.heroSubtitle === 'string') data.heroSubtitle = content.heroSubtitle.trim().slice(0, 500);
+    if (hero.cta1 && typeof hero.cta1.label === 'string') data.heroCta1Label = hero.cta1.label.trim().slice(0, 80);
+    if (hero.cta1 && typeof hero.cta1.href  === 'string') data.heroCta1Href  = hero.cta1.href.trim().slice(0, 500);
+    if (hero.cta2 && typeof hero.cta2.label === 'string') data.heroCta2Label = hero.cta2.label.trim().slice(0, 80);
+    if (hero.cta2 && typeof hero.cta2.href  === 'string') data.heroCta2Href  = hero.cta2.href.trim().slice(0, 500);
     if (typeof social.facebook  === 'string') data.socialFacebook  = social.facebook.trim().slice(0, 500);
     if (typeof social.twitter   === 'string') data.socialTwitter   = social.twitter.trim().slice(0, 500);
     if (typeof social.linkedin  === 'string') data.socialLinkedin  = social.linkedin.trim().slice(0, 500);
