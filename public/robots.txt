@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Block admin dashboard and API from crawlers
+Disallow: /dashboard/
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /login
+
+# Block uploaded files folder
+Disallow: /uploads/
+
+Sitemap: https://spdindonesia.org/sitemap.xml

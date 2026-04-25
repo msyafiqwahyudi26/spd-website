@@ -2,24 +2,50 @@ const jwt = require('jsonwebtoken');
 const { fail } = require('../lib/response');
 
 /**
- * Stricter JWT validation.
+ * Parse a single cookie value from the raw Cookie header.
+ * This avoids adding the cookie-parser package as a dependency.
+ */
+function getCookie(req, name) {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) return null;
+  for (const part of cookieHeader.split(';')) {
+    const [k, ...v] = part.trim().split('=');
+    if (k.trim() === name) return v.join('=').trim();
+  }
+  return null;
+}
+
+/**
+ * Strict JWT validation.
+ *
+ * Token source priority:
+ *   1. httpOnly cookie `spd_token` (preferred — not accessible via JS)
+ *   2. Authorization: Bearer <token> header (API clients / backward compat)
  *
  * Rejects:
- *  - Missing Authorization header
- *  - Non-Bearer schemes
- *  - Empty bearer token
- *  - Expired tokens (TokenExpiredError)
- *  - Malformed / wrong-signature tokens (JsonWebTokenError)
- *  - Tokens missing the `userId` claim (defence against forged payloads)
+ * - No token in either location
+ * - Non-Bearer schemes
+ * - Empty bearer token
+ * - Expired tokens (TokenExpiredError)
+ * - Malformed / wrong-signature tokens (JsonWebTokenError)
+ * - Tokens missing the `userId` claim (defence against forged payloads)
  */
 module.exports = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || typeof authHeader !== 'string') {
-    return fail(res, 401, 'Token tidak ditemukan');
+  // 1. Try httpOnly cookie first
+  let token = getCookie(req, 'spd_token');
+
+  // 2. Fall back to Authorization header (for API clients / Postman)
+  if (!token) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && typeof authHeader === 'string') {
+      const [scheme, bearerToken] = authHeader.split(' ');
+      if (scheme === 'Bearer' && bearerToken) {
+        token = bearerToken;
+      }
+    }
   }
 
-  const [scheme, token] = authHeader.split(' ');
-  if (scheme !== 'Bearer' || !token) {
+  if (!token) {
     return fail(res, 401, 'Token tidak ditemukan');
   }
 
@@ -27,9 +53,11 @@ module.exports = (req, res, next) => {
     const payload = jwt.verify(token, process.env.JWT_SECRET, {
       algorithms: ['HS256'],
     });
+
     if (!payload || typeof payload !== 'object' || !payload.userId) {
       return fail(res, 401, 'Token tidak valid');
     }
+
     req.user = payload;
     return next();
   } catch (err) {

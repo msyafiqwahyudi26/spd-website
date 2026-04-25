@@ -8,15 +8,16 @@ if (!RAW_BASE) {
 }
 
 export const BASE_URL = RAW_BASE || 'http://localhost:5000/api';
-
 export const AUTH_EXPIRED_EVENT = 'auth:expired';
+
 const DEFAULT_TIMEOUT_MS = 30_000;
 
 function emitAuthExpired() {
-  try { localStorage.removeItem('spd_token'); } catch {}
   // Stash a one-shot reason so Login can show "Sesi kedaluwarsa" when the
   // redirect happens. Consumed and cleared by the Login page.
-  try { sessionStorage.setItem('spd_auth_reason', 'expired'); } catch {}
+  try {
+    sessionStorage.setItem('spd_auth_reason', 'expired');
+  } catch {}
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
   }
@@ -26,7 +27,7 @@ function extractMessage(body) {
   if (!body || typeof body !== 'object') return null;
   return (
     (typeof body.message === 'string' && body.message) ||
-    (typeof body.error   === 'string' && body.error)   ||
+    (typeof body.error === 'string' && body.error) ||
     null
   );
 }
@@ -34,21 +35,18 @@ function extractMessage(body) {
 /**
  * Generic fetch wrapper.
  *
- * - Attaches Bearer token if present.
+ * - Uses httpOnly cookies for authentication (credentials: 'include').
+ *   No token is stored in localStorage — the browser sends the cookie
+ *   automatically on every request to the same origin.
  * - Adds JSON Content-Type unless body is FormData.
  * - Aborts after 30s so hung responses don't hang the UI.
  * - Unwraps the `{ success, data }` envelope transparently — callers see
  *   the inner payload. Legacy un-enveloped responses pass through as-is.
- * - On 401 with a token present, clears the token and dispatches
- *   `auth:expired` so the app can redirect to /login.
+ * - On 401, dispatches `auth:expired` so the app can redirect to /login.
  */
 export const api = async (endpoint, options = {}) => {
-  const token = (() => {
-    try { return localStorage.getItem('spd_token'); } catch { return null; }
-  })();
-
   const headers = { ...(options.headers || {}) };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = headers['Content-Type'] || 'application/json';
   }
@@ -62,6 +60,8 @@ export const api = async (endpoint, options = {}) => {
     response = await fetch(`${BASE_URL}${endpoint}`, {
       ...options,
       headers,
+      // Send the httpOnly auth cookie on every request
+      credentials: 'include',
       signal: options.signal || controller.signal,
     });
   } catch (err) {
@@ -75,9 +75,10 @@ export const api = async (endpoint, options = {}) => {
     wrapped.cause = err;
     throw wrapped;
   }
+
   clearTimeout(timer);
 
-  if (response.status === 401 && token) {
+  if (response.status === 401) {
     emitAuthExpired();
   }
 

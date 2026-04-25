@@ -9,19 +9,12 @@ export function useAuth() {
     let cancelled = false;
 
     const checkAuth = async () => {
-      let token = null;
-      try { token = localStorage.getItem('spd_token'); } catch {}
-
-      if (!token) {
-        if (!cancelled) setIsLoading(false);
-        return;
-      }
-
+      // No localStorage check needed — the httpOnly cookie is sent
+      // automatically by the browser if it exists.
       try {
         const data = await api('/auth/me');
         if (!cancelled) setUser(data);
       } catch {
-        try { localStorage.removeItem('spd_token'); } catch {}
         if (!cancelled) setUser(null);
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -47,7 +40,7 @@ export function useAuth() {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
-      try { localStorage.setItem('spd_token', data.token); } catch {}
+      // The server sets the httpOnly cookie — no need to store anything here.
       setUser(data.user);
       return { success: true };
     } catch (error) {
@@ -55,8 +48,13 @@ export function useAuth() {
     }
   };
 
-  const logout = () => {
-    try { localStorage.removeItem('spd_token'); } catch {}
+  const logout = async () => {
+    try {
+      // Ask the server to clear the httpOnly cookie.
+      await api('/auth/logout', { method: 'POST' });
+    } catch {
+      // Silently ignore — we still clear the local state.
+    }
     setUser(null);
   };
 
