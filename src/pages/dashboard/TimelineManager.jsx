@@ -122,7 +122,7 @@ export default function TimelineManager() {
       await api(`/milestones/${id}`, { method: 'DELETE' });
       setList(prev => prev.filter(m => m.id !== id));
       setToast('Tonggak dihapus');
-    } catch (err) { setToast(err?.message || 'Gagal menghapus'); }
+    } catch (err) { setToast({ message: err?.message || 'Gagal menghapus', kind: 'error' }); }
   };
 
   return (

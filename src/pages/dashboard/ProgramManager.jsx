@@ -166,7 +166,7 @@ export default function ProgramManager() {
       await api(`/programs/${id}`, { method: 'DELETE' });
       setList(prev => prev.filter(p => p.id !== id));
       setToast('Program dihapus');
-    } catch (err) { setToast(err?.message || 'Gagal menghapus'); }
+    } catch (err) { setToast({ message: err?.message || 'Gagal menghapus', kind: 'error' }); }
   };
 
   return (

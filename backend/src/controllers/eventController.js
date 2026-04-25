@@ -108,11 +108,11 @@ exports.update = async (req, res, next) => {
     const event = await prisma.event.update({
       where: { id },
       data: {
-        title:       title       !== undefined ? title.trim().slice(0, 300)      : existing.title,
-        date:        date        !== undefined ? date.trim().slice(0, 64)        : existing.date,
-        startsAt:    starts.value !== undefined ? starts.value                   : existing.startsAt,
-        location:    location    !== undefined ? location.trim().slice(0, 200)   : existing.location,
-        description: description !== undefined ? description.trim().slice(0, 2000): existing.description,
+        title:       title       !== undefined ? (title       || '').trim().slice(0, 300)  : existing.title,
+        date:        date        !== undefined ? (date        || '').trim().slice(0, 64)   : existing.date,
+        startsAt:    starts.value !== undefined ? starts.value                             : existing.startsAt,
+        location:    location    !== undefined ? (location    || '').trim().slice(0, 200)  : existing.location,
+        description: description !== undefined ? (description || '').trim().slice(0, 2000) : existing.description,
         image:       image       !== undefined ? (image || null)                 : existing.image,
       },
     });

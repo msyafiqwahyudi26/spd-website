@@ -196,7 +196,7 @@ export default function MessagesManager() {
       setMessages(prev => prev.map(m => m.id === id ? { ...m, status: 'read' } : m));
       setToast('Ditandai sudah dibaca');
     } catch {
-      setToast('Gagal memperbarui status');
+      setToast({ message: 'Gagal memperbarui status', kind: 'error' });
     }
   };
 

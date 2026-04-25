@@ -428,7 +428,8 @@ export default function PublikasiManager() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
 
-  const showToast = useCallback((msg) => setToast(msg), []);
+  const showToast = useCallback((msg, kind = 'success') =>
+    setToast({ message: msg, kind }), []);
   const clearToast = useCallback(() => setToast(null), []);
 
   const fetchPublications = useCallback(async () => {
@@ -471,7 +472,7 @@ export default function PublikasiManager() {
       setView('list');
       setEditingItem(null);
     } catch (e) {
-      showToast(e.message || 'Gagal menyimpan publikasi');
+      showToast(e.message || 'Gagal menyimpan publikasi', 'error');
     } finally {
       setSaving(false);
     }
@@ -485,7 +486,7 @@ export default function PublikasiManager() {
       showToast('Publikasi berhasil dihapus');
     } catch (error) {
       console.error(error);
-      showToast('Gagal menghapus publikasi');
+      showToast('Gagal menghapus publikasi', 'error');
     } finally {
       setDeletingId(null);
       setDeleteConfirmId(null);

@@ -171,7 +171,7 @@ function StatsSection({ onNotify }) {
       setStats((prev) => [...prev, created]);
       setForm({ value: '', label: '' });
       onNotify('Statistik ditambahkan');
-    } catch (err) { onNotify(err.message || 'Gagal menambah statistik'); }
+    } catch (err) { onNotify({ message: err.message || 'Gagal menambah statistik', kind: 'error' }); }
     finally { setSaving(false); }
   };
 
@@ -181,7 +181,7 @@ function StatsSection({ onNotify }) {
       const updated = await api(`/stats/${id}`, { method: 'PUT', body: JSON.stringify(patch) });
       setStats((prev) => prev.map((s) => (s.id === id ? updated : s)));
       onNotify('Statistik diperbarui');
-    } catch (err) { onNotify(err.message || 'Gagal memperbarui'); }
+    } catch (err) { onNotify({ message: err.message || 'Gagal memperbarui', kind: 'error' }); }
     finally { setPendingId(null); }
   };
 
@@ -191,7 +191,7 @@ function StatsSection({ onNotify }) {
       await api(`/stats/${id}`, { method: 'DELETE' });
       setStats((prev) => prev.filter((s) => s.id !== id));
       onNotify('Statistik dihapus');
-    } catch (err) { onNotify(err.message || 'Gagal menghapus'); }
+    } catch (err) { onNotify({ message: err.message || 'Gagal menghapus', kind: 'error' }); }
     finally { setPendingId(null); }
   };
 
@@ -283,7 +283,7 @@ function InlineMissionSection({ onNotify }) {
       setItems(prev => [...prev, created]);
       setText('');
       onNotify('Misi ditambahkan');
-    } catch (err) { onNotify(err.message || 'Gagal menambah misi'); }
+    } catch (err) { onNotify({ message: err.message || 'Gagal menambah misi', kind: 'error' }); }
     finally { setSaving(false); }
   };
 
@@ -293,7 +293,7 @@ function InlineMissionSection({ onNotify }) {
       const updated = await api(`/missions/${id}`, { method: 'PUT', body: JSON.stringify(patch) });
       setItems(prev => prev.map(m => m.id === id ? updated : m));
       onNotify('Misi diperbarui');
-    } catch (err) { onNotify(err.message || 'Gagal memperbarui'); }
+    } catch (err) { onNotify({ message: err.message || 'Gagal memperbarui', kind: 'error' }); }
     finally { setPendingId(null); }
   };
 
@@ -303,7 +303,7 @@ function InlineMissionSection({ onNotify }) {
       await api(`/missions/${id}`, { method: 'DELETE' });
       setItems(prev => prev.filter(m => m.id !== id));
       onNotify('Misi dihapus');
-    } catch (err) { onNotify(err.message || 'Gagal menghapus'); }
+    } catch (err) { onNotify({ message: err.message || 'Gagal menghapus', kind: 'error' }); }
     finally { setPendingId(null); }
   };
 
@@ -478,7 +478,7 @@ function InlineApproachSection({ onNotify }) {
       setItems((prev) => [...prev, created]);
       setForm({ iconKey: 'collaboration', iconUrl: '', title: '', description: '' });
       onNotify('Pendekatan ditambahkan');
-    } catch (err) { onNotify(err.message || 'Gagal menambah pendekatan'); }
+    } catch (err) { onNotify({ message: err.message || 'Gagal menambah pendekatan', kind: 'error' }); }
     finally { setSaving(false); }
   };
 
@@ -488,7 +488,7 @@ function InlineApproachSection({ onNotify }) {
       const updated = await api(`/approaches/${id}`, { method: 'PUT', body: JSON.stringify(patch) });
       setItems((prev) => prev.map((a) => (a.id === id ? updated : a)));
       onNotify('Pendekatan diperbarui');
-    } catch (err) { onNotify(err.message || 'Gagal memperbarui'); }
+    } catch (err) { onNotify({ message: err.message || 'Gagal memperbarui', kind: 'error' }); }
     finally { setPendingId(null); }
   };
 
@@ -498,7 +498,7 @@ function InlineApproachSection({ onNotify }) {
       await api(`/approaches/${id}`, { method: 'DELETE' });
       setItems((prev) => prev.filter((a) => a.id !== id));
       onNotify('Pendekatan dihapus');
-    } catch (err) { onNotify(err.message || 'Gagal menghapus'); }
+    } catch (err) { onNotify({ message: err.message || 'Gagal menghapus', kind: 'error' }); }
     finally { setPendingId(null); }
   };
 
@@ -618,7 +618,7 @@ function InlineCoreValueSection({ onNotify }) {
       setItems((prev) => [...prev, created]);
       setForm({ iconKey: 'collaboration', iconUrl: '', title: '', description: '' });
       onNotify('Core value ditambahkan');
-    } catch (err) { onNotify(err.message || 'Gagal menambah core value'); }
+    } catch (err) { onNotify({ message: err.message || 'Gagal menambah core value', kind: 'error' }); }
     finally { setSaving(false); }
   };
 
@@ -628,7 +628,7 @@ function InlineCoreValueSection({ onNotify }) {
       const updated = await api(`/core-values/${id}`, { method: 'PUT', body: JSON.stringify(patch) });
       setItems((prev) => prev.map((a) => (a.id === id ? updated : a)));
       onNotify('Core value diperbarui');
-    } catch (err) { onNotify(err.message || 'Gagal memperbarui'); }
+    } catch (err) { onNotify({ message: err.message || 'Gagal memperbarui', kind: 'error' }); }
     finally { setPendingId(null); }
   };
 
@@ -638,7 +638,7 @@ function InlineCoreValueSection({ onNotify }) {
       await api(`/core-values/${id}`, { method: 'DELETE' });
       setItems((prev) => prev.filter((a) => a.id !== id));
       onNotify('Core value dihapus');
-    } catch (err) { onNotify(err.message || 'Gagal menghapus'); }
+    } catch (err) { onNotify({ message: err.message || 'Gagal menghapus', kind: 'error' }); }
     finally { setPendingId(null); }
   };
 
@@ -710,7 +710,7 @@ function FooterLinksSection({ onNotify }) {
       onNotify('Tautan ditambahkan');
       return true;
     } catch (err) {
-      onNotify(err.message || 'Gagal menambah tautan');
+      onNotify({ message: err.message || 'Gagal menambah tautan', kind: 'error' });
       return false;
     }
   };
@@ -722,7 +722,7 @@ function FooterLinksSection({ onNotify }) {
       setLinks((prev) => prev.map((l) => (l.id === id ? updated : l)));
       onNotify('Tautan diperbarui');
     } catch (err) {
-      onNotify(err.message || 'Gagal memperbarui');
+      onNotify({ message: err.message || 'Gagal memperbarui', kind: 'error' });
     } finally {
       setPendingId(null);
     }
@@ -735,7 +735,7 @@ function FooterLinksSection({ onNotify }) {
       setLinks((prev) => prev.filter((l) => l.id !== id));
       onNotify('Tautan dihapus');
     } catch (err) {
-      onNotify(err.message || 'Gagal menghapus');
+      onNotify({ message: err.message || 'Gagal menghapus', kind: 'error' });
     } finally {
       setPendingId(null);
     }
@@ -869,7 +869,7 @@ function CategoriesSection({ onNotify }) {
       await addCategory({ value, color: catColor, bg: catBg });
       setCatInput('');
       onNotify('Kategori ditambahkan');
-    } catch (err) { onNotify(err.message || 'Gagal menambah kategori'); }
+    } catch (err) { onNotify({ message: err.message || 'Gagal menambah kategori', kind: 'error' }); }
     finally { setSavingCat(false); }
   };
 
@@ -878,7 +878,7 @@ function CategoriesSection({ onNotify }) {
     try {
       await deleteCategory(id);
       onNotify('Kategori dihapus');
-    } catch (err) { onNotify(err.message || 'Gagal menghapus kategori'); }
+    } catch (err) { onNotify({ message: err.message || 'Gagal menghapus kategori', kind: 'error' }); }
     finally { setDeletingCatId(null); }
   };
 
@@ -1050,7 +1050,7 @@ export default function SettingsManager() {
       });
       setToast('Pengaturan berhasil disimpan');
     } catch (err) {
-      setToast(err.message || 'Gagal menyimpan pengaturan');
+      setToast({ message: err.message || 'Gagal menyimpan pengaturan', kind: 'error' });
     } finally {
       setSavingSettings(false);
     }
@@ -1271,21 +1271,4 @@ export default function SettingsManager() {
       )}
 
       {tab === 'footer' && (
-        <FooterLinksSection onNotify={setToast} />
-      )}
-
-      {tab === 'sistem' && (
-        <CategoriesSection onNotify={setToast} />
-      )}
-
-      <ConfirmDialog
-        open={confirmOpen}
-        title="Simpan perubahan pengaturan?"
-        message="Anda akan memperbarui pengaturan yang tampil di seluruh situs (nama, email, visi, atau gambar global). Lanjutkan?"
-        confirmLabel="Ya, simpan"
-        onConfirm={doSave}
-        onCancel={() => setConfirmOpen(false)}
-      />
-    </div>
-  );
-}
+        <FooterLinksSection onNotify={

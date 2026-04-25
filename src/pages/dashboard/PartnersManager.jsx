@@ -303,7 +303,7 @@ export default function PartnersManager() {
       setPartners((prev) => prev.filter((p) => p.id !== id));
       setToast('Mitra dihapus');
     } catch (err) {
-      setToast(err?.message || 'Gagal menghapus');
+      setToast({ message: err?.message || 'Gagal menghapus', kind: 'error' });
     }
   };
 

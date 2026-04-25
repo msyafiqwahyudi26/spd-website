@@ -305,7 +305,7 @@ export default function MediaManager() {
       setToast(newKey ? `Key "${newKey}" diatur` : 'Key dihapus');
       return updated;
     } catch (err) {
-      setToast(err?.message || 'Gagal mengatur key');
+      setToast({ message: err?.message || 'Gagal mengatur key', kind: 'error' });
     }
   };
 
@@ -316,7 +316,7 @@ export default function MediaManager() {
       if (key) invalidateMediaKey(key);
       setToast('Gambar dihapus');
     } catch (err) {
-      setToast(err?.message || 'Gagal menghapus');
+      setToast({ message: err?.message || 'Gagal menghapus', kind: 'error' });
     }
   };
 

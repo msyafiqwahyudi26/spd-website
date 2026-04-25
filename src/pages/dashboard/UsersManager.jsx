@@ -98,7 +98,7 @@ export default function UsersManager() {
       setErrors({});
       setToast('Pengguna berhasil ditambahkan');
     } catch (err) {
-      setToast(err.message || 'Gagal membuat pengguna');
+      setToast({ message: err.message || 'Gagal membuat pengguna', kind: 'error' });
     } finally {
       setSaving(false);
     }

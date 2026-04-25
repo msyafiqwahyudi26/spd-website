@@ -223,7 +223,7 @@ export default function EventManager() {
   const [saving,          setSaving]          = useState(false);
   const [toast,           setToast]           = useState(null);
 
-  const showToast  = useCallback((msg) => setToast(msg), []);
+  const showToast  = useCallback((msg, kind = 'success') => setToast({ message: msg, kind }), []);
   const clearToast = useCallback(() => setToast(null), []);
 
   const fetchEvents = useCallback(async () => {
@@ -266,7 +266,7 @@ export default function EventManager() {
       setView('list');
       setEditingItem(null);
     } catch (e) {
-      showToast(e.message || 'Gagal menyimpan event');
+      showToast(e.message || 'Gagal menyimpan event', 'error');
     } finally {
       setSaving(false);
     }
@@ -280,7 +280,7 @@ export default function EventManager() {
       showToast('Event berhasil dihapus');
     } catch (error) {
       console.error(error);
-      showToast('Gagal menghapus event');
+      showToast('Gagal menghapus event', 'error');
     } finally {
       setDeletingId(null);
       setDeleteConfirmId(null);

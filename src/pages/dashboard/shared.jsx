@@ -34,17 +34,40 @@ export function makeUniqueSlug(base, existingList, excludeId = null) {
 
 /* ── UI atoms ────────────────────────────────────────────────────────────── */
 
+/**
+ * Toast notification.
+ *
+ * `message` can be either:
+ *   - a plain string          → treated as success (green ✓)
+ *   - { message, kind }       → kind: 'success' | 'error' | 'info'
+ *
+ * Callers that only pass a string keep working unchanged.
+ * Error toasts: setToast({ message: 'Gagal …', kind: 'error' })
+ */
 export function Toast({ message, onDone }) {
+  const text = typeof message === 'object' ? (message?.message ?? '') : (message ?? '');
+  const kind = typeof message === 'object' ? (message?.kind ?? 'success') : 'success';
+  const isError = kind === 'error';
+
   useEffect(() => {
-    const t = setTimeout(onDone, 3000);
+    const t = setTimeout(onDone, isError ? 5000 : 3000); // errors stay longer
     return () => clearTimeout(t);
-  }, [onDone]);
+  }, [onDone, isError]);
+
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 bg-slate-800 text-white text-sm font-medium px-5 py-3 rounded-xl shadow-xl pointer-events-none">
-      <svg className="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-      </svg>
-      {message}
+    <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 text-white text-sm font-medium px-5 py-3 rounded-xl shadow-xl pointer-events-none transition-all ${
+      isError ? 'bg-red-600' : 'bg-slate-800'
+    }`}>
+      {isError ? (
+        <svg className="w-4 h-4 text-red-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      ) : (
+        <svg className="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+        </svg>
+      )}
+      {text}
     </div>
   );
 }

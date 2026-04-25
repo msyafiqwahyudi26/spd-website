@@ -55,7 +55,7 @@ export default function SubscribersManager() {
     if (!list) return;
     navigator.clipboard?.writeText(list).then(
       () => setToast(`${filtered.length} email tersalin ke clipboard`),
-      () => setToast('Gagal menyalin email'),
+      () => setToast({ message: 'Gagal menyalin email', kind: 'error' }),
     );
   };
 

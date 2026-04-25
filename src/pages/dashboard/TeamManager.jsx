@@ -225,7 +225,7 @@ export default function TeamManager() {
       await api(`/team/${id}`, { method: 'DELETE' });
       setList(prev => prev.filter(m => m.id !== id));
       setToast('Anggota tim dihapus');
-    } catch (err) { setToast(err?.message || 'Gagal menghapus'); }
+    } catch (err) { setToast({ message: err?.message || 'Gagal menghapus', kind: 'error' }); }
   };
 
   return (
