@@ -117,6 +117,7 @@ model Setting {
   id             Int      @id @default(1)
   siteName       String   @default("SPD Indonesia")
   email          String   @default("kontak@spdindonesia.org")
+  phone          String   @default("")
   logoUrl        String   @default("")
   heroUrl        String   @default("")
   placeholderUrl String   @default("")

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Hero from '../components/sections/Hero';
 import Image from '../components/ui/Image';
@@ -65,9 +65,17 @@ function loadEventsFromStorage() {
   }
 }
 
+const FILTERS = [
+  { id: 'semua',    label: 'Semua' },
+  { id: 'upcoming', label: 'Mendatang' },
+  { id: 'past',     label: 'Sudah Berlalu' },
+];
+
 export default function Event() {
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('semua');
 
   useEffect(() => {
     api('/events')
@@ -89,6 +97,40 @@ export default function Event() {
     };
   }, []);
 
+  const now = new Date();
+
+  const filtered = useMemo(() => {
+    let result = events;
+
+    // Filter by status
+    if (filter === 'upcoming') {
+      result = result.filter(e => {
+        if (e.startsAt) return new Date(e.startsAt) >= now;
+        // fallback: try parse date string
+        const d = new Date(e.date);
+        return !isNaN(d) ? d >= now : true;
+      });
+    } else if (filter === 'past') {
+      result = result.filter(e => {
+        if (e.startsAt) return new Date(e.startsAt) < now;
+        const d = new Date(e.date);
+        return !isNaN(d) ? d < now : false;
+      });
+    }
+
+    // Filter by search
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      result = result.filter(e =>
+        (e.title || '').toLowerCase().includes(q) ||
+        (e.location || '').toLowerCase().includes(q) ||
+        (e.description || '').toLowerCase().includes(q)
+      );
+    }
+
+    return result;
+  }, [events, filter, search]);
+
   return (
     <main className="min-h-screen bg-slate-50 fade-in-up">
       <Hero
@@ -98,23 +140,58 @@ export default function Event() {
 
       <section className="py-16">
         <div className="max-w-6xl mx-auto px-4">
+
+          {/* Search + Filter Bar */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-8">
+            <div className="relative flex-1">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m21 21-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z" />
+              </svg>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Cari event..."
+                className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors bg-white"
+              />
+            </div>
+            <div className="flex gap-2">
+              {FILTERS.map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => setFilter(f.id)}
+                  className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors border ${
+                    filter === f.id
+                      ? 'bg-orange-500 text-white border-orange-500'
+                      : 'bg-white text-slate-600 border-slate-200 hover:border-orange-300 hover:text-orange-600'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3, 4, 5, 6].map(i => <SkeletonCard key={i} />)}
             </div>
-          ) : events.length === 0 ? (
+          ) : filtered.length === 0 ? (
             <div className="py-12">
-              <EmptyState 
-                title="Tidak ada event" 
-                message="Belum ada event atau kegiatan yang dijadwalkan." 
+              <EmptyState
+                title={search ? 'Event tidak ditemukan' : 'Tidak ada event'}
+                message={search ? `Tidak ada event yang cocok dengan "${search}".` : 'Belum ada event atau kegiatan yang dijadwalkan.'}
               />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {events.map((item) => (
-                <EventCard key={item.id} item={item} />
-              ))}
-            </div>
+            <>
+              <p className="text-sm text-slate-400 mb-4">{filtered.length} event ditemukan</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filtered.map((item) => (
+                  <EventCard key={item.id} item={item} />
+                ))}
+              </div>
+            </>
           )}
         </div>
       </section>

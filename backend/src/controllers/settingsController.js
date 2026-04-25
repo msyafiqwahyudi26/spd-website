@@ -5,6 +5,7 @@ const { ok } = require('../lib/response');
 const DEFAULTS = {
   siteName: 'SPD Indonesia',
   email: 'kontak@spdindonesia.org',
+  phone: '',
   logoUrl: '',
   heroUrl: '',
   placeholderUrl: '',
@@ -27,6 +28,7 @@ function toPublic(row) {
   return {
     siteName: src.siteName,
     email:    src.email,
+    phone:    src.phone || '',
     images: {
       logo:        src.logoUrl || '',
       hero:        src.heroUrl || '',
@@ -84,6 +86,7 @@ exports.update = async (req, res, next) => {
     const data = {};
     if (typeof body.siteName === 'string') data.siteName = body.siteName.trim().slice(0, 200);
     if (typeof body.email === 'string')    data.email    = body.email.trim().slice(0, 200);
+    if (typeof body.phone === 'string')    data.phone    = body.phone.trim().slice(0, 50);
     if (typeof images.logo === 'string')        data.logoUrl        = images.logo.trim().slice(0, 2000);
     if (typeof images.hero === 'string')        data.heroUrl        = images.hero.trim().slice(0, 2000);
     if (typeof images.placeholder === 'string') data.placeholderUrl = images.placeholder.trim().slice(0, 2000);

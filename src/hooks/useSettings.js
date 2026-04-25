@@ -4,6 +4,7 @@ import { api } from '@/lib/api';
 export const DEFAULT_SETTINGS = {
   siteName: 'SPD Indonesia',
   email: 'kontak@spdindonesia.org',
+  phone: '',
   images: { logo: '', hero: '', placeholder: '' },
   content: { vision: '', aboutIntro: '', heroSubtitle: '' },
   hero: { cta1: { label: '', href: '' }, cta2: { label: '', href: '' } },
@@ -31,6 +32,7 @@ function normalizeSettings(s) {
   return {
     siteName: typeof s.siteName === 'string' ? s.siteName : DEFAULT_SETTINGS.siteName,
     email:    typeof s.email    === 'string' ? s.email    : DEFAULT_SETTINGS.email,
+    phone:    typeof s.phone    === 'string' ? s.phone    : '',
     images: {
       logo:        s.images?.logo        ?? '',
       hero:        s.images?.hero        ?? '',

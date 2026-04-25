@@ -6,7 +6,7 @@ export default function Kontak() {
     <>
       <Hero
         title="Kontak"
-        subtitle="Mari bersama-sama memperkuat demokrasi Indonesia. Hubungi kami untuk bekerja sama, berkolaborasi, atau dukungan."
+        subtitle="Hubungi kami untuk bekerja sama, berkolaborasi, atau dukungan."
       />
       <ContactSection />
     </>

@@ -971,6 +971,7 @@ export default function SettingsManager() {
   const [form, setForm] = useState({
     siteName: settings.siteName,
     email:    settings.email,
+    phone:    settings.phone || '',
     logo:     settings.images.logo,
     hero:     settings.images.hero,
     placeholder: settings.images.placeholder,
@@ -994,6 +995,7 @@ export default function SettingsManager() {
     const next = {
       siteName: settings.siteName,
       email:    settings.email,
+      phone:    settings.phone || '',
       logo:     settings.images.logo,
       hero:     settings.images.hero,
       placeholder: settings.images.placeholder,
@@ -1027,6 +1029,7 @@ export default function SettingsManager() {
       await saveSettings({
         siteName: form.siteName,
         email:    form.email,
+        phone:    form.phone,
         images: {
           logo:        form.logo,
           hero:        form.hero,
@@ -1058,7 +1061,7 @@ export default function SettingsManager() {
     if (!dirty) return;
     // Only confirm when a brand-critical field changed (siteName, email, images,
     // or vision). Social-link edits skip the confirm for a smoother flow.
-    const critical = ['siteName', 'email', 'logo', 'hero', 'placeholder', 'vision', 'aboutIntro', 'heroSubtitle'];
+    const critical = ['siteName', 'email', 'phone', 'logo', 'hero', 'placeholder', 'vision', 'aboutIntro', 'heroSubtitle'];
     const criticalChanged = critical.some((k) => form[k] !== baseline[k]);
     if (criticalChanged) setConfirmOpen(true);
     else doSave();
@@ -1227,6 +1230,9 @@ export default function SettingsManager() {
               <div className="p-6 space-y-6">
                 <Field label="Email Kontak" hint="Alamat yang menerima pesan dari form kontak. Tampil di footer.">
                   <input type="email" className={inputCls} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                </Field>
+                <Field label="Nomor Telepon / WhatsApp" hint="Tampil di halaman Kontak dengan tautan WhatsApp. Kosongkan untuk menyembunyikan.">
+                  <input type="tel" className={inputCls} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="cth: +6281234567890" />
                 </Field>
                 <ImagePickerField
                   label="Gambar Fallback"
