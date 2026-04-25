@@ -14,6 +14,8 @@ const FALLBACK_NAV = [
   { id: 'nav-about',     label: 'Tentang Kami', url: '/tentang-kami' },
   { id: 'nav-program',   label: 'Program',      url: '/program' },
   { id: 'nav-publikasi', label: 'Publikasi',    url: '/publikasi' },
+  { id: 'nav-event',     label: 'Kegiatan',     url: '/event' },
+  { id: 'nav-kontak',    label: 'Kontak',       url: '/kontak' },
 ];
 const FALLBACK_LAYANAN = [
   { id: 'srv-riset',         label: 'Riset & Analisis Kebijakan', url: '/publikasi' },

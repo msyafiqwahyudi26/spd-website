@@ -23,7 +23,7 @@ function ProgramCard({ program }) {
 
   return (
     <article className="group flex flex-col">
-      <div className="relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-500 rounded-xl h-48 mb-5 transition-all duration-300 ease-out group-hover:-translate-y-2 group-hover:from-orange-500 group-hover:to-orange-600 group-hover:shadow-2xl group-hover:shadow-orange-300/50">
+      <div className="relative overflow-hidden bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl h-48 mb-5 transition-all duration-300 ease-out group-hover:-translate-y-2 group-hover:from-orange-500 group-hover:to-orange-700 group-hover:shadow-2xl group-hover:shadow-orange-300/50">
         {image ? (
           <>
             <img

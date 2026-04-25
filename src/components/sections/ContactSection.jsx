@@ -72,8 +72,8 @@ export default function ContactSection() {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-slate-800">Hubungi Kami</h2>
           <p className="mt-4 text-slate-500 max-w-xl mx-auto leading-relaxed">
-            Mari bersama-sama memperkuat demokrasi Indonesia. Hubungi kami untuk
-            bekerja sama, berkolaborasi, atau dukungan.
+            Sampaikan pesan, pertanyaan, atau ide kolaborasi Anda kepada tim kami.
+            Kami akan merespons secepatnya.
           </p>
         </div>
 
