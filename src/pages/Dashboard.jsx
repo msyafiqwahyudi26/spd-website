@@ -48,10 +48,13 @@ const NAV_GROUPS = [
     label: 'TENTANG',
     adminOnly: true,
     items: [
-      { name: 'Tim',        path: '/dashboard/tim',         icon: 'users'    },
-      { name: 'Perjalanan', path: '/dashboard/perjalanan',  icon: 'calendar' },
-      { name: 'Laporan',    path: '/dashboard/laporan',     icon: 'doc'      },
-      { name: 'Mitra',      path: '/dashboard/mitra',       icon: 'users'    },
+      { name: 'Tim & Struktur',   path: '/dashboard/tim',                          icon: 'users'    },
+      { name: 'Perjalanan',       path: '/dashboard/perjalanan',                   icon: 'calendar' },
+      { name: 'Laporan Tahunan',  path: '/dashboard/laporan',                      icon: 'doc'      },
+      { name: 'Mitra',            path: '/dashboard/mitra',                        icon: 'users'    },
+      { name: 'Visi, Misi & Nilai', path: '/dashboard/settings?tab=tentang',       icon: 'doc'      },
+      { name: 'Statistik Banner', path: '/dashboard/settings?tab=beranda',         icon: 'chart'    },
+      { name: 'Tautan Footer',    path: '/dashboard/settings?tab=footer',          icon: 'log'      },
     ],
   },
   {
@@ -82,16 +85,22 @@ const NAV_GROUPS = [
   {
     label: 'SISTEM',
     items: [
-      { name: 'Pengaturan', path: '/dashboard/settings',  icon: 'settings' },
+      { name: 'Pengaturan', path: '/dashboard/settings', exact: true, icon: 'settings' },
     ],
   },
 ];
 
 /* ── Sidebar nav link ───────────────────────────────────────────────────── */
 function NavLink({ item, location, unread }) {
+  // Strip query string from item.path for pathname comparison
+  const itemPathname = item.path.split('?')[0];
+  const itemSearch   = item.path.includes('?') ? item.path.slice(item.path.indexOf('?')) : null;
   const isActive = item.exact
-    ? location.pathname === item.path
-    : location.pathname.startsWith(item.path);
+    ? location.pathname === itemPathname
+    : itemSearch
+      // For tab shortcuts: match both pathname AND query string
+      ? location.pathname === itemPathname && location.search === itemSearch
+      : location.pathname.startsWith(itemPathname);
 
   const badge = item.badge === 'unread' && unread > 0 ? unread : null;
 

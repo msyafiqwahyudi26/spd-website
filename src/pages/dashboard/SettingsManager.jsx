@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useSettings } from '../../hooks/useSettings';
 import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
@@ -966,7 +967,10 @@ const TABS = [
 
 export default function SettingsManager() {
   const { settings, saveSettings } = useSettings();
-  const [tab, setTab] = useState('hero');
+  const [searchParams] = useSearchParams();
+  const VALID_TABS = TABS.map((t) => t.id);
+  const initialTab = VALID_TABS.includes(searchParams.get('tab')) ? searchParams.get('tab') : 'hero';
+  const [tab, setTab] = useState(initialTab);
 
   const [form, setForm] = useState({
     siteName: settings.siteName,
