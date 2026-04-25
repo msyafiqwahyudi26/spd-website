@@ -160,6 +160,8 @@ app.use('/api/footer-links',    require('./src/routes/footer-links'));
 app.use('/api/system',          require('./src/routes/system'));
 app.use('/api/annual-reports',  require('./src/routes/annual-reports'));
 app.use('/api/subscribers',  require('./src/routes/subscribers'));
+app.use('/api/infografis',   require('./src/routes/infografis'));
+app.use('/api/kpu',          require('./src/routes/kpu'));
 
 app.use('/api/*', (req, res) => {
   return fail(res, 404, `Route ${req.method} ${req.originalUrl} not found`);
@@ -226,6 +228,10 @@ function shutdown(signal) {
   server.close(() => process.exit(0));
   // Hard cutoff so a stuck connection can't stall shutdown forever.
   setTimeout(() => process.exit(1), 5000).unref();
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT',  () => shutdown('SIGINT'));
+it(1), 5000).unref();
 }
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT',  () => shutdown('SIGINT'));

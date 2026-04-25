@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Hero from '../components/sections/Hero';
 import LineChart, { DEFAULT_DATA, DEFAULT_SERIES } from '../components/charts/LineChart';
 import Image from '../components/ui/Image';
 import MEDIA from '../config/media';
+import { api } from '@/lib/api';
+import { resolveMediaUrl } from '@/lib/media';
 
 /* ── Filter options ─────────────────────────────────────────────────────── */
 const FILTER_OPTIONS = {
@@ -150,33 +152,71 @@ function TrendSection({ sidebarFilters, onSidebarChange }) {
 }
 
 /* ── 4. Infografis Pemilu ───────────────────────────────────────────────── */
-const INFOGRAFIS = [
-  { id: 'infografis1', label: 'Partisipasi Pemilih 2024', src: MEDIA.collage[6].src },
-  { id: 'infografis2', label: 'Distribusi Suara DPR',     src: MEDIA.collage[4].src },
-  { id: 'infografis3', label: 'Peta Hasil Pilpres',       src: MEDIA.collage[3].src },
-  { id: 'infografis4', label: 'Tren Suara Tidak Sah',     src: MEDIA.collage[9].src },
-];
-
 function InfografisSection() {
+  const [items, setItems]     = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    api('/infografis')
+      .then((rows) => { if (!cancelled) { setItems(Array.isArray(rows) ? rows : []); setLoading(false); } })
+      .catch(() => { if (!cancelled) { setError(true); setLoading(false); } });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Don't render the section at all if no items and not loading
+  if (!loading && !error && items.length === 0) return null;
+
   return (
     <section className="py-16 px-4 bg-white">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-2xl font-bold text-slate-800 mb-8">Infografis Pemilu</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {INFOGRAFIS.map(({ id, label, src }) => (
-            <div key={id} className="relative rounded-xl h-44 overflow-hidden group">
-              <Image
-                src={src}
-                alt={label}
-                className="w-full h-full transition-transform duration-300 group-hover:scale-105"
-                gradient="from-slate-700 to-slate-800"
-                icon="chart"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent pointer-events-none" />
-              <span className="absolute bottom-3 left-3 right-3 text-xs font-semibold text-white leading-tight">{label}</span>
-            </div>
-          ))}
-        </div>
+
+        {loading && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="rounded-xl h-44 bg-slate-100 animate-pulse" />
+            ))}
+          </div>
+        )}
+
+        {error && (
+          <p className="text-sm text-slate-400 text-center py-8">Gagal memuat infografis.</p>
+        )}
+
+        {!loading && !error && items.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {items.map((item) => {
+              const src = item.imageUrl ? resolveMediaUrl(item.imageUrl) : null;
+              return (
+                <div key={item.id} className="relative rounded-xl overflow-hidden group bg-slate-100">
+                  {src ? (
+                    <img
+                      src={src}
+                      alt={item.title}
+                      className="w-full h-44 object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-44 flex items-center justify-center bg-slate-200">
+                      <svg className="w-10 h-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                          d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M2.25 6A2.25 2.25 0 014.5 3.75h15A2.25 2.25 0 0121.75 6v12a2.25 2.25 0 01-2.25 2.25h-15A2.25 2.25 0 012.25 18V6z" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/10 to-transparent pointer-events-none" />
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <span className="block text-xs font-semibold text-white leading-snug">{item.title}</span>
+                    {item.caption && (
+                      <span className="block text-[10px] text-slate-300 mt-0.5 leading-tight">{item.caption}</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -216,6 +256,22 @@ function KolaborasiCTA() {
   );
 }
 
+/* ── KPU live partisipasi hook ──────────────────────────────────────────── */
+function useKpuPartisipasi() {
+  const [data, setData]   = useState(null);
+  const [status, setStatus] = useState('loading'); // loading | ok | error
+
+  useEffect(() => {
+    let cancelled = false;
+    api('/kpu/partisipasi')
+      .then((d) => { if (!cancelled) { setData(d); setStatus('ok'); } })
+      .catch(() => { if (!cancelled) setStatus('error'); });
+    return () => { cancelled = true; };
+  }, []);
+
+  return { data, status };
+}
+
 /* ── Page ───────────────────────────────────────────────────────────────── */
 export default function DataPemilu() {
   const [filters, setFilters] = useState({
@@ -233,6 +289,22 @@ export default function DataPemilu() {
   const updateFilter  = (key, val) => setFilters((p) => ({ ...p, [key]: val }));
   const updateSidebar = (key, val) => setSidebarFilters((p) => ({ ...p, [key]: val }));
 
+  const { data: kpuData, status: kpuStatus } = useKpuPartisipasi();
+
+  // Merge live KPU data into STATS where available
+  const liveStats = STATS.map((s) => {
+    if (s.id === 'stat-partisipasi' && kpuStatus === 'ok' && kpuData?.persenPartisipasi != null) {
+      const pct = parseFloat(kpuData.persenPartisipasi).toFixed(2).replace('.', ',');
+      return { ...s, value: `${pct}%`, change: 'Sumber: Sirekap KPU' };
+    }
+    if (s.id === 'stat-tps' && kpuStatus === 'ok' && kpuData?.totalTps != null) {
+      return { ...s, value: Number(kpuData.totalTps).toLocaleString('id-ID'), change: `${Number(kpuData.tpsMelapor ?? 0).toLocaleString('id-ID')} TPS sudah melapor` };
+    }
+    return s;
+  });
+
+  const isLive = kpuStatus === 'ok';
+
   return (
     <>
       <Hero
@@ -240,23 +312,35 @@ export default function DataPemilu() {
         subtitle="Portal data pemilu Indonesia dengan visualisasi interaktif untuk mendukung demokrasi yang berbasis data."
       />
 
-      {/* Transparency banner — the dashboard numbers below are placeholders
-          while the live data pipeline is being finalized. Shipping this
-          honestly is better than letting visitors quote mock figures. */}
-      <div className="bg-amber-50 border-b border-amber-200" role="note">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-start gap-3">
-          <svg className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-          </svg>
-          <div className="text-xs sm:text-sm text-amber-900 leading-relaxed">
-            <strong className="font-semibold">Data ilustrasi.</strong>{' '}
-            Dashboard interaktif sedang dalam pengembangan — angka dan grafik di halaman ini adalah contoh untuk menunjukkan tampilan yang direncanakan. Jangan dikutip sebagai rujukan resmi.
+      {/* Status banner — switches between live KPU notice and placeholder warning */}
+      {kpuStatus === 'loading' ? null : isLive ? (
+        <div className="bg-emerald-50 border-b border-emerald-200" role="note">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex items-start gap-3">
+            <svg className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="text-xs sm:text-sm text-emerald-900 leading-relaxed">
+              <strong className="font-semibold">Data langsung dari KPU.</strong>{' '}
+              Beberapa angka diperbarui secara otomatis dari Sirekap KPU RI. Grafik tren masih menggunakan data historis ilustratif.
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-amber-50 border-b border-amber-200" role="note">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex items-start gap-3">
+            <svg className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+            <div className="text-xs sm:text-sm text-amber-900 leading-relaxed">
+              <strong className="font-semibold">Data ilustrasi.</strong>{' '}
+              Koneksi ke server KPU tidak tersedia saat ini — angka dan grafik di halaman ini adalah contoh historis. Jangan dikutip sebagai rujukan resmi.
+            </div>
+          </div>
+        </div>
+      )}
 
       <FilterBar filters={filters} onChange={updateFilter} />
-      <StatCards stats={STATS} />
+      <StatCards stats={liveStats} />
       <TrendSection sidebarFilters={sidebarFilters} onSidebarChange={updateSidebar} />
       <InfografisSection />
       <KolaborasiCTA />

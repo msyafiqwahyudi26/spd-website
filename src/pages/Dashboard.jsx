@@ -55,6 +55,13 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: 'DATA PEMILU',
+    adminOnly: true,
+    items: [
+      { name: 'Infografis Pemilu', path: '/dashboard/infografis', icon: 'media' },
+    ],
+  },
+  {
     label: 'KOMUNIKASI',
     adminOnly: true,
     items: [

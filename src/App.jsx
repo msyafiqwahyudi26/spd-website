@@ -37,6 +37,7 @@ import TeamManager from './pages/dashboard/TeamManager';
 import TimelineManager from './pages/dashboard/TimelineManager';
 import ReportsManager from './pages/dashboard/ReportsManager';
 import SubscribersManager from './pages/dashboard/SubscribersManager';
+import InfografisManager from './pages/dashboard/InfografisManager';
 import ProfilePage from './pages/dashboard/ProfilePage';
 import ComingSoon from './pages/dashboard/ComingSoon';
 
@@ -105,6 +106,7 @@ export default function App() {
               <Route path="perjalanan"   element={<TimelineManager />} />
               <Route path="laporan"      element={<ReportsManager />} />
               <Route path="subscribers"  element={<SubscribersManager />} />
+              <Route path="infografis"   element={<InfografisManager />} />
               <Route path="email-logs"   element={<ComingSoon title="Riwayat Email" description="Riwayat pengiriman email sistem." />} />
             </Route>
           </Route>

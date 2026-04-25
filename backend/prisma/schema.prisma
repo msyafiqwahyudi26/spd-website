@@ -297,3 +297,17 @@ model Subscriber {
 
   @@index([createdAt])
 }
+
+// Infografis Pemilu — gambar-gambar visualisasi/infografis yang ditampilkan
+// di halaman Data Pemilu. Dikelola dari dashboard admin.
+model Infografis {
+  id        String   @id @default(cuid())
+  title     String
+  imageUrl  String
+  caption   String   @default("")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
