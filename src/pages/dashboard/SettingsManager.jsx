@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { useSettings } from '../../hooks/useSettings';
 import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
@@ -957,20 +956,15 @@ const CONTENT_DEFAULTS = {
 /* ── Main tabbed page ────────────────────────────────────────────────────── */
 
 const TABS = [
-  { id: 'hero',     label: 'Hero',            desc: 'Nama situs, subjudul, logo, dan gambar hero' },
-  { id: 'tentang',  label: 'Tentang',         desc: 'Deskripsi, visi, misi, pendekatan, dan core value' },
-  { id: 'footer',   label: 'Footer',          desc: 'Tautan yang tampil di footer (Navigasi & Layanan)' },
-  { id: 'sosial',   label: 'Media Sosial',    desc: 'Tautan Instagram, YouTube, Facebook, Twitter, LinkedIn' },
-  { id: 'beranda',  label: 'Halaman Beranda', desc: 'Statistik yang tampil di banner' },
-  { id: 'sistem',   label: 'Sistem',           desc: 'Email kontak, kategori publikasi, gambar fallback' },
+  { id: 'hero',    label: 'Umum',         desc: 'Nama situs, logo, gambar hero, dan info kontak' },
+  { id: 'footer',  label: 'Footer',       desc: 'Tautan yang tampil di footer (Navigasi & Layanan)' },
+  { id: 'sosial',  label: 'Media Sosial', desc: 'Tautan Instagram, YouTube, Facebook, Twitter, LinkedIn' },
+  { id: 'sistem',  label: 'Sistem',       desc: 'Kategori publikasi dan gambar placeholder' },
 ];
 
 export default function SettingsManager() {
   const { settings, saveSettings } = useSettings();
-  const [searchParams] = useSearchParams();
-  const VALID_TABS = TABS.map((t) => t.id);
-  const initialTab = VALID_TABS.includes(searchParams.get('tab')) ? searchParams.get('tab') : 'hero';
-  const [tab, setTab] = useState(initialTab);
+  const [tab, setTab] = useState('hero');
 
   const [form, setForm] = useState({
     siteName: settings.siteName,
@@ -1106,7 +1100,7 @@ export default function SettingsManager() {
 
       {/* Hero, Tentang, Sosial, and Sistem all commit through the primary
           Save. Footer has its own inline CRUD via FooterLinksSection. */}
-      {(tab === 'hero' || tab === 'tentang' || tab === 'sosial' || tab === 'sistem') && (
+      {(tab === 'hero' || tab === 'sosial' || tab === 'sistem') && (
         <form onSubmit={handleSaveSettings} className="space-y-6">
           {tab === 'hero' && (
             <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
@@ -1156,44 +1150,6 @@ export default function SettingsManager() {
                     onChange={(v) => setForm({ ...form, hero: v })}
                     disabled={savingSettings}
                   />
-                </div>
-              </div>
-            </section>
-          )}
-
-          {tab === 'tentang' && (
-            <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100">
-                <h2 className="text-lg font-bold text-slate-800">Konten Tentang Kami</h2>
-                <p className="text-sm text-slate-500 mt-1">Semua narasi yang tampil di halaman Tentang Kami.</p>
-              </div>
-              <div className="p-6 space-y-6">
-                <Field label="Deskripsi / Siapa Kami" hint="Tampil di halaman Profil. Pisahkan paragraf dengan baris kosong.">
-                  <textarea
-                    rows={5}
-                    className={inputCls + ' resize-y'}
-                    value={form.aboutIntro}
-                    onChange={e => setForm({ ...form, aboutIntro: e.target.value })}
-                    placeholder="Sindikasi Pemilu dan Demokrasi (SPD) adalah organisasi masyarakat sipil yang berfokus pada penguatan demokrasi dan reformasi kepemiluan di Indonesia."
-                  />
-                </Field>
-                <Field label="Visi" hint="Tampil di halaman Visi & Misi.">
-                  <textarea
-                    rows={3}
-                    className={inputCls + ' resize-none'}
-                    value={form.vision}
-                    onChange={e => setForm({ ...form, vision: e.target.value })}
-                    placeholder="Menjadi pusat kerja kolaboratif multihak dalam memperkuat demokrasi dan kepemiluan yang inklusif di Indonesia."
-                  />
-                </Field>
-                <div className="border-t border-slate-100 pt-5">
-                  <InlineMissionSection onNotify={(m) => setToast(m)} />
-                </div>
-                <div className="border-t border-slate-100 pt-5">
-                  <InlineApproachSection onNotify={(m) => setToast(m)} />
-                </div>
-                <div className="border-t border-slate-100 pt-5">
-                  <InlineCoreValueSection onNotify={(m) => setToast(m)} />
                 </div>
               </div>
             </section>
@@ -1266,12 +1222,6 @@ export default function SettingsManager() {
             </button>
           </div>
         </form>
-      )}
-
-      {tab === 'beranda' && (
-        <div className="space-y-6">
-          <StatsSection onNotify={setToast} />
-        </div>
       )}
 
       {tab === 'footer' && (

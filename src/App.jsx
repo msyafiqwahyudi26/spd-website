@@ -11,6 +11,7 @@ import AboutStruktur from './pages/about/Struktur';
 import AboutMitra from './pages/about/Mitra';
 import AboutLaporan from './pages/about/LaporanTahunan';
 import Program from './pages/Program';
+import ProgramDetail from './pages/ProgramDetail';
 import Publikasi from './pages/Publikasi';
 import PublikasiDetail from './pages/PublikasiDetail';
 import Event from './pages/Event';
@@ -38,6 +39,8 @@ import TimelineManager from './pages/dashboard/TimelineManager';
 import ReportsManager from './pages/dashboard/ReportsManager';
 import SubscribersManager from './pages/dashboard/SubscribersManager';
 import InfografisManager from './pages/dashboard/InfografisManager';
+import BerandaManager from './pages/dashboard/BerandaManager';
+import TentangManager from './pages/dashboard/TentangManager';
 import ProfilePage from './pages/dashboard/ProfilePage';
 import ComingSoon from './pages/dashboard/ComingSoon';
 
@@ -64,6 +67,7 @@ export default function App() {
 
             {/* Program */}
             <Route path="/program" element={<Program />} />
+            <Route path="/program/:slug" element={<ProgramDetail />} />
 
             {/* Publikasi */}
             <Route path="/publikasi" element={<Publikasi />} />
@@ -96,18 +100,19 @@ export default function App() {
             {/* Admin-only routes — publishers get redirected to /dashboard */}
             <Route element={<RequireAdmin />}>
               <Route path="settings"    element={<SettingsManager />} />
+              <Route path="beranda"     element={<BerandaManager />} />
+              <Route path="tentang"     element={<TentangManager />} />
               <Route path="pesan"       element={<MessagesManager />} />
               <Route path="pengguna"    element={<UsersManager />} />
               <Route path="analitik"    element={<AnalyticsPage />} />
               <Route path="logs"        element={<LogsPage />} />
-              <Route path="media"        element={<MediaManager />} />
-              <Route path="mitra"        element={<PartnersManager />} />
-              <Route path="tim"          element={<TeamManager />} />
-              <Route path="perjalanan"   element={<TimelineManager />} />
-              <Route path="laporan"      element={<ReportsManager />} />
-              <Route path="subscribers"  element={<SubscribersManager />} />
-              <Route path="infografis"   element={<InfografisManager />} />
-              <Route path="email-logs"   element={<ComingSoon title="Riwayat Email" description="Riwayat pengiriman email sistem." />} />
+              <Route path="media"       element={<MediaManager />} />
+              <Route path="mitra"       element={<PartnersManager />} />
+              <Route path="tim"         element={<TeamManager />} />
+              <Route path="perjalanan"  element={<TimelineManager />} />
+              <Route path="laporan"     element={<ReportsManager />} />
+              <Route path="subscribers" element={<SubscribersManager />} />
+              <Route path="infografis"  element={<InfografisManager />} />
             </Route>
           </Route>
         </Routes>

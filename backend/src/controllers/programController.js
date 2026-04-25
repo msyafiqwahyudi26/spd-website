@@ -14,19 +14,34 @@ function makeSlug(title) {
   );
 }
 
+function safeJson(val, fallback = []) {
+  if (Array.isArray(val)) return val;
+  if (!val || val === '' || val === 'null') return fallback;
+  try { return JSON.parse(val); } catch { return fallback; }
+}
+
 const toPublic = (r) => ({
-  id: r.id,
-  title: r.title,
-  slug: r.slug,
+  id:          r.id,
+  title:       r.title,
+  slug:        r.slug,
+  status:      r.status ?? 'published',
+  category:    r.category ?? '',
   description: r.description,
-  image: r.image,
-  link: r.link,
-  sortOrder: r.sortOrder,
+  fullContent: safeJson(r.fullContent),
+  image:       r.image,
+  gallery:     safeJson(r.gallery),
+  link:        r.link,
+  sortOrder:   r.sortOrder,
+  createdAt:   r.createdAt,
 });
 
+/* ── Public list — only published ─────────────────────────────────────────── */
 exports.list = async (req, res, next) => {
   try {
+    const isAdmin = req.user?.role === 'admin' || req.user?.role === 'publisher';
+    const where = isAdmin ? {} : { status: 'published' };
     const rows = await prisma.program.findMany({
+      where,
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     });
     return ok(res, rows.map(toPublic));
@@ -40,6 +55,10 @@ exports.getOne = async (req, res, next) => {
       where: { OR: [{ id }, { slug: id }] },
     });
     if (!row) return fail(res, 404, 'Program tidak ditemukan');
+    // Only published programs accessible without auth
+    if (row.status === 'draft' && !(req.user?.role === 'admin' || req.user?.role === 'publisher')) {
+      return fail(res, 404, 'Program tidak ditemukan');
+    }
     return ok(res, toPublic(row));
   } catch (err) { next(err); }
 };
@@ -48,8 +67,12 @@ exports.create = async (req, res, next) => {
   try {
     const { errors, data } = validate(req.body, {
       title:       v.string({ required: true, max: 300 }),
-      description: v.string({ max: 2000 }),
+      status:      v.string({ max: 20 }),
+      category:    v.string({ max: 100 }),
+      description: v.string({ max: 4000 }),
+      fullContent: v.string({ max: 50000 }),
       image:       v.string({ max: 500 }),
+      gallery:     v.string({ max: 10000 }),
       link:        v.string({ max: 500 }),
     });
     if (errors) return fail(res, 400, errors);
@@ -59,11 +82,15 @@ exports.create = async (req, res, next) => {
 
     const created = await prisma.program.create({
       data: {
-        title: data.title,
-        slug: makeSlug(data.title),
+        title:       data.title,
+        slug:        makeSlug(data.title),
+        status:      data.status  || 'published',
+        category:    data.category || '',
         description: data.description || '',
-        image: data.image || null,
-        link:  data.link  || null,
+        fullContent: data.fullContent || '[]',
+        image:       data.image || null,
+        gallery:     data.gallery || '[]',
+        link:        data.link  || null,
         sortOrder,
       },
     });
@@ -87,8 +114,12 @@ exports.update = async (req, res, next) => {
 
     const { errors, data } = validate(req.body, {
       title:       v.string({ max: 300 }),
-      description: v.string({ max: 2000 }),
+      status:      v.string({ max: 20 }),
+      category:    v.string({ max: 100 }),
+      description: v.string({ max: 4000 }),
+      fullContent: v.string({ max: 50000 }),
       image:       v.string({ max: 500 }),
+      gallery:     v.string({ max: 10000 }),
       link:        v.string({ max: 500 }),
     });
     if (errors) return fail(res, 400, errors);
@@ -97,9 +128,13 @@ exports.update = async (req, res, next) => {
       where: { id },
       data: {
         title:       data.title       !== undefined ? data.title       : existing.title,
+        status:      data.status      !== undefined ? data.status      : existing.status,
+        category:    data.category    !== undefined ? data.category    : existing.category,
         description: data.description !== undefined ? data.description : existing.description,
+        fullContent: data.fullContent !== undefined ? data.fullContent : existing.fullContent,
         image:       data.image       !== undefined ? (data.image || null) : existing.image,
-        link:        data.link        !== undefined ? (data.link  || null) : existing.link,
+        gallery:     data.gallery     !== undefined ? data.gallery     : existing.gallery,
+        link:        data.link        !== undefined ? (data.link || null) : existing.link,
       },
     });
 

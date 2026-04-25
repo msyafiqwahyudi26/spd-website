@@ -16,9 +16,9 @@ const DEFAULT_ICON = (
 
 function ProgramCard({ program }) {
   // Programs are long-term initiatives. An admin-provided `link` overrides
-  // the default /program route when the program lives elsewhere (e.g. an
+  // the default /program/:slug route when the program lives elsewhere (e.g. an
   // external campaign page or a dedicated publication).
-  const href = program.link ? program.link : '/program';
+  const href = program.link ? program.link : `/program/${program.slug}`;
   const image = resolveMedia('', program.image);
 
   return (
@@ -41,6 +41,11 @@ function ProgramCard({ program }) {
         )}
       </div>
 
+      {program.category && (
+        <span className="inline-block text-[10px] font-bold tracking-widest uppercase text-orange-500 mb-1.5">
+          {program.category}
+        </span>
+      )}
       <h3 className="font-bold text-slate-800 mb-2 text-base leading-snug transition-colors duration-200 group-hover:text-orange-600">
         {program.title}
       </h3>

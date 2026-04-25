@@ -59,8 +59,16 @@ model Program {
   id          String   @id @default(cuid())
   title       String
   slug        String   @unique
+  // "published" | "draft"  — drafts hidden from public /api/programs list
+  status      String   @default("published")
+  // Category tag, e.g. "Pendidikan Pemilih", "Pengawasan", "Riset", "Advokasi"
+  category    String   @default("")
   description String   @default("")
+  // Rich content blocks — same JSON format as Publication.fullContent
+  fullContent String   @default("[]")
   image       String?
+  // Gallery: JSON array of image URLs
+  gallery     String   @default("[]")
   // Optional external link when the program lives on another site.
   link        String?
   sortOrder   Int      @default(0)
@@ -68,6 +76,7 @@ model Program {
   updatedAt   DateTime @updatedAt
 
   @@index([sortOrder])
+  @@index([status])
 }
 
 model Event {

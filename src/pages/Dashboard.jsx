@@ -31,76 +31,51 @@ const NAV_GROUPS = [
   {
     label: 'KONTEN',
     items: [
-      { name: 'Overview',   path: '/dashboard',           exact: true,  icon: 'overview' },
-      { name: 'Publikasi',  path: '/dashboard/publikasi',               icon: 'doc'      },
-      { name: 'Event',      path: '/dashboard/event',                   icon: 'calendar' },
-      { name: 'Program',    path: '/dashboard/program',                 icon: 'chart'    },
+      { name: 'Overview',  path: '/dashboard',            exact: true, icon: 'overview' },
+      { name: 'Publikasi', path: '/dashboard/publikasi',               icon: 'doc'      },
+      { name: 'Event',     path: '/dashboard/event',                   icon: 'calendar' },
+      { name: 'Program',   path: '/dashboard/program',                 icon: 'chart'    },
     ],
   },
   {
-    label: 'MEDIA',
+    label: 'HALAMAN',
     adminOnly: true,
     items: [
-      { name: 'Pustaka Media', path: '/dashboard/media',       icon: 'media' },
-    ],
-  },
-  {
-    label: 'TENTANG',
-    adminOnly: true,
-    items: [
-      { name: 'Tim & Struktur',   path: '/dashboard/tim',                          icon: 'users'    },
-      { name: 'Perjalanan',       path: '/dashboard/perjalanan',                   icon: 'calendar' },
-      { name: 'Laporan Tahunan',  path: '/dashboard/laporan',                      icon: 'doc'      },
-      { name: 'Mitra',            path: '/dashboard/mitra',                        icon: 'users'    },
-      { name: 'Visi, Misi & Nilai', path: '/dashboard/settings?tab=tentang',       icon: 'doc'      },
-      { name: 'Statistik Banner', path: '/dashboard/settings?tab=beranda',         icon: 'chart'    },
-      { name: 'Tautan Footer',    path: '/dashboard/settings?tab=footer',          icon: 'log'      },
-    ],
-  },
-  {
-    label: 'DATA PEMILU',
-    adminOnly: true,
-    items: [
-      { name: 'Infografis Pemilu', path: '/dashboard/infografis', icon: 'media' },
+      { name: 'Beranda',        path: '/dashboard/beranda',     icon: 'overview'  },
+      { name: 'Tentang Kami',   path: '/dashboard/tentang',     icon: 'doc'       },
+      { name: 'Tim & Struktur', path: '/dashboard/tim',         icon: 'users'     },
+      { name: 'Perjalanan',     path: '/dashboard/perjalanan',  icon: 'calendar'  },
+      { name: 'Laporan Tahunan',path: '/dashboard/laporan',     icon: 'doc'       },
+      { name: 'Mitra',          path: '/dashboard/mitra',       icon: 'users'     },
+      { name: 'Infografis Pemilu', path: '/dashboard/infografis', icon: 'media'   },
     ],
   },
   {
     label: 'KOMUNIKASI',
     adminOnly: true,
     items: [
-      { name: 'Pesan',         path: '/dashboard/pesan',       badge: 'unread', icon: 'chat' },
-      { name: 'Pelanggan',     path: '/dashboard/subscribers', icon: 'mail'     },
-      { name: 'Riwayat Email', path: '/dashboard/email-logs',  icon: 'mail'     },
-    ],
-  },
-  {
-    label: 'ADMIN',
-    adminOnly: true,
-    items: [
-      { name: 'Pengguna',   path: '/dashboard/pengguna',  icon: 'users'   },
-      { name: 'Analitik',   path: '/dashboard/analitik',  icon: 'chart'   },
-      { name: 'Log Sistem', path: '/dashboard/logs',      icon: 'log'     },
+      { name: 'Pesan',      path: '/dashboard/pesan',       badge: 'unread', icon: 'chat' },
+      { name: 'Pelanggan',  path: '/dashboard/subscribers',                  icon: 'mail' },
     ],
   },
   {
     label: 'SISTEM',
+    adminOnly: true,
     items: [
-      { name: 'Pengaturan', path: '/dashboard/settings', exact: true, icon: 'settings' },
+      { name: 'Pustaka Media', path: '/dashboard/media',      icon: 'media'    },
+      { name: 'Pengguna',      path: '/dashboard/pengguna',   icon: 'users'    },
+      { name: 'Analitik',      path: '/dashboard/analitik',   icon: 'chart'    },
+      { name: 'Log Sistem',    path: '/dashboard/logs',       icon: 'log'      },
+      { name: 'Pengaturan',    path: '/dashboard/settings',   icon: 'settings' },
     ],
   },
 ];
 
 /* ── Sidebar nav link ───────────────────────────────────────────────────── */
 function NavLink({ item, location, unread }) {
-  // Strip query string from item.path for pathname comparison
-  const itemPathname = item.path.split('?')[0];
-  const itemSearch   = item.path.includes('?') ? item.path.slice(item.path.indexOf('?')) : null;
   const isActive = item.exact
-    ? location.pathname === itemPathname
-    : itemSearch
-      // For tab shortcuts: match both pathname AND query string
-      ? location.pathname === itemPathname && location.search === itemSearch
-      : location.pathname.startsWith(itemPathname);
+    ? location.pathname === item.path
+    : location.pathname.startsWith(item.path);
 
   const badge = item.badge === 'unread' && unread > 0 ? unread : null;
 

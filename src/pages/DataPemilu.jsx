@@ -291,14 +291,18 @@ export default function DataPemilu() {
 
   const { data: kpuData, status: kpuStatus } = useKpuPartisipasi();
 
-  // Merge live KPU data into STATS where available
+  /* Merge live KPU data into STATS where available */
   const liveStats = STATS.map((s) => {
     if (s.id === 'stat-partisipasi' && kpuStatus === 'ok' && kpuData?.persenPartisipasi != null) {
       const pct = parseFloat(kpuData.persenPartisipasi).toFixed(2).replace('.', ',');
       return { ...s, value: `${pct}%`, change: 'Sumber: Sirekap KPU' };
     }
     if (s.id === 'stat-tps' && kpuStatus === 'ok' && kpuData?.totalTps != null) {
-      return { ...s, value: Number(kpuData.totalTps).toLocaleString('id-ID'), change: `${Number(kpuData.tpsMelapor ?? 0).toLocaleString('id-ID')} TPS sudah melapor` };
+      return {
+        ...s,
+        value: Number(kpuData.totalTps).toLocaleString('id-ID'),
+        change: `${Number(kpuData.tpsMelapor ?? 0).toLocaleString('id-ID')} TPS sudah melapor`,
+      };
     }
     return s;
   });
@@ -312,31 +316,33 @@ export default function DataPemilu() {
         subtitle="Portal data pemilu Indonesia dengan visualisasi interaktif untuk mendukung demokrasi yang berbasis data."
       />
 
-      {/* Status banner — switches between live KPU notice and placeholder warning */}
-      {kpuStatus === 'loading' ? null : isLive ? (
-        <div className="bg-emerald-50 border-b border-emerald-200" role="note">
-          <div className="max-w-6xl mx-auto px-4 py-3 flex items-start gap-3">
-            <svg className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div className="text-xs sm:text-sm text-emerald-900 leading-relaxed">
-              <strong className="font-semibold">Data langsung dari KPU.</strong>{' '}
-              Beberapa angka diperbarui secara otomatis dari Sirekap KPU RI. Grafik tren masih menggunakan data historis ilustratif.
+      {/* Status banner */}
+      {kpuStatus !== 'loading' && (
+        isLive ? (
+          <div className="bg-emerald-50 border-b border-emerald-200" role="note">
+            <div className="max-w-6xl mx-auto px-4 py-3 flex items-start gap-3">
+              <svg className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="text-xs sm:text-sm text-emerald-900 leading-relaxed">
+                <strong className="font-semibold">Data langsung dari KPU.</strong>{' '}
+                Beberapa angka diperbarui otomatis dari Sirekap KPU RI.
+              </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <div className="bg-amber-50 border-b border-amber-200" role="note">
-          <div className="max-w-6xl mx-auto px-4 py-3 flex items-start gap-3">
-            <svg className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-            </svg>
-            <div className="text-xs sm:text-sm text-amber-900 leading-relaxed">
-              <strong className="font-semibold">Data ilustrasi.</strong>{' '}
-              Koneksi ke server KPU tidak tersedia saat ini — angka dan grafik di halaman ini adalah contoh historis. Jangan dikutip sebagai rujukan resmi.
+        ) : (
+          <div className="bg-amber-50 border-b border-amber-200" role="note">
+            <div className="max-w-6xl mx-auto px-4 py-3 flex items-start gap-3">
+              <svg className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+              <div className="text-xs sm:text-sm text-amber-900 leading-relaxed">
+                <strong className="font-semibold">Data ilustrasi.</strong>{' '}
+                Koneksi ke server KPU tidak tersedia — angka adalah contoh historis.
+              </div>
             </div>
           </div>
-        </div>
+        )
       )}
 
       <FilterBar filters={filters} onChange={updateFilter} />
