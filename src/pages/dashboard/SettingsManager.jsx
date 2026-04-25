@@ -1050,7 +1050,7 @@ export default function SettingsManager() {
       });
       setToast('Pengaturan berhasil disimpan');
     } catch (err) {
-      setToast({ message: err.message || 'Gagal menyimpan pengaturan', kind: 'error' });
+      setToast(err.message || 'Gagal menyimpan pengaturan');
     } finally {
       setSavingSettings(false);
     }
@@ -1271,4 +1271,21 @@ export default function SettingsManager() {
       )}
 
       {tab === 'footer' && (
-        <FooterLinksSection onNotify={
+        <FooterLinksSection onNotify={setToast} />
+      )}
+
+      {tab === 'sistem' && (
+        <CategoriesSection onNotify={setToast} />
+      )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Simpan perubahan pengaturan?"
+        message="Anda akan memperbarui pengaturan yang tampil di seluruh situs (nama, email, visi, atau gambar global). Lanjutkan?"
+        confirmLabel="Ya, simpan"
+        onConfirm={doSave}
+        onCancel={() => setConfirmOpen(false)}
+      />
+    </div>
+  );
+}
