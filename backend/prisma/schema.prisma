@@ -334,6 +334,17 @@ model ElectionData {
   @@index([tahun])
 }
 
+// BlacklistedToken — JWT tokens that have been explicitly invalidated (e.g. on logout).
+// Persists across server restarts so a captured token can't be replayed after restart.
+// Entries are pruned hourly once their expiresAt passes.
+model BlacklistedToken {
+  jti       String   @id           // JWT ID claim (unique per token)
+  expiresAt DateTime               // When the JWT itself would have expired
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}
+
 // Infografis Pemilu — gambar-gambar visualisasi/infografis yang ditampilkan
 // di halaman Data Pemilu. Dikelola dari dashboard admin.
 model Infografis {

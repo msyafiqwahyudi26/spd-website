@@ -55,6 +55,7 @@ exports.getDaily = async (req, res, next) => {
   try {
     const days = Math.min(Math.max(parseInt(req.query.days, 10) || 7, 1), 30);
     const buckets = buildDailyBuckets(days);
+    if (buckets.length === 0) return ok(res, { days, buckets: [] });
     const start = new Date(buckets[0].date + 'T00:00:00');
     const index = Object.fromEntries(buckets.map((b, i) => [b.date, i]));
 

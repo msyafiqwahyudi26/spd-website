@@ -18,7 +18,7 @@ const COOKIE_OPTIONS = {
   httpOnly: true,              // Not accessible via JavaScript — prevents XSS token theft
   secure: IS_PROD,             // HTTPS only in production
   sameSite: 'strict',          // Prevents CSRF — cookie only sent on same-site requests
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days — matches JWT expiry
+  maxAge: 8 * 60 * 60 * 1000, // 8 hours — matches JWT expiry & session timeout
   path: '/',
 };
 
@@ -33,7 +33,7 @@ const signToken = (user) =>
       jti: crypto.randomUUID(),
     },
     process.env.JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: '8h' }
   );
 
 /**
@@ -86,16 +86,16 @@ exports.login = async (req, res, next) => {
   }
 };
 
-exports.logout = (req, res) => {
+exports.logout = async (req, res) => {
   // Blacklist the token so it cannot be replayed via Authorization header
-  // even though the httpOnly cookie will be cleared. This covers the window
-  // between logout and the token's natural 7-day expiry.
+  // even though the httpOnly cookie will be cleared. Persisted to DB so
+  // it survives server restarts (covers the 8-hour expiry window).
   const rawToken = extractRawToken(req);
   if (rawToken) {
     try {
       const payload = jwt.decode(rawToken);
       if (payload?.jti && typeof payload.exp === 'number') {
-        addToBlacklist(payload.jti, payload.exp);
+        await addToBlacklist(payload.jti, payload.exp);
       }
     } catch { /* ignore malformed tokens */ }
   }
@@ -169,7 +169,9 @@ exports.updateMe = async (req, res, next) => {
     if (name && name !== existing.name) data.name = name;
 
     if (newPassword) {
-      if (newPassword.length < 8) return fail(res, 400, 'Password baru minimal 8 karakter');
+      if (newPassword.length < 12) return fail(res, 400, 'Password baru minimal 12 karakter');
+      if (!/[A-Z]/.test(newPassword)) return fail(res, 400, 'Password baru harus mengandung minimal 1 huruf kapital');
+      if (!/[0-9]/.test(newPassword)) return fail(res, 400, 'Password baru harus mengandung minimal 1 angka');
       if (existing.provider !== 'local')
         return fail(res, 400, 'Akun ini tidak memakai password lokal');
       if (!currentPassword)

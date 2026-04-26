@@ -31,7 +31,7 @@ const toPublic = (r) => ({
   updatedAt:      r.updatedAt,
 });
 
-exports.list = async (req, res) => {
+exports.list = async (req, res, next) => {
   try {
     const { tahun, jenis } = req.query;
     const where = {};
@@ -44,23 +44,21 @@ exports.list = async (req, res) => {
     });
     return ok(res, rows.map(toPublic));
   } catch (err) {
-    console.error(err);
-    return fail(res, 500, 'Gagal memuat data pemilu');
+    next(err);
   }
 };
 
-exports.getOne = async (req, res) => {
+exports.getOne = async (req, res, next) => {
   try {
     const row = await prisma.electionData.findUnique({ where: { id: req.params.id } });
     if (!row) return fail(res, 404, 'Data tidak ditemukan');
     return ok(res, toPublic(row));
   } catch (err) {
-    console.error(err);
-    return fail(res, 500, 'Gagal memuat data pemilu');
+    next(err);
   }
 };
 
-exports.create = async (req, res) => {
+exports.create = async (req, res, next) => {
   try {
     const { errors, data } = validate(req.body, {
       tahun:          v.string({ required: true }),
@@ -102,12 +100,11 @@ exports.create = async (req, res) => {
     return ok(res, toPublic(row), 201);
   } catch (err) {
     if (err.code === 'P2002') return fail(res, 409, 'Data untuk tahun dan jenis pemilu ini sudah ada');
-    console.error(err);
-    return fail(res, 500, 'Gagal menyimpan data pemilu');
+    next(err);
   }
 };
 
-exports.update = async (req, res) => {
+exports.update = async (req, res, next) => {
   try {
     const existing = await prisma.electionData.findUnique({ where: { id: req.params.id } });
     if (!existing) return fail(res, 404, 'Data tidak ditemukan');
@@ -153,12 +150,11 @@ exports.update = async (req, res) => {
     return ok(res, toPublic(row));
   } catch (err) {
     if (err.code === 'P2002') return fail(res, 409, 'Data untuk tahun dan jenis pemilu ini sudah ada');
-    console.error(err);
-    return fail(res, 500, 'Gagal memperbarui data pemilu');
+    next(err);
   }
 };
 
-exports.remove = async (req, res) => {
+exports.remove = async (req, res, next) => {
   try {
     const existing = await prisma.electionData.findUnique({ where: { id: req.params.id } });
     if (!existing) return fail(res, 404, 'Data tidak ditemukan');
@@ -173,8 +169,7 @@ exports.remove = async (req, res) => {
 
     return ok(res, { deleted: true });
   } catch (err) {
-    console.error(err);
-    return fail(res, 500, 'Gagal menghapus data pemilu');
+    next(err);
   }
 };
 
@@ -183,7 +178,7 @@ exports.remove = async (req, res) => {
 // Idempotent: hanya insert jika belum ada (skip existing rows).
 // Sumber: KPU RI, BPS, Kompaspedia, databoks.katadata.co.id
 // ─────────────────────────────────────────────────────────────────────────────
-exports.seed = async (req, res) => {
+exports.seed = async (req, res, next) => {
   const SEED = [
     // ── Era Demokrasi Parlementer ──────────────────────────────────────────
     {
@@ -226,7 +221,7 @@ exports.seed = async (req, res) => {
     {
       tahun: 1987, jenisPemilu: 'DPR',
       partisipasi: 96.43, suaraTidakSah: 2.18, suaraSah: 97.82,
-      jumlahDPT: 93737633, jumlahTPS: 287303, jumlahKabKota: 305, jumlahProvinsi: 27,
+      jumlahDPT: 93737633, jumlahTPS: 276971, jumlahKabKota: 305, jumlahProvinsi: 27,
       catatan: 'Pemilu 23 April 1987. Golkar 73,1%. Sumber: KPU RI',
       sortOrder: 1,
     },
@@ -366,7 +361,6 @@ exports.seed = async (req, res) => {
 
     return ok(res, { created, skipped, total: SEED.length });
   } catch (err) {
-    console.error(err);
-    return fail(res, 500, 'Gagal menjalankan seed data pemilu');
+    next(err);
   }
 };

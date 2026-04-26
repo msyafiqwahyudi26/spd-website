@@ -83,6 +83,12 @@ function normalizeContentType(val) {
   return ALLOWED_CONTENT_TYPES.includes(val) ? val : 'article';
 }
 
+/** Allow relative /uploads/... paths, absolute https?:// URLs, or empty. */
+function isValidUrlOrPath(url) {
+  if (!url) return true;
+  return /^https?:\/\//i.test(url) || url.startsWith('/');
+}
+
 exports.create = async (req, res, next) => {
   try {
     const title       = (req.body.title       || '').trim().slice(0, 300);
@@ -98,6 +104,14 @@ exports.create = async (req, res, next) => {
     if (!title || !category) {
       return fail(res, 400, 'Judul dan kategori diperlukan');
     }
+
+    // Validate URLs
+    if (!isValidUrlOrPath(image)) return fail(res, 400, 'URL gambar tidak valid');
+    if (!isValidUrlOrPath(pdfUrl)) return fail(res, 400, 'URL PDF tidak valid');
+
+    // Size guard on rich content (prevents storing multi-MB blobs in SQLite)
+    const fullContentStr = toJsonArray(fullContent);
+    if (fullContentStr.length > 200000) return fail(res, 400, 'Konten terlalu besar (maks 200KB)');
 
     // Books are curated institutional assets — only admin can publish them.
     // Publishers attempting to set contentType='book' get a 403 rather than
@@ -116,7 +130,7 @@ exports.create = async (req, res, next) => {
         author,
         readTime,
         date,
-        fullContent: toJsonArray(fullContent),
+        fullContent: fullContentStr,
         image: image || null,
         pdfUrl: pdfUrl || null,
         gallery: toJsonArray(gallery),
@@ -143,6 +157,10 @@ exports.update = async (req, res, next) => {
     if (!existing) return fail(res, 404, 'Publikasi tidak ditemukan');
 
     const { title, category, description, author, readTime, date, fullContent, image, gallery, contentType, pdfUrl } = req.body;
+
+    // Validate URLs when provided
+    if (image !== undefined && !isValidUrlOrPath(image)) return fail(res, 400, 'URL gambar tidak valid');
+    if (pdfUrl !== undefined && !isValidUrlOrPath(pdfUrl)) return fail(res, 400, 'URL PDF tidak valid');
 
     // Same rule on update: publishers can't flip an existing publication
     // to contentType='book', nor can they modify one that's already a book.

@@ -16,8 +16,13 @@ function getCookie(req, name) {
   return null;
 }
 
+// Maximum session age in seconds (8 hours).
+// Even if the JWT has a longer expiry, sessions older than this are rejected
+// so admins are periodically forced to re-authenticate.
+const MAX_SESSION_AGE_SECONDS = 8 * 60 * 60;
+
 /**
- * Strict JWT validation.
+ * Strict JWT validation — async because the blacklist check hits SQLite.
  *
  * Token source priority:
  *   1. httpOnly cookie `spd_token` (preferred — not accessible via JS)
@@ -30,8 +35,10 @@ function getCookie(req, name) {
  * - Expired tokens (TokenExpiredError)
  * - Malformed / wrong-signature tokens (JsonWebTokenError)
  * - Tokens missing the `userId` claim (defence against forged payloads)
+ * - Tokens older than MAX_SESSION_AGE_SECONDS (session timeout)
+ * - Tokens that have been explicitly invalidated (e.g. after logout)
  */
-module.exports = (req, res, next) => {
+module.exports = async (req, res, next) => {
   // 1. Try httpOnly cookie first
   let token = getCookie(req, 'spd_token');
 
@@ -59,10 +66,16 @@ module.exports = (req, res, next) => {
       return fail(res, 401, 'Token tidak valid');
     }
 
+    // Enforce session timeout: reject tokens issued more than 8 hours ago
+    // even if the JWT exp claim hasn't passed yet. This forces periodic
+    // re-authentication for admins accessing the dashboard.
+    if (payload.iat && (Math.floor(Date.now() / 1000) - payload.iat) > MAX_SESSION_AGE_SECONDS) {
+      return fail(res, 401, 'Sesi sudah berakhir, silakan login kembali');
+    }
+
     // Reject tokens that have been explicitly invalidated (e.g. after logout).
-    // This prevents a captured token from being replayed via Bearer header
-    // even though the httpOnly cookie was cleared.
-    if (isBlacklisted(payload.jti)) {
+    // Persisted to DB so this survives server restarts.
+    if (await isBlacklisted(payload.jti)) {
       return fail(res, 401, 'Token sudah tidak valid');
     }
 

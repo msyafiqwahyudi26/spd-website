@@ -3,6 +3,17 @@ const bcrypt = require('bcryptjs');
 const { log } = require('../lib/logger');
 const { ok, fail } = require('../lib/response');
 
+/**
+ * Validate password strength.
+ * Returns an error message string, or null if the password is acceptable.
+ */
+function validatePassword(password) {
+  if (!password || password.length < 12) return 'Password minimal 12 karakter';
+  if (!/[A-Z]/.test(password)) return 'Password harus mengandung minimal 1 huruf kapital';
+  if (!/[0-9]/.test(password)) return 'Password harus mengandung minimal 1 angka';
+  return null;
+}
+
 exports.getAll = async (req, res, next) => {
   try {
     const users = await prisma.user.findMany({
@@ -25,9 +36,8 @@ exports.create = async (req, res, next) => {
     if (!name || !email || !password) {
       return fail(res, 400, 'Nama, email, dan password diperlukan');
     }
-    if (password.length < 6) {
-      return fail(res, 400, 'Password minimal 6 karakter');
-    }
+    const pwErr = validatePassword(password);
+    if (pwErr) return fail(res, 400, pwErr);
 
     const hashed = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
@@ -69,7 +79,8 @@ exports.update = async (req, res, next) => {
     if (name !== undefined && name.length > 0) data.name = name;
     if (role !== undefined)                    data.role = role;
     if (newPassword) {
-      if (newPassword.length < 6) return fail(res, 400, 'Password minimal 6 karakter');
+      const pwErr = validatePassword(newPassword);
+      if (pwErr) return fail(res, 400, pwErr);
       data.password = await bcrypt.hash(newPassword, 10);
     }
 
