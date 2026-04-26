@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { INITIAL_EVENTS } from '../data/events';
 import Image from '../components/ui/Image';
+import { resolveMediaUrl } from '@/lib/media';
 
 const safeFormatDate = (dateStr) => {
   if (!dateStr) return '—';
@@ -104,7 +105,7 @@ export default function EventDetail() {
       {/* Hero image */}
       <div className="max-w-4xl mx-auto px-4 mb-10">
         <Image
-          src={item.image ?? null}
+          src={item.image ? resolveMediaUrl(item.image) : null}
           alt={item.title ?? ''}
           className="w-full h-64 sm:h-80 rounded-2xl"
           gradient="from-orange-50 to-slate-100"

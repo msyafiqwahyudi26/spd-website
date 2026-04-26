@@ -219,7 +219,7 @@ export default function PublikasiDetail() {
     );
   }
 
-  const heroSrc = item.image || null;
+  const heroSrc = item.image ? resolveMediaUrl(item.image) : null;
   const gradient   = GRADIENT_BY_CATEGORY[item.category] ?? 'from-slate-100 to-slate-200';
   const hasContent = Array.isArray(item.fullContent) && item.fullContent.length > 0;
   const gallery    = Array.isArray(item.gallery) && item.gallery.length > 0 ? item.gallery : null;
@@ -367,13 +367,13 @@ export default function PublikasiDetail() {
               {gallery.map((url, i) => (
                 <a
                   key={i}
-                  href={url}
+                  href={resolveMediaUrl(url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block rounded-xl overflow-hidden aspect-video bg-slate-100 group"
                 >
                   <img
-                    src={url}
+                    src={resolveMediaUrl(url)}
                     alt={`Galeri ${i + 1}`}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     onError={e => { e.currentTarget.parentElement.style.display = 'none'; }}
