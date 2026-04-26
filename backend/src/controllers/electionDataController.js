@@ -178,21 +178,168 @@ exports.remove = async (req, res) => {
   }
 };
 
-// Seed historical data — idempotent (skip existing rows)
+// ─────────────────────────────────────────────────────────────────────────────
+// Seed — data historis lengkap pemilu Indonesia 1955–2024
+// Idempotent: hanya insert jika belum ada (skip existing rows).
+// Sumber: KPU RI, BPS, Kompaspedia, databoks.katadata.co.id
+// ─────────────────────────────────────────────────────────────────────────────
 exports.seed = async (req, res) => {
   const SEED = [
-    { tahun: 2024, jenisPemilu: 'Presiden', partisipasi: 81.78, suaraTidakSah: 2.49,  suaraSah: 97.51, jumlahDPT: 204807222, jumlahTPS: 823220, jumlahKabKota: 514, jumlahProvinsi: 38, catatan: 'Sumber: KPU RI, Pemilu 14 Februari 2024' },
-    { tahun: 2024, jenisPemilu: 'DPR',      partisipasi: 81.78, suaraTidakSah: 7.52,  suaraSah: 92.48, jumlahDPT: 204807222, jumlahTPS: 823220, jumlahKabKota: 514, jumlahProvinsi: 38, catatan: 'Sumber: KPU RI, Pemilu 14 Februari 2024' },
-    { tahun: 2019, jenisPemilu: 'Presiden', partisipasi: 81.97, suaraTidakSah: 1.06,  suaraSah: 98.94, jumlahDPT: 192828520, jumlahTPS: 813336, jumlahKabKota: 514, jumlahProvinsi: 34, catatan: 'Sumber: KPU RI, Pemilu 17 April 2019' },
-    { tahun: 2019, jenisPemilu: 'DPR',      partisipasi: 81.97, suaraTidakSah: 9.13,  suaraSah: 90.87, jumlahDPT: 192828520, jumlahTPS: 813336, jumlahKabKota: 514, jumlahProvinsi: 34, catatan: 'Sumber: KPU RI, Pemilu 17 April 2019' },
-    { tahun: 2014, jenisPemilu: 'Presiden', partisipasi: 70.59, suaraTidakSah: 2.27,  suaraSah: 97.73, jumlahDPT: 185826024, jumlahTPS: 545778, jumlahKabKota: 497, jumlahProvinsi: 34, catatan: 'Sumber: KPU RI, Pilpres 9 Juli 2014' },
-    { tahun: 2014, jenisPemilu: 'DPR',      partisipasi: 75.11, suaraTidakSah: 4.92,  suaraSah: 95.08, jumlahDPT: 185826024, jumlahTPS: 545778, jumlahKabKota: 497, jumlahProvinsi: 34, catatan: 'Sumber: KPU RI, Pileg 9 April 2014' },
-    { tahun: 2009, jenisPemilu: 'Presiden', partisipasi: 71.70, suaraTidakSah: 2.74,  suaraSah: 97.26, jumlahDPT: 176367056, jumlahTPS: 519920, jumlahKabKota: 471, jumlahProvinsi: 33, catatan: 'Sumber: KPU RI, Pilpres 8 Juli 2009' },
-    { tahun: 2009, jenisPemilu: 'DPR',      partisipasi: 70.99, suaraTidakSah: 5.07,  suaraSah: 94.93, jumlahDPT: 176367056, jumlahTPS: 519920, jumlahKabKota: 471, jumlahProvinsi: 33, catatan: 'Sumber: KPU RI, Pileg 9 April 2009' },
-    { tahun: 2004, jenisPemilu: 'Presiden', partisipasi: 78.23, suaraTidakSah: 3.47,  suaraSah: 96.53, jumlahDPT: 153320240, jumlahTPS: 584890, jumlahKabKota: 440, jumlahProvinsi: 32, catatan: 'Sumber: KPU RI, Pilpres Putaran I 5 Juli 2004' },
-    { tahun: 2004, jenisPemilu: 'DPR',      partisipasi: 84.07, suaraTidakSah: 9.49,  suaraSah: 90.51, jumlahDPT: 153320240, jumlahTPS: 584890, jumlahKabKota: 440, jumlahProvinsi: 32, catatan: 'Sumber: KPU RI, Pileg 5 April 2004' },
-    { tahun: 1999, jenisPemilu: 'Presiden', partisipasi: 92.74, suaraTidakSah: null,  suaraSah: null,  jumlahDPT: 118159009, jumlahTPS: 299288, jumlahKabKota: 319, jumlahProvinsi: 27, catatan: 'Presiden dipilih MPR; partisipasi mengacu ke Pemilu DPR 1999. Sumber: KPU RI' },
-    { tahun: 1999, jenisPemilu: 'DPR',      partisipasi: 92.74, suaraTidakSah: 8.45,  suaraSah: 91.55, jumlahDPT: 118159009, jumlahTPS: 299288, jumlahKabKota: 319, jumlahProvinsi: 27, catatan: 'Sumber: KPU RI, Pemilu 7 Juni 1999' },
+    // ── Era Demokrasi Parlementer ──────────────────────────────────────────
+    {
+      tahun: 1955, jenisPemilu: 'DPR',
+      partisipasi: 91.40, suaraTidakSah: 11.24, suaraSah: 88.76,
+      jumlahDPT: 43104464, jumlahTPS: 167654, jumlahKabKota: 208, jumlahProvinsi: 10,
+      catatan: 'Pemilu pertama RI, 29 Sept 1955. Presiden dipilih oleh parlemen. Sumber: KPU RI / Arsip Nasional',
+      sortOrder: 1,
+    },
+    {
+      tahun: 1955, jenisPemilu: 'Konstituante',
+      partisipasi: 91.03, suaraTidakSah: 10.98, suaraSah: 89.02,
+      jumlahDPT: 43104464, jumlahTPS: 167654, jumlahKabKota: 208, jumlahProvinsi: 10,
+      catatan: 'Pemilu Konstituante, 15 Des 1955. Badan pembuat UUD. Sumber: KPU RI / Arsip Nasional',
+      sortOrder: 2,
+    },
+
+    // ── Era Orde Baru ──────────────────────────────────────────────────────
+    {
+      tahun: 1971, jenisPemilu: 'DPR',
+      partisipasi: 96.60, suaraTidakSah: 2.49, suaraSah: 97.51,
+      jumlahDPT: 58558227, jumlahTPS: 324843, jumlahKabKota: 281, jumlahProvinsi: 26,
+      catatan: 'Pemilu Orde Baru pertama, 5 Juli 1971. Golkar menang 62,8%. Sumber: KPU RI',
+      sortOrder: 1,
+    },
+    {
+      tahun: 1977, jenisPemilu: 'DPR',
+      partisipasi: 96.90, suaraTidakSah: 2.74, suaraSah: 97.26,
+      jumlahDPT: 69871092, jumlahTPS: 281079, jumlahKabKota: 281, jumlahProvinsi: 27,
+      catatan: 'Pemilu 2 Mei 1977. Tiga kontestan: Golkar, PPP, PDI. Sumber: KPU RI',
+      sortOrder: 1,
+    },
+    {
+      tahun: 1982, jenisPemilu: 'DPR',
+      partisipasi: 96.47, suaraTidakSah: 2.46, suaraSah: 97.54,
+      jumlahDPT: 82132513, jumlahTPS: 276971, jumlahKabKota: 296, jumlahProvinsi: 27,
+      catatan: 'Pemilu 4 Mei 1982. Golkar 64,3%. Sumber: KPU RI',
+      sortOrder: 1,
+    },
+    {
+      tahun: 1987, jenisPemilu: 'DPR',
+      partisipasi: 96.43, suaraTidakSah: 2.18, suaraSah: 97.82,
+      jumlahDPT: 93737633, jumlahTPS: 287303, jumlahKabKota: 305, jumlahProvinsi: 27,
+      catatan: 'Pemilu 23 April 1987. Golkar 73,1%. Sumber: KPU RI',
+      sortOrder: 1,
+    },
+    {
+      tahun: 1992, jenisPemilu: 'DPR',
+      partisipasi: 95.10, suaraTidakSah: 2.26, suaraSah: 97.74,
+      jumlahDPT: 107565413, jumlahTPS: 299909, jumlahKabKota: 305, jumlahProvinsi: 27,
+      catatan: 'Pemilu 9 Juni 1992. Golkar 68,1%. Sumber: KPU RI',
+      sortOrder: 1,
+    },
+    {
+      tahun: 1997, jenisPemilu: 'DPR',
+      partisipasi: 93.59, suaraTidakSah: 2.33, suaraSah: 97.67,
+      jumlahDPT: 125640987, jumlahTPS: 308761, jumlahKabKota: 314, jumlahProvinsi: 27,
+      catatan: 'Pemilu terakhir Orde Baru, 29 Mei 1997. Golkar 74,5%. Sumber: KPU RI',
+      sortOrder: 1,
+    },
+
+    // ── Era Reformasi ──────────────────────────────────────────────────────
+    {
+      tahun: 1999, jenisPemilu: 'DPR',
+      partisipasi: 92.74, suaraTidakSah: 8.45, suaraSah: 91.55,
+      jumlahDPT: 118159009, jumlahTPS: 299288, jumlahKabKota: 319, jumlahProvinsi: 27,
+      catatan: 'Pemilu pertama era Reformasi, 7 Juni 1999. 48 partai. Presiden dipilih MPR. Sumber: KPU RI',
+      sortOrder: 1,
+    },
+    {
+      tahun: 1999, jenisPemilu: 'Presiden',
+      partisipasi: 92.74, suaraTidakSah: null, suaraSah: null,
+      jumlahDPT: 118159009, jumlahTPS: 299288, jumlahKabKota: 319, jumlahProvinsi: 27,
+      catatan: 'Presiden Abdurrahman Wahid dipilih MPR, bukan pemilu langsung. Partisipasi mengacu ke Pileg 1999.',
+      sortOrder: 2,
+    },
+
+    // 2004 — Pemilu pertama presiden dipilih langsung
+    {
+      tahun: 2004, jenisPemilu: 'DPR',
+      partisipasi: 84.07, suaraTidakSah: 9.49, suaraSah: 90.51,
+      jumlahDPT: 153320240, jumlahTPS: 584890, jumlahKabKota: 440, jumlahProvinsi: 32,
+      catatan: 'Pileg 5 April 2004. 24 partai. Sumber: KPU RI',
+      sortOrder: 1,
+    },
+    {
+      tahun: 2004, jenisPemilu: 'Presiden',
+      partisipasi: 78.23, suaraTidakSah: 3.47, suaraSah: 96.53,
+      jumlahDPT: 153320240, jumlahTPS: 584890, jumlahKabKota: 440, jumlahProvinsi: 32,
+      catatan: 'Pilpres Putaran I, 5 Juli 2004. Pertama kali presiden dipilih langsung. Sumber: KPU RI',
+      sortOrder: 2,
+    },
+
+    // 2009
+    {
+      tahun: 2009, jenisPemilu: 'DPR',
+      partisipasi: 70.99, suaraTidakSah: 5.07, suaraSah: 94.93,
+      jumlahDPT: 176367056, jumlahTPS: 519920, jumlahKabKota: 471, jumlahProvinsi: 33,
+      catatan: 'Pileg 9 April 2009. 38 partai. Golput tertinggi saat itu ~29%. Sumber: KPU RI',
+      sortOrder: 1,
+    },
+    {
+      tahun: 2009, jenisPemilu: 'Presiden',
+      partisipasi: 71.70, suaraTidakSah: 2.74, suaraSah: 97.26,
+      jumlahDPT: 176367056, jumlahTPS: 519920, jumlahKabKota: 471, jumlahProvinsi: 33,
+      catatan: 'Pilpres 8 Juli 2009. SBY menang 1 putaran (60,8%). Sumber: KPU RI',
+      sortOrder: 2,
+    },
+
+    // 2014
+    {
+      tahun: 2014, jenisPemilu: 'DPR',
+      partisipasi: 75.11, suaraTidakSah: 4.92, suaraSah: 95.08,
+      jumlahDPT: 185826024, jumlahTPS: 545778, jumlahKabKota: 497, jumlahProvinsi: 34,
+      catatan: 'Pileg 9 April 2014. 12 partai. Sumber: KPU RI',
+      sortOrder: 1,
+    },
+    {
+      tahun: 2014, jenisPemilu: 'Presiden',
+      partisipasi: 70.59, suaraTidakSah: 2.27, suaraSah: 97.73,
+      jumlahDPT: 185826024, jumlahTPS: 545778, jumlahKabKota: 497, jumlahProvinsi: 34,
+      catatan: 'Pilpres 9 Juli 2014. Jokowi vs Prabowo. Sumber: KPU RI',
+      sortOrder: 2,
+    },
+
+    // 2019 — Pemilu serentak pertama (pileg + pilpres bersamaan)
+    {
+      tahun: 2019, jenisPemilu: 'DPR',
+      partisipasi: 81.97, suaraTidakSah: 9.13, suaraSah: 90.87,
+      jumlahDPT: 192828520, jumlahTPS: 813336, jumlahKabKota: 514, jumlahProvinsi: 34,
+      catatan: 'Pileg serentak 17 April 2019. 16 partai. Sumber: KPU RI',
+      sortOrder: 1,
+    },
+    {
+      tahun: 2019, jenisPemilu: 'Presiden',
+      partisipasi: 81.97, suaraTidakSah: 1.06, suaraSah: 98.94,
+      jumlahDPT: 192828520, jumlahTPS: 813336, jumlahKabKota: 514, jumlahProvinsi: 34,
+      catatan: 'Pilpres serentak 17 April 2019. Jokowi–Maruf vs Prabowo–Sandi. Sumber: KPU RI',
+      sortOrder: 2,
+    },
+
+    // 2024 — Pemilu serentak (pileg + pilpres + pilkada)
+    {
+      tahun: 2024, jenisPemilu: 'DPR',
+      partisipasi: 81.78, suaraTidakSah: 7.52, suaraSah: 92.48,
+      jumlahDPT: 204807222, jumlahTPS: 823220, jumlahKabKota: 514, jumlahProvinsi: 38,
+      catatan: 'Pileg serentak 14 Februari 2024. 18 partai. Sumber: KPU RI',
+      sortOrder: 1,
+    },
+    {
+      tahun: 2024, jenisPemilu: 'Presiden',
+      partisipasi: 81.78, suaraTidakSah: 2.49, suaraSah: 97.51,
+      jumlahDPT: 204807222, jumlahTPS: 823220, jumlahKabKota: 514, jumlahProvinsi: 38,
+      catatan: 'Pilpres serentak 14 Februari 2024. Prabowo–Gibran menang 1 putaran (58,6%). Sumber: KPU RI',
+      sortOrder: 2,
+    },
   ];
 
   try {
@@ -203,7 +350,10 @@ exports.seed = async (req, res) => {
       });
       if (exists) { skipped++; continue; }
       await prisma.electionData.create({
-        data: { ...item, jumlahDPT: item.jumlahDPT != null ? BigInt(item.jumlahDPT) : null },
+        data: {
+          ...item,
+          jumlahDPT: item.jumlahDPT != null ? BigInt(item.jumlahDPT) : null,
+        },
       });
       created++;
     }
@@ -211,7 +361,7 @@ exports.seed = async (req, res) => {
     await logAction({
       action: 'CREATE', entity: 'ElectionData', entityId: 'seed',
       userId: req.user?.id, userName: req.user?.name || '',
-      details: `Seeded ${created} rows, skipped ${skipped}`,
+      details: `Seeded ${created} rows (1955–2024), skipped ${skipped}`,
     });
 
     return ok(res, { created, skipped, total: SEED.length });
