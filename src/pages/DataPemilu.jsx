@@ -1,63 +1,77 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Hero from '../components/sections/Hero';
-import LineChart, { DEFAULT_DATA, DEFAULT_SERIES } from '../components/charts/LineChart';
+import LineChart, { DEFAULT_SERIES } from '../components/charts/LineChart';
 import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */
-const fmt = (n) =>
-  n == null ? '—' : Number(n).toLocaleString('id-ID');
+const fmt    = (n) => n == null ? '—' : Number(n).toLocaleString('id-ID');
+const fmtPct = (n) => n == null ? '—' : `${Number(n).toFixed(2).replace('.', ',')}%`;
 
-const fmtPct = (part, whole) => {
+// ratio helper for funnel
+const fmtRatio = (part, whole) => {
   if (!part || !whole) return '—';
   return ((part / whole) * 100).toFixed(2) + '%';
 };
 
 /* ── Filter options ─────────────────────────────────────────────────────── */
-const FILTER_OPTIONS = {
-  pemilu:  ['Pemilu 2024', 'Pemilu 2019', 'Pemilu 2014', 'Pemilu 2009'],
-  wilayah: ['Nasional', 'DKI Jakarta', 'Jawa Barat', 'Jawa Tengah', 'Jawa Timur'],
-  jenis:   ['Pemilu Presiden', 'Pemilu DPR', 'Pemilu DPD', 'Pemilu DPRD'],
-};
-
-const SIDEBAR_FILTERS = [
-  { id: 'pemilih', label: 'Pemilih',    options: ['Pemilu Presiden', 'Pemilu DPR', 'Semua'] },
-  { id: 'jenis',   label: 'Jenis Data', options: ['Partisipasi Pemilih', 'Suara Tidak Sah'] },
-  { id: 'skala',   label: 'Skala',      options: ['Nasional', 'Provinsi', 'Kabupaten/Kota'] },
+const TAHUN_OPTIONS = [
+  { label: 'Pemilu 2024', tahun: 2024 },
+  { label: 'Pemilu 2019', tahun: 2019 },
+  { label: 'Pemilu 2014', tahun: 2014 },
+  { label: 'Pemilu 2009', tahun: 2009 },
+  { label: 'Pemilu 2004', tahun: 2004 },
+  { label: 'Pemilu 1999', tahun: 1999 },
 ];
 
-/* ── Fallback (ilustrasi) data ─────────────────────────────────────────── */
-const FALLBACK_STATS = {
-  partisipasi: '81,78%',
-  dpt:         204807222,
-  dp4:         204656053,
-  tps:         823220,
-  tpsMelapor:  null,
-};
+const JENIS_OPTIONS = [
+  { label: 'Pemilu Presiden',       jenis: 'Presiden'       },
+  { label: 'Pemilu DPR',            jenis: 'DPR'            },
+  { label: 'Pemilu DPD',            jenis: 'DPD'            },
+  { label: 'Pemilu DPRD Provinsi',  jenis: 'DPRD Provinsi'  },
+];
+
+const SIDEBAR_FILTERS = [
+  { id: 'jenis', label: 'Jenis Pemilu',  options: JENIS_OPTIONS.map(o => o.label) },
+  { id: 'skala', label: 'Skala',         options: ['Nasional', 'Provinsi']         },
+];
 
 /* ── Hooks ──────────────────────────────────────────────────────────────── */
+function useElectionData() {
+  const [items,  setItems]  = useState([]);
+  const [status, setStatus] = useState('loading');
+  useEffect(() => {
+    let cancelled = false;
+    api('/election-data')
+      .then((d) => { if (!cancelled) { setItems(Array.isArray(d) ? d : []); setStatus('ok'); } })
+      .catch(() => { if (!cancelled) { setItems([]); setStatus('error'); } });
+    return () => { cancelled = true; };
+  }, []);
+  return { items, status };
+}
+
 function useKpuPartisipasi() {
-  const [data, setData]     = useState(null);
+  const [data,   setData]   = useState(null);
   const [status, setStatus] = useState('loading');
   useEffect(() => {
     let cancelled = false;
     api('/kpu/partisipasi')
-      .then((d) => { if (!cancelled) { setData(d); setStatus('ok'); } })
-      .catch(() => { if (!cancelled) setStatus('error'); });
+      .then((d) => { if (!cancelled) { setData(d);  setStatus('ok');    } })
+      .catch(() => { if (!cancelled) { setStatus('error'); } });
     return () => { cancelled = true; };
   }, []);
   return { data, status };
 }
 
 function useKpuPemilih() {
-  const [data, setData]     = useState(null);
+  const [data,   setData]   = useState(null);
   const [status, setStatus] = useState('loading');
   useEffect(() => {
     let cancelled = false;
     api('/kpu/pemilih')
-      .then((d) => { if (!cancelled) { setData(d); setStatus('ok'); } })
-      .catch(() => { if (!cancelled) setStatus('error'); });
+      .then((d) => { if (!cancelled) { setData(d);  setStatus('ok');    } })
+      .catch(() => { if (!cancelled) { setStatus('error'); } });
     return () => { cancelled = true; };
   }, []);
   return { data, status };
@@ -90,18 +104,21 @@ function Select({ label, options, value, onChange }) {
 }
 
 /* ── 1. Status Banner ───────────────────────────────────────────────────── */
-function StatusBanner({ partisipasiStatus, pemilihStatus, updatedAt }) {
-  const allOk  = partisipasiStatus === 'ok' && pemilihStatus === 'ok';
-  const anyOk  = partisipasiStatus === 'ok' || pemilihStatus === 'ok';
-  const loading = partisipasiStatus === 'loading' || pemilihStatus === 'loading';
-
+function StatusBanner({ electionStatus, pemilihStatus, updatedAt }) {
+  const loading = electionStatus === 'loading' || pemilihStatus === 'loading';
   if (loading) return null;
 
+  const kpuOk = pemilihStatus === 'ok';
+  const dbOk  = electionStatus === 'ok';
+
   const ts = updatedAt
-    ? new Date(updatedAt).toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    ? new Date(updatedAt).toLocaleString('id-ID', {
+        day: 'numeric', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+      })
     : null;
 
-  if (allOk) {
+  if (dbOk && kpuOk) {
     return (
       <div className="bg-emerald-50 border-b border-emerald-200" role="note">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-start gap-3">
@@ -109,9 +126,25 @@ function StatusBanner({ partisipasiStatus, pemilihStatus, updatedAt }) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div className="text-xs sm:text-sm text-emerald-900 leading-relaxed">
-            <strong className="font-semibold">Data langsung dari KPU.</strong>{' '}
-            Semua angka diperbarui otomatis dari Sirekap & Satu Peta Data KPU.
-            {ts && <span className="ml-2 text-emerald-700 opacity-75">Terakhir diperbarui: {ts}</span>}
+            <strong className="font-semibold">Data tersedia.</strong>{' '}
+            Statistik pemilu dari database SPD · Data pemilih per-provinsi diperbarui otomatis dari Satu Peta Data KPU.
+            {ts && <span className="ml-2 text-emerald-700 opacity-75">KPU: {ts}</span>}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (dbOk && !kpuOk) {
+    return (
+      <div className="bg-blue-50 border-b border-blue-200" role="note">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-start gap-3">
+          <svg className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+          </svg>
+          <div className="text-xs sm:text-sm text-blue-900 leading-relaxed">
+            <strong className="font-semibold">Statistik dari database SPD.</strong>{' '}
+            Data per-provinsi dari KPU tidak tersedia saat ini.
           </div>
         </div>
       </div>
@@ -127,7 +160,6 @@ function StatusBanner({ partisipasiStatus, pemilihStatus, updatedAt }) {
         <div className="text-xs sm:text-sm text-amber-900 leading-relaxed">
           <strong className="font-semibold">Data ilustrasi.</strong>{' '}
           Koneksi ke server KPU tidak tersedia — angka adalah contoh historis.
-          {anyOk && <span className="ml-1">(sebagian data berhasil dimuat)</span>}
         </div>
       </div>
     </div>
@@ -135,13 +167,26 @@ function StatusBanner({ partisipasiStatus, pemilihStatus, updatedAt }) {
 }
 
 /* ── 2. Filter Bar ──────────────────────────────────────────────────────── */
-function FilterBar({ filters, onChange }) {
+function FilterBar({ selectedTahun, selectedJenis, onTahunChange, onJenisChange }) {
   return (
     <section className="py-6 px-4 bg-white border-b border-slate-100">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Select options={FILTER_OPTIONS.pemilu}  value={filters.pemilu}  onChange={(v) => onChange('pemilu', v)} />
-        <Select options={FILTER_OPTIONS.wilayah} value={filters.wilayah} onChange={(v) => onChange('wilayah', v)} />
-        <Select options={FILTER_OPTIONS.jenis}   value={filters.jenis}   onChange={(v) => onChange('jenis', v)} />
+      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
+        <Select
+          options={TAHUN_OPTIONS.map(o => o.label)}
+          value={TAHUN_OPTIONS.find(o => o.tahun === selectedTahun)?.label || 'Pemilu 2024'}
+          onChange={(v) => {
+            const found = TAHUN_OPTIONS.find(o => o.label === v);
+            if (found) onTahunChange(found.tahun);
+          }}
+        />
+        <Select
+          options={JENIS_OPTIONS.map(o => o.label)}
+          value={JENIS_OPTIONS.find(o => o.jenis === selectedJenis)?.label || 'Pemilu Presiden'}
+          onChange={(v) => {
+            const found = JENIS_OPTIONS.find(o => o.label === v);
+            if (found) onJenisChange(found.jenis);
+          }}
+        />
       </div>
     </section>
   );
@@ -172,41 +217,88 @@ function StatCard({ value, label, change, trend, large, live }) {
   );
 }
 
-function StatCards({ partisipasiData, pemilihData, partisipasiStatus, pemilihStatus }) {
+function StatCards({
+  dbRow, prevRow,
+  partisipasiData, partisipasiStatus,
+  pemilihData,     pemilihStatus,
+  tahun,
+}) {
   const isLivePart  = partisipasiStatus === 'ok';
-  const isLivePemil = pemilihStatus === 'ok';
+  const isLivePemil = pemilihStatus     === 'ok' && tahun === 2024;
+  const hasDb       = !!dbRow;
 
-  const partisipasiVal = isLivePart && partisipasiData?.persenPartisipasi != null
-    ? `${parseFloat(partisipasiData.persenPartisipasi).toFixed(2).replace('.', ',')}%`
-    : FALLBACK_STATS.partisipasi;
+  // ── Partisipasi
+  const partisipasiVal = hasDb && dbRow.partisipasi != null
+    ? fmtPct(dbRow.partisipasi)
+    : (isLivePart && partisipasiData?.persenPartisipasi != null
+        ? `${parseFloat(partisipasiData.persenPartisipasi).toFixed(2).replace('.', ',')}%`
+        : '—');
+  const partisipasiDiff = hasDb && prevRow?.partisipasi != null && dbRow.partisipasi != null
+    ? (dbRow.partisipasi - prevRow.partisipasi).toFixed(2)
+    : null;
 
-  const dptVal  = isLivePemil ? pemilihData?.nasional?.dpt  : FALLBACK_STATS.dpt;
-  const dp4Val  = isLivePemil ? pemilihData?.nasional?.dp4  : FALLBACK_STATS.dp4;
-  const tpsVal  = isLivePart  ? partisipasiData?.totalTps   : FALLBACK_STATS.tps;
+  // ── Suara tidak sah
+  const tidakSahVal  = hasDb && dbRow.suaraTidakSah != null ? fmtPct(dbRow.suaraTidakSah) : '—';
+  const tidakSahDiff = hasDb && prevRow?.suaraTidakSah != null && dbRow.suaraTidakSah != null
+    ? (dbRow.suaraTidakSah - prevRow.suaraTidakSah).toFixed(2)
+    : null;
+
+  // ── Kabupaten/kota
+  const kabKotaVal  = hasDb && dbRow.jumlahKabKota  != null ? fmt(dbRow.jumlahKabKota)  : '514';
+  const kabKotaDiff = hasDb && prevRow?.jumlahKabKota != null && dbRow.jumlahKabKota != null
+    ? dbRow.jumlahKabKota - prevRow.jumlahKabKota
+    : null;
+
+  // ── DPT (prefer DB, supplement with KPU live for 2024)
+  const dptVal = isLivePemil && pemilihData?.nasional?.dpt != null
+    ? pemilihData.nasional.dpt
+    : (hasDb && dbRow.jumlahDPT != null ? dbRow.jumlahDPT : null);
+  const dptChange = isLivePemil
+    ? `DP4 awal: ${fmt(pemilihData?.nasional?.dp4)} · Sumber: Satu Peta Data KPU`
+    : (hasDb && prevRow?.jumlahDPT != null && dbRow?.jumlahDPT != null
+        ? `${dptVal > prevRow.jumlahDPT ? '+' : ''}${fmt(dptVal - prevRow.jumlahDPT)} dari ${prevRow.tahun}`
+        : hasDb && dbRow?.catatan ? `Sumber: ${dbRow.catatan}` : 'Data resmi KPU');
+
+  // ── TPS
+  const tpsVal = isLivePart && partisipasiData?.totalTps != null
+    ? partisipasiData.totalTps
+    : (hasDb && dbRow.jumlahTPS != null ? dbRow.jumlahTPS : null);
+  const avgPemilih = dptVal && tpsVal ? Math.round(dptVal / tpsVal) : null;
+  const tpsChange  = isLivePart && partisipasiData?.tpsMelapor != null
+    ? `${fmt(partisipasiData.tpsMelapor)} TPS sudah melapor`
+    : avgPemilih ? `Rata-rata ${fmt(avgPemilih)} pemilih/TPS` : 'Data resmi KPU';
+
+  const prevYear = prevRow?.tahun;
 
   const small = [
     {
       id: 'partisipasi',
       value: partisipasiVal,
       label: 'Tingkat Partisipasi (%)',
-      change: isLivePart ? 'Sumber: Sirekap KPU' : '-0,15% dari 2019',
-      trend: 'down',
-      live: isLivePart,
+      change: partisipasiDiff != null
+        ? `${partisipasiDiff > 0 ? '+' : ''}${partisipasiDiff}% dari ${prevYear}`
+        : isLivePart ? 'Sumber: Sirekap KPU' : `Pemilu ${tahun}`,
+      trend: partisipasiDiff != null ? (parseFloat(partisipasiDiff) >= 0 ? 'up' : 'down') : 'neutral',
+      live: isLivePart && !hasDb,
     },
     {
       id: 'tidak-sah',
-      value: '2,49%',
+      value: tidakSahVal,
       label: 'Suara Tidak Sah (%)',
-      change: '-2,34% dari 2019',
-      trend: 'down',
+      change: tidakSahDiff != null
+        ? `${tidakSahDiff > 0 ? '+' : ''}${tidakSahDiff}% dari ${prevYear}`
+        : `Pemilu ${tahun}`,
+      trend: tidakSahDiff != null ? (parseFloat(tidakSahDiff) <= 0 ? 'up' : 'down') : 'neutral',
       live: false,
     },
     {
       id: 'kabupaten',
-      value: '514',
+      value: kabKotaVal,
       label: 'Kabupaten/Kota',
-      change: '+5 dari 2019',
-      trend: 'up',
+      change: kabKotaDiff != null
+        ? `${kabKotaDiff >= 0 ? '+' : ''}${kabKotaDiff} dari ${prevYear}`
+        : `Pemilu ${tahun}`,
+      trend: kabKotaDiff != null ? (kabKotaDiff >= 0 ? 'up' : 'down') : 'neutral',
       live: false,
     },
   ];
@@ -216,9 +308,7 @@ function StatCards({ partisipasiData, pemilihData, partisipasiStatus, pemilihSta
       id: 'dpt',
       value: fmt(dptVal),
       label: 'Jumlah Pemilih di DPT',
-      change: isLivePemil
-        ? `DP4 awal: ${fmt(dp4Val)} · Sumber: Satu Peta Data KPU`
-        : '+4.230.000 dari 2019',
+      change: dptChange,
       trend: 'up',
       live: isLivePemil,
       large: true,
@@ -227,9 +317,7 @@ function StatCards({ partisipasiData, pemilihData, partisipasiStatus, pemilihSta
       id: 'tps',
       value: fmt(tpsVal),
       label: 'Jumlah TPS',
-      change: isLivePart && partisipasiData?.tpsMelapor != null
-        ? `${fmt(partisipasiData.tpsMelapor)} TPS sudah melapor`
-        : 'Rata-rata 248 pemilih/TPS',
+      change: tpsChange,
       trend: 'neutral',
       live: isLivePart,
       large: true,
@@ -239,6 +327,12 @@ function StatCards({ partisipasiData, pemilihData, partisipasiStatus, pemilihSta
   return (
     <section className="py-8 px-4 bg-white">
       <div className="max-w-6xl mx-auto space-y-3">
+        {!hasDb && (
+          <div className="text-xs text-slate-400 bg-slate-50 rounded-lg px-4 py-2 border border-slate-200">
+            Tidak ada data tersimpan untuk Pemilu {tahun} jenis ini.{' '}
+            <Link to="/dashboard/data-pemilu" className="text-orange-500 hover:underline">Tambah via dashboard →</Link>
+          </div>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {small.map((s) => <StatCard key={s.id} {...s} />)}
         </div>
@@ -250,7 +344,7 @@ function StatCards({ partisipasiData, pemilihData, partisipasiStatus, pemilihSta
   );
 }
 
-/* ── 4. Daftar Pemilih Section (satupetadata) ───────────────────────────── */
+/* ── 4. Daftar Pemilih Section (satupetadata KPU live) ──────────────────── */
 const PEMILIH_COLS = [
   { key: 'provinsi', label: 'Provinsi',  align: 'left'  },
   { key: 'dp4',      label: 'DP4',       align: 'right' },
@@ -259,16 +353,16 @@ const PEMILIH_COLS = [
   { key: 'persen',   label: '% DPT/DP4', align: 'right' },
 ];
 
-function FunnelBar({ label, value, max, color, pct: pctStr }) {
-  const pct = max ? Math.min(100, Math.round((value / max) * 100)) : 0;
+function FunnelBar({ label, value, max, color, pct }) {
+  const w = max ? Math.min(100, Math.round((value / max) * 100)) : 0;
   return (
     <div className="flex items-center gap-2 text-xs">
       <span className="w-14 font-bold text-slate-600 text-right shrink-0">{label}</span>
       <div className="flex-1 bg-slate-100 rounded-full h-4 overflow-hidden">
-        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${w}%` }} />
       </div>
       <span className="w-28 tabular-nums text-slate-500 shrink-0">{fmt(value)}</span>
-      <span className="w-10 text-slate-600 font-semibold shrink-0">{pctStr}</span>
+      <span className="w-10 text-slate-600 font-semibold shrink-0">{pct}</span>
     </div>
   );
 }
@@ -308,7 +402,6 @@ function DaftarPemilihSection({ data, status }) {
   const n   = data.nasional ?? {};
   const dp4 = n.dp4 ?? 1;
 
-  // Enrich rows with computed fields
   const rows = (data.provinsi ?? []).map(r => ({
     ...r,
     selisih: r.dp4 && r.dpt ? r.dp4 - r.dpt : null,
@@ -332,14 +425,14 @@ function DaftarPemilihSection({ data, status }) {
   };
 
   const arrow = (key) =>
-    sortKey !== key ? <span className="text-slate-300 ml-0.5">↕</span>
+    sortKey !== key
+      ? <span className="text-slate-300 ml-0.5">↕</span>
       : <span className="text-orange-500 ml-0.5">{sortDir === 'asc' ? '↑' : '↓'}</span>;
 
   return (
     <section className="py-16 px-4 bg-slate-50">
       <div className="max-w-6xl mx-auto space-y-10">
 
-        {/* Heading */}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-slate-800">Data Daftar Pemilih Pemilu 2024</h2>
@@ -367,7 +460,7 @@ function DaftarPemilihSection({ data, status }) {
           <h3 className="text-sm font-bold text-slate-700 mb-4">Funnel Pemutakhiran Daftar Pemilih — Nasional</h3>
           <div className="space-y-2.5">
             {[
-              { key: 'dp4',   label: 'DP4',   color: 'bg-blue-500' },
+              { key: 'dp4',   label: 'DP4',   color: 'bg-blue-500'   },
               { key: 'dps',   label: 'DPS',   color: 'bg-indigo-500' },
               { key: 'dpshp', label: 'DPSHP', color: 'bg-violet-500' },
               { key: 'dpt',   label: 'DPT',   color: 'bg-orange-500' },
@@ -378,14 +471,14 @@ function DaftarPemilihSection({ data, status }) {
                 value={n[item.key] ?? 0}
                 max={dp4}
                 color={item.color}
-                pct={fmtPct(n[item.key] ?? 0, dp4)}
+                pct={fmtRatio(n[item.key] ?? 0, dp4)}
               />
             ))}
           </div>
           <p className="mt-4 text-xs text-slate-400">
             Pemilih yang tidak masuk DPT final:{' '}
             <strong className="text-red-500">{fmt((n.dp4 ?? 0) - (n.dpt ?? 0))}</strong>
-            {' '}({fmtPct((n.dp4 ?? 0) - (n.dpt ?? 0), dp4)} dari DP4 awal)
+            {' '}({fmtRatio((n.dp4 ?? 0) - (n.dpt ?? 0), dp4)} dari DP4 awal)
           </p>
         </div>
 
@@ -401,7 +494,6 @@ function DaftarPemilihSection({ data, status }) {
               className="w-full sm:w-56 px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
             />
           </div>
-
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -457,17 +549,50 @@ function DaftarPemilihSection({ data, status }) {
   );
 }
 
-/* ── 5. Tren Data Pemilu ────────────────────────────────────────────────── */
-function TrendSection({ sidebarFilters, onSidebarChange }) {
+/* ── 5. Tren Data Pemilu (from DB) ──────────────────────────────────────── */
+function TrendSection({ items, selectedJenis, onJenisChange }) {
+  // Build chart data from DB for selected jenis
+  const jenisLabel = JENIS_OPTIONS.find(o => o.jenis === selectedJenis)?.label || 'Pemilu Presiden';
+
+  const sorted = useMemo(() =>
+    [...items]
+      .filter(r => r.jenisPemilu === selectedJenis && r.partisipasi != null)
+      .sort((a, b) => a.tahun - b.tahun),
+    [items, selectedJenis]
+  );
+
+  const hasChartData = sorted.length >= 2;
+
+  // Convert DB rows → LineChart format: [{year, participation, invalidVotes}]
+  const chartData = useMemo(() =>
+    sorted.map(r => ({
+      year:         r.tahun,
+      participation: r.partisipasi     ?? 0,
+      invalidVotes:  r.suaraTidakSah   ?? 0,
+    })),
+    [sorted]
+  );
+
   return (
     <section className="py-16 px-4 bg-white">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-2xl font-bold text-slate-800 mb-8">Tren Data Pemilu</h2>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-3 bg-white border border-slate-200 rounded-xl p-6">
-            <LineChart data={DEFAULT_DATA} series={DEFAULT_SERIES} />
+            {hasChartData ? (
+              <LineChart data={chartData} series={DEFAULT_SERIES} />
+            ) : (
+              <div className="h-64 flex flex-col items-center justify-center text-slate-400 gap-2">
+                <svg className="w-10 h-10 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                    d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                </svg>
+                <p className="text-sm">Data tren belum tersedia untuk {jenisLabel}</p>
+                <p className="text-xs">Tambah data multi-tahun dari dashboard untuk menampilkan grafik</p>
+              </div>
+            )}
             <p className="text-xs text-slate-400 mt-4 text-center">
-              Sumber: Sindikasi Pemilu dan Demokrasi
+              Sumber: Database SPD · Data resmi KPU RI
             </p>
           </div>
           <div className="flex flex-col gap-4">
@@ -477,16 +602,35 @@ function TrendSection({ sidebarFilters, onSidebarChange }) {
                   key={f.id}
                   label={f.label}
                   options={f.options}
-                  value={sidebarFilters[f.id]}
-                  onChange={(v) => onSidebarChange(f.id, v)}
+                  value={f.id === 'jenis' ? jenisLabel : 'Nasional'}
+                  onChange={f.id === 'jenis' ? (v) => {
+                    const found = JENIS_OPTIONS.find(o => o.label === v);
+                    if (found) onJenisChange(found.jenis);
+                  } : () => {}}
                 />
               ))}
             </div>
+            {/* Mini stats from sorted data */}
+            {hasChartData && (
+              <div className="bg-white border border-slate-200 rounded-xl p-4">
+                <p className="text-xs font-semibold text-slate-700 mb-3">Rekap Partisipasi</p>
+                <div className="space-y-1.5">
+                  {sorted.slice().reverse().map(r => (
+                    <div key={r.tahun} className="flex justify-between text-xs">
+                      <span className="text-slate-500">{r.tahun}</span>
+                      <span className={`font-semibold ${r.partisipasi >= 80 ? 'text-emerald-600' : r.partisipasi >= 70 ? 'text-orange-500' : 'text-red-500'}`}>
+                        {fmtPct(r.partisipasi)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="bg-white border border-slate-200 rounded-xl p-4">
               <p className="text-xs font-semibold text-slate-700 mb-2">Tentang Data</p>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Data partisipasi pemilih dan suara tidak sah diolah dari hasil rekapitulasi resmi
-                KPU, dilengkapi verifikasi lapangan oleh tim riset SPD.
+                Data dari laporan resmi KPU RI pasca-rekapitulasi final.
+                Dikelola oleh tim riset SPD untuk memastikan akurasi.
               </p>
             </div>
           </div>
@@ -500,7 +644,7 @@ function TrendSection({ sidebarFilters, onSidebarChange }) {
 function InfografisSection() {
   const [items, setItems]     = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(false);
+  const [error,  setError]    = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -586,22 +730,26 @@ function KolaborasiCTA() {
 
 /* ── Page ───────────────────────────────────────────────────────────────── */
 export default function DataPemilu() {
-  const [filters, setFilters] = useState({
-    pemilu:  'Pemilu 2024',
-    wilayah: 'Nasional',
-    jenis:   'Pemilu Presiden',
-  });
-  const [sidebarFilters, setSidebarFilters] = useState({
-    pemilih: 'Pemilu Presiden',
-    jenis:   'Partisipasi Pemilih',
-    skala:   'Nasional',
-  });
+  const [selectedTahun, setSelectedTahun] = useState(2024);
+  const [selectedJenis, setSelectedJenis] = useState('Presiden');
 
-  const { data: partisipasiData, status: partisipasiStatus } = useKpuPartisipasi();
-  const { data: pemilihData,     status: pemilihStatus }     = useKpuPemilih();
+  const { items: electionItems, status: electionStatus } = useElectionData();
+  const { data: partisipasiData, status: partisipasiStatus }  = useKpuPartisipasi();
+  const { data: pemilihData,     status: pemilihStatus }      = useKpuPemilih();
 
-  const updateFilter  = (key, val) => setFilters((p) => ({ ...p, [key]: val }));
-  const updateSidebar = (key, val) => setSidebarFilters((p) => ({ ...p, [key]: val }));
+  // Find the DB row matching current filter
+  const dbRow = useMemo(() =>
+    electionItems.find(r => r.tahun === selectedTahun && r.jenisPemilu === selectedJenis) ?? null,
+    [electionItems, selectedTahun, selectedJenis]
+  );
+
+  // Find previous election year row (same jenis) for delta comparisons
+  const prevRow = useMemo(() => {
+    const prev = electionItems
+      .filter(r => r.jenisPemilu === selectedJenis && r.tahun < selectedTahun)
+      .sort((a, b) => b.tahun - a.tahun)[0];
+    return prev ?? null;
+  }, [electionItems, selectedTahun, selectedJenis]);
 
   return (
     <>
@@ -611,23 +759,38 @@ export default function DataPemilu() {
       />
 
       <StatusBanner
-        partisipasiStatus={partisipasiStatus}
+        electionStatus={electionStatus}
         pemilihStatus={pemilihStatus}
         updatedAt={pemilihData?.updatedAt}
       />
 
-      <FilterBar filters={filters} onChange={updateFilter} />
-
-      <StatCards
-        partisipasiData={partisipasiData}
-        pemilihData={pemilihData}
-        partisipasiStatus={partisipasiStatus}
-        pemilihStatus={pemilihStatus}
+      <FilterBar
+        selectedTahun={selectedTahun}
+        selectedJenis={selectedJenis}
+        onTahunChange={setSelectedTahun}
+        onJenisChange={setSelectedJenis}
       />
 
-      <DaftarPemilihSection data={pemilihData} status={pemilihStatus} />
+      <StatCards
+        dbRow={dbRow}
+        prevRow={prevRow}
+        partisipasiData={partisipasiData}
+        partisipasiStatus={partisipasiStatus}
+        pemilihData={pemilihData}
+        pemilihStatus={pemilihStatus}
+        tahun={selectedTahun}
+      />
 
-      <TrendSection sidebarFilters={sidebarFilters} onSidebarChange={updateSidebar} />
+      {/* Daftar pemilih per provinsi hanya tersedia untuk 2024 (KPU live) */}
+      {selectedTahun === 2024 && (
+        <DaftarPemilihSection data={pemilihData} status={pemilihStatus} />
+      )}
+
+      <TrendSection
+        items={electionItems}
+        selectedJenis={selectedJenis}
+        onJenisChange={setSelectedJenis}
+      />
 
       <InfografisSection />
 

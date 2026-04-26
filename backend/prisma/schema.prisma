@@ -307,6 +307,33 @@ model Subscriber {
   @@index([createdAt])
 }
 
+// ElectionData — statistik pemilu per tahun & jenis pemilu.
+// Dikelola dari dashboard admin (/dashboard/data-pemilu).
+// Data diambil dari laporan resmi KPU pasca-pemilu (tidak tersedia via API live).
+model ElectionData {
+  id              String   @id @default(cuid())
+  // Tahun pemilu: 2024, 2019, 2014, 2009, 2004, 1999
+  tahun           Int
+  // Jenis: "Presiden", "DPR", "DPD", "DPRD Provinsi", "DPRD Kab/Kota"
+  jenisPemilu     String
+  // Statistik utama
+  partisipasi     Float?   // persen (0–100), misal: 81.78
+  suaraTidakSah   Float?   // persen (0–100), misal: 2.49
+  suaraSah        Float?   // persen (0–100), misal: 97.51
+  jumlahDPT       BigInt?  // jumlah pemilih terdaftar
+  jumlahTPS       Int?     // jumlah TPS
+  jumlahKabKota   Int?     // jumlah kabupaten/kota
+  jumlahProvinsi  Int?     // jumlah provinsi
+  // Catatan tambahan (sumber data, link, dll)
+  catatan         String   @default("")
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([tahun, jenisPemilu])
+  @@index([tahun])
+}
+
 // Infografis Pemilu — gambar-gambar visualisasi/infografis yang ditampilkan
 // di halaman Data Pemilu. Dikelola dari dashboard admin.
 model Infografis {

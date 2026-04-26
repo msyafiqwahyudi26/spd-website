@@ -40,6 +40,7 @@ import ReportsManager from './pages/dashboard/ReportsManager';
 import SubscribersManager from './pages/dashboard/SubscribersManager';
 import InfografisManager from './pages/dashboard/InfografisManager';
 import DataKpuManager from './pages/dashboard/DataKpuManager';
+import DataPemiluManager from './pages/dashboard/DataPemiluManager';
 import BerandaManager from './pages/dashboard/BerandaManager';
 import TentangManager from './pages/dashboard/TentangManager';
 import ProfilePage from './pages/dashboard/ProfilePage';
@@ -113,7 +114,8 @@ export default function App() {
               <Route path="perjalanan"  element={<TimelineManager />} />
               <Route path="laporan"     element={<ReportsManager />} />
               <Route path="subscribers" element={<SubscribersManager />} />
-              <Route path="infografis"  element={<InfografisManager />} />
+              <Route path="infografis"   element={<InfografisManager />} />
+              <Route path="data-pemilu" element={<DataPemiluManager />} />
               <Route path="data-kpu"    element={<DataKpuManager />} />
             </Route>
           </Route>

@@ -47,8 +47,9 @@ const NAV_GROUPS = [
       { name: 'Perjalanan',     path: '/dashboard/perjalanan',  icon: 'calendar'  },
       { name: 'Laporan Tahunan',path: '/dashboard/laporan',     icon: 'doc'       },
       { name: 'Mitra',          path: '/dashboard/mitra',       icon: 'users'     },
-      { name: 'Infografis Pemilu', path: '/dashboard/infografis', icon: 'media'   },
-      { name: 'Data KPU Live',     path: '/dashboard/data-kpu',   icon: 'chart'   },
+      { name: 'Infografis Pemilu', path: '/dashboard/infografis',  icon: 'media'   },
+      { name: 'Statistik Pemilu',  path: '/dashboard/data-pemilu', icon: 'log'     },
+      { name: 'Data KPU Live',     path: '/dashboard/data-kpu',    icon: 'chart'   },
     ],
   },
   {

@@ -160,8 +160,9 @@ app.use('/api/footer-links',    require('./src/routes/footer-links'));
 app.use('/api/system',          require('./src/routes/system'));
 app.use('/api/annual-reports',  require('./src/routes/annual-reports'));
 app.use('/api/subscribers',  require('./src/routes/subscribers'));
-app.use('/api/infografis',   require('./src/routes/infografis'));
-app.use('/api/kpu',          require('./src/routes/kpu'));
+app.use('/api/infografis',    require('./src/routes/infografis'));
+app.use('/api/election-data', require('./src/routes/election-data'));
+app.use('/api/kpu',           require('./src/routes/kpu'));
 
 app.use('/api/*', (req, res) => {
   return fail(res, 404, `Route ${req.method} ${req.originalUrl} not found`);
