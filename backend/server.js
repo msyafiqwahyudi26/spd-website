@@ -232,7 +232,5 @@ function shutdown(signal) {
 }
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT',  () => shutdown('SIGINT'));
-it(1), 5000).unref();
-}
-process.on('SIGTERM', () => shutdown('SIGTERM'));
+shutdown('SIGTERM'));
 process.on('SIGINT',  () => shutdown('SIGINT'));

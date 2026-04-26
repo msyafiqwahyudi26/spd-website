@@ -260,19 +260,13 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Hidden Login Access */}
+      {/* Tiny admin shortcut — visually invisible, accessible only to those who know */}
       <Link
         to="/login"
-        className="absolute bottom-3 right-4 sm:bottom-3 sm:right-6 opacity-40 hover:opacity-100 transition-opacity duration-300"
-        aria-label="Admin Access"
-      >
-        <img
-          src={logoSrc}
-          alt=""
-          onError={(e) => { e.currentTarget.src = logo; }}
-          className="h-9 w-auto grayscale"
-        />
-      </Link>
+        className="absolute bottom-2 right-3 w-3 h-3 opacity-0 hover:opacity-5 transition-opacity"
+        aria-label="Login"
+        tabIndex={-1}
+      />
     </footer>
   );
 }
