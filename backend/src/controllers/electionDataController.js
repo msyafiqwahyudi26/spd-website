@@ -1,7 +1,7 @@
 const { ok, fail } = require('../lib/response');
 const { validate, v } = require('../lib/validate');
 const prisma = require('../lib/prisma');
-const { logAction } = require('../lib/logger');
+const { log } = require('../lib/logger');
 
 const parseFloat2 = (val) => {
   if (val === null || val === undefined || val === '') return null;
@@ -91,10 +91,11 @@ exports.create = async (req, res, next) => {
       },
     });
 
-    await logAction({
-      action: 'CREATE', entity: 'ElectionData', entityId: row.id,
-      userId: req.user?.id, userName: req.user?.name || '',
-      details: `${row.tahun} ${row.jenisPemilu}`,
+    await log('create_election_data', 'ElectionData', {
+      entityId: row.id,
+      userId:   req.user?.userId,
+      userName: req.user?.name || '',
+      details:  `${row.tahun} ${row.jenisPemilu}`,
     });
 
     return ok(res, toPublic(row), 201);
@@ -141,10 +142,11 @@ exports.update = async (req, res, next) => {
       },
     });
 
-    await logAction({
-      action: 'UPDATE', entity: 'ElectionData', entityId: row.id,
-      userId: req.user?.id, userName: req.user?.name || '',
-      details: `${row.tahun} ${row.jenisPemilu}`,
+    await log('update_election_data', 'ElectionData', {
+      entityId: row.id,
+      userId:   req.user?.userId,
+      userName: req.user?.name || '',
+      details:  `${row.tahun} ${row.jenisPemilu}`,
     });
 
     return ok(res, toPublic(row));
@@ -161,10 +163,11 @@ exports.remove = async (req, res, next) => {
 
     await prisma.electionData.delete({ where: { id: req.params.id } });
 
-    await logAction({
-      action: 'DELETE', entity: 'ElectionData', entityId: req.params.id,
-      userId: req.user?.id, userName: req.user?.name || '',
-      details: `${existing.tahun} ${existing.jenisPemilu}`,
+    await log('delete_election_data', 'ElectionData', {
+      entityId: req.params.id,
+      userId:   req.user?.userId,
+      userName: req.user?.name || '',
+      details:  `${existing.tahun} ${existing.jenisPemilu}`,
     });
 
     return ok(res, { deleted: true });
@@ -353,10 +356,11 @@ exports.seed = async (req, res, next) => {
       created++;
     }
 
-    await logAction({
-      action: 'CREATE', entity: 'ElectionData', entityId: 'seed',
-      userId: req.user?.id, userName: req.user?.name || '',
-      details: `Seeded ${created} rows (1955–2024), skipped ${skipped}`,
+    await log('seed_election_data', 'ElectionData', {
+      entityId: 'seed',
+      userId:   req.user?.userId,
+      userName: req.user?.name || '',
+      details:  `Seeded ${created} rows (1955–2024), skipped ${skipped}`,
     });
 
     return ok(res, { created, skipped, total: SEED.length });
