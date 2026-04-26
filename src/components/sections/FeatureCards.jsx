@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { ApproachIcon } from '../../data/approachIcons';
 import { resolveMediaUrl } from '@/lib/media';
+import { useI18n } from '@/i18n';
+import { useStaggerAnimation } from '@/hooks/useScrollAnimation';
 
 // Fallback content — shown before the admin populates approaches in the DB.
 const FALLBACK = [
@@ -43,7 +45,9 @@ function FeatureCard({ iconKey, iconUrl, title, description }) {
 }
 
 export default function FeatureCards() {
+  const { t } = useI18n();
   const [items, setItems] = useState(null);
+  const { containerRef, visible } = useStaggerAnimation(3);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,25 +60,28 @@ export default function FeatureCards() {
   const list = items === null || items.length === 0 ? FALLBACK : items;
 
   return (
-    <section className="py-16 px-4 bg-white fade-in-up">
+    <section className="py-16 px-4 bg-white overflow-hidden">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-slate-800">Pendekatan Kami</h2>
+        <div ref={containerRef} className={`text-center mb-12 ${visible ? 'animate-fade-up' : 'opacity-0'}`}>
+          <h2 className="text-3xl font-bold text-slate-800">{t('feature.title')}</h2>
           <p className="mt-4 text-slate-500 max-w-2xl mx-auto leading-relaxed">
-            Tiga pilar yang membedakan cara SPD bekerja — kolaborasi multihak,
-            data terbuka, dan ruang bagi generasi muda dalam politik.
+            {t('feature.desc')}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {list.map((item) => (
-            <FeatureCard
+          {list.map((item, i) => (
+            <div
               key={item.id}
-              iconKey={item.iconKey || 'collaboration'}
-              iconUrl={item.iconUrl || ''}
-              title={item.title}
-              description={item.description}
-            />
+              className={visible ? `animate-fade-up delay-${[100, 200, 300][i] || 100}` : 'opacity-0'}
+            >
+              <FeatureCard
+                iconKey={item.iconKey || 'collaboration'}
+                iconUrl={item.iconUrl || ''}
+                title={item.title}
+                description={item.description}
+              />
+            </div>
           ))}
         </div>
       </div>

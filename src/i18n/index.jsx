@@ -71,6 +71,80 @@ const DICT = {
     'notfound.body':   'Maaf, halaman yang Anda cari tidak tersedia atau sudah dipindahkan.',
     'notfound.home':   'Kembali ke Beranda',
     'notfound.contact': 'Hubungi Kami',
+
+    // FeatureCards
+    'feature.title': 'Pendekatan Kami',
+    'feature.desc': 'Tiga pilar yang membedakan cara SPD bekerja — kolaborasi multihak, data terbuka, dan ruang bagi generasi muda dalam politik.',
+
+    // ProgramCards
+    'program.title': 'Program dan Inisiatif',
+    'program.desc': 'Berbagai inisiatif dan program yang kami jalankan untuk memperkuat ekosistem demokrasi dan reformasi kepemiluan di Indonesia.',
+    'program.readMore': 'Selengkapnya',
+    'program.viewAll': 'Lihat Semua Program',
+    'program.empty': 'Belum ada program atau inisiatif yang dapat ditampilkan saat ini.',
+    'program.emptyTitle': 'Tidak ada program',
+
+    // PublikasiSection
+    'pub.title': 'Publikasi dan Analisis',
+    'pub.desc': 'Artikel, riset, dan analisis SPD tentang pemilu dan demokrasi di Indonesia.',
+    'pub.search': 'Cari publikasi...',
+    'pub.sortNewest': 'Terbaru',
+    'pub.sortOldest': 'Terlama',
+    'pub.read': 'Baca',
+    'pub.viewAll': 'Lihat Semua Artikel',
+    'pub.empty': 'Belum ada publikasi yang diterbitkan dengan kriteria ini.',
+    'pub.emptyTitle': 'Tidak ada publikasi',
+
+    // Common
+    'common.back': 'Kembali',
+    'common.loading': 'Memuat…',
+    'common.viewDetail': 'Lihat Detail',
+    'common.readMore': 'Selengkapnya',
+    'common.allCategories': 'Semua',
+
+    // Kontak page
+    'kontak.title': 'Hubungi Kami',
+    'kontak.subtitle': 'Ada pertanyaan, usulan kerja sama, atau ingin bergabung dengan kami? Kami siap mendengar.',
+    'kontak.name': 'Nama Lengkap',
+    'kontak.email': 'Alamat Email',
+    'kontak.subject': 'Subjek',
+    'kontak.message': 'Pesan',
+    'kontak.send': 'Kirim Pesan',
+    'kontak.sending': 'Mengirim...',
+    'kontak.success': 'Pesan berhasil dikirim! Kami akan menghubungi Anda segera.',
+    'kontak.error': 'Gagal mengirim pesan. Silakan coba lagi.',
+    'kontak.address': 'Alamat',
+    'kontak.phone': 'Telepon',
+    'kontak.office': 'Jam Kantor',
+
+    // Event
+    'event.title': 'Event dan Kegiatan',
+    'event.subtitle': 'Kegiatan terbaru SPD Indonesia',
+    'event.viewDetail': 'Lihat Detail',
+    'event.register': 'Daftar Sekarang',
+    'event.date': 'Tanggal',
+    'event.location': 'Lokasi',
+    'event.noEvents': 'Belum ada kegiatan yang dijadwalkan.',
+    'event.upcoming': 'Akan Datang',
+    'event.past': 'Sudah Lewat',
+
+    // About
+    'about.page.title': 'Tentang Kami',
+    'about.profil.title': 'Profil Lembaga',
+    'about.visi.title': 'Visi',
+    'about.misi.title': 'Misi',
+    'about.struktur.title': 'Struktur Organisasi',
+    'about.mitra.title': 'Mitra Kolaborasi',
+    'about.laporan.title': 'Laporan Tahunan',
+    'about.laporan.download': 'Unduh Laporan',
+    'about.team.title': 'Tim Kami',
+
+    // Data Pemilu
+    'data.title': 'Data Pemilu',
+    'data.subtitle': 'Data dan statistik pemilihan umum Indonesia',
+    'data.participation': 'Partisipasi Pemilih',
+    'data.infografis': 'Infografis',
+    'data.source': 'Sumber: KPU RI',
   },
 
   en: {
@@ -121,6 +195,80 @@ const DICT = {
     'notfound.body':   'The page you requested is not available or has moved.',
     'notfound.home':   'Back to Home',
     'notfound.contact': 'Contact Us',
+
+    // FeatureCards
+    'feature.title': 'Our Approach',
+    'feature.desc': 'Three pillars that define how SPD works — multi-stakeholder collaboration, open data, and space for young people in politics.',
+
+    // ProgramCards
+    'program.title': 'Programs & Initiatives',
+    'program.desc': 'The initiatives and programs we run to strengthen the democracy ecosystem and electoral reform in Indonesia.',
+    'program.readMore': 'Learn more',
+    'program.viewAll': 'View All Programs',
+    'program.empty': 'No programs or initiatives to display at this time.',
+    'program.emptyTitle': 'No programs',
+
+    // PublikasiSection
+    'pub.title': 'Publications & Analysis',
+    'pub.desc': 'Articles, research, and analysis from SPD on elections and democracy in Indonesia.',
+    'pub.search': 'Search publications...',
+    'pub.sortNewest': 'Newest',
+    'pub.sortOldest': 'Oldest',
+    'pub.read': 'Read',
+    'pub.viewAll': 'View All Articles',
+    'pub.empty': 'No publications matching this criteria.',
+    'pub.emptyTitle': 'No publications',
+
+    // Common
+    'common.back': 'Back',
+    'common.loading': 'Loading…',
+    'common.viewDetail': 'View Details',
+    'common.readMore': 'Read more',
+    'common.allCategories': 'All',
+
+    // Kontak page
+    'kontak.title': 'Contact Us',
+    'kontak.subtitle': 'Have a question, a collaboration idea, or want to join us? We\'d love to hear from you.',
+    'kontak.name': 'Full Name',
+    'kontak.email': 'Email Address',
+    'kontak.subject': 'Subject',
+    'kontak.message': 'Message',
+    'kontak.send': 'Send Message',
+    'kontak.sending': 'Sending...',
+    'kontak.success': 'Message sent successfully! We will get back to you shortly.',
+    'kontak.error': 'Failed to send message. Please try again.',
+    'kontak.address': 'Address',
+    'kontak.phone': 'Phone',
+    'kontak.office': 'Office Hours',
+
+    // Event
+    'event.title': 'Events & Activities',
+    'event.subtitle': 'Latest activities from SPD Indonesia',
+    'event.viewDetail': 'View Details',
+    'event.register': 'Register Now',
+    'event.date': 'Date',
+    'event.location': 'Location',
+    'event.noEvents': 'No events scheduled yet.',
+    'event.upcoming': 'Upcoming',
+    'event.past': 'Past',
+
+    // About
+    'about.page.title': 'About Us',
+    'about.profil.title': 'Institutional Profile',
+    'about.visi.title': 'Vision',
+    'about.misi.title': 'Mission',
+    'about.struktur.title': 'Organizational Structure',
+    'about.mitra.title': 'Collaboration Partners',
+    'about.laporan.title': 'Annual Reports',
+    'about.laporan.download': 'Download Report',
+    'about.team.title': 'Our Team',
+
+    // Data Pemilu
+    'data.title': 'Election Data',
+    'data.subtitle': 'Indonesian general election data and statistics',
+    'data.participation': 'Voter Participation',
+    'data.infografis': 'Infographics',
+    'data.source': 'Source: KPU RI',
   },
 };
 

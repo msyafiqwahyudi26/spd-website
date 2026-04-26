@@ -7,6 +7,8 @@ import { INITIAL_PUBLIKASI } from '../../data/publikasi';
 import EmptyState from '../ui/EmptyState';
 import { SkeletonCard } from '../ui/Skeleton';
 import { getCategoriesSync } from '@/hooks/useSettings';
+import { resolveMediaUrl } from '@/lib/media';
+import { useI18n } from '@/i18n';
 
 const parseDate = (dateStr) => {
   if (!dateStr) return 0;
@@ -36,32 +38,48 @@ function getDetailPath(item) {
 }
 
 function PublikasiCard({ item, isDragging }) {
-  const { category, categoryColor, title, description, date } = item;
+  const { category, categoryColor, title, description, date, image } = item;
+  const imgSrc = image ? resolveMediaUrl(image) : null;
 
   return (
-    <article className="group h-full bg-white border border-slate-100 rounded-xl p-6 flex flex-col transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:border-orange-100">
-      <span className={`text-xs font-bold tracking-widest uppercase mb-3 ${categoryColor}`}>
-        {category}
-      </span>
-
-      <h3 className="font-bold text-slate-800 text-base leading-snug mb-3 shrink-0">
-        {title}
-      </h3>
-
-      <p className="text-sm text-slate-500 leading-relaxed mb-5 flex-1 line-clamp-3">
-        {description}
-      </p>
-
-      <div className="flex items-center justify-between pt-4 border-t border-slate-100 shrink-0">
-        <span className="text-xs text-slate-400">{date}</span>
-        <Link
-          to={getDetailPath(item)}
-          onClick={(e) => isDragging && e.preventDefault()}
-          className="text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors duration-200 inline-flex items-center gap-1"
-        >
-          Baca
-          <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
-        </Link>
+    <article className="group h-full bg-white border border-slate-100 rounded-xl overflow-hidden flex flex-col transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:border-orange-100">
+      {imgSrc ? (
+        <div className="relative h-44 overflow-hidden bg-slate-100 shrink-0">
+          <img
+            src={imgSrc}
+            alt={title}
+            loading="lazy"
+            className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+          />
+        </div>
+      ) : (
+        <div className="h-44 bg-gradient-to-br from-orange-50 to-orange-100 shrink-0 flex items-center justify-center">
+          <svg className="w-12 h-12 text-orange-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+      )}
+      <div className="p-6 flex flex-col flex-1">
+        <span className={`text-xs font-bold tracking-widest uppercase mb-3 ${categoryColor}`}>
+          {category}
+        </span>
+        <h3 className="font-bold text-slate-800 text-base leading-snug mb-3 shrink-0">
+          {title}
+        </h3>
+        <p className="text-sm text-slate-500 leading-relaxed mb-5 flex-1 line-clamp-3">
+          {description}
+        </p>
+        <div className="flex items-center justify-between pt-4 border-t border-slate-100 shrink-0">
+          <span className="text-xs text-slate-400">{date}</span>
+          <Link
+            to={getDetailPath(item)}
+            onClick={(e) => isDragging && e.preventDefault()}
+            className="text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors duration-200 inline-flex items-center gap-1"
+          >
+            Baca
+            <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+          </Link>
+        </div>
       </div>
     </article>
   );
@@ -89,6 +107,7 @@ function ArrowButton({ direction, onClick, disabled }) {
 }
 
 export default function PublikasiSection({ isPage = false, contentTypeFilter = null }) {
+  const { t } = useI18n();
   const trackRef = useRef(null);
   const drag = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false });
   const [grabbing, setGrabbing] = useState(false);
@@ -185,13 +204,13 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
         
         {/* Header and Controls */}
         <div className="flex flex-col gap-6 mb-10">
-          
+
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
             <div>
-              {!isPage && <h2 className="text-3xl font-bold text-slate-800">Publikasi dan Analisis</h2>}
+              {!isPage && <h2 className="text-3xl font-bold text-slate-800">{t('pub.title')}</h2>}
               {!isPage && (
                 <p className="mt-3 text-slate-500 max-w-xl leading-relaxed">
-                  Artikel, riset, dan analisis SPD tentang pemilu dan demokrasi di Indonesia.
+                  {t('pub.desc')}
                 </p>
               )}
             </div>
@@ -212,7 +231,7 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
               </svg>
               <input
                 type="text"
-                placeholder="Cari publikasi..."
+                placeholder={t('pub.search')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-sm transition-colors"
@@ -242,8 +261,8 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
                 onChange={(e) => setSortOrder(e.target.value)}
                 className="w-full appearance-none pl-4 pr-9 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-sm bg-white cursor-pointer transition-colors"
               >
-                <option value="newest">Terbaru</option>
-                <option value="oldest">Terlama</option>
+                <option value="newest">{t('pub.sortNewest')}</option>
+                <option value="oldest">{t('pub.sortOldest')}</option>
               </select>
               <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -259,9 +278,9 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
           {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
         </div>
       ) : filteredAndSorted.length === 0 ? (
-        <EmptyState 
-          title="Tidak ada publikasi" 
-          message="Belum ada publikasi yang diterbitkan dengan kriteria ini." 
+        <EmptyState
+          title={t('pub.emptyTitle')}
+          message={t('pub.empty')}
           actionText={searchQuery || selectedCategory !== 'Semua' ? "Hapus Filter" : null}
           onAction={() => {
             setSearchQuery('');
@@ -305,7 +324,7 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
       {!isPage && (
         <div className="max-w-6xl mx-auto px-4 mt-10 flex justify-center">
           <Button href="/publikasi" variant="primary">
-            Lihat Semua Artikel
+            {t('pub.viewAll')}
           </Button>
         </div>
       )}

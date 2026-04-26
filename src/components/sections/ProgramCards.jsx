@@ -4,6 +4,8 @@ import { api } from '@/lib/api';
 import EmptyState from '../ui/EmptyState';
 import { SkeletonCard } from '../ui/Skeleton';
 import { resolveMedia } from '@/config/media';
+import { useI18n } from '@/i18n';
+import { useStaggerAnimation } from '@/hooks/useScrollAnimation';
 
 const DEFAULT_ICON = (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" fill="none" className="w-14 h-14">
@@ -15,6 +17,7 @@ const DEFAULT_ICON = (
 );
 
 function ProgramCard({ program }) {
+  const { t } = useI18n();
   // Programs are long-term initiatives. An admin-provided `link` overrides
   // the default /program/:slug route when the program lives elsewhere (e.g. an
   // external campaign page or a dedicated publication).
@@ -56,7 +59,7 @@ function ProgramCard({ program }) {
         to={href}
         className="text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors duration-200 inline-flex items-center gap-1 self-start"
       >
-        Selengkapnya
+        {t('program.readMore')}
         <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
       </Link>
     </article>
@@ -73,8 +76,10 @@ function ProgramCard({ program }) {
  *               /program page already has its own hero, so it sets false.
  */
 export default function ProgramCards({ limit = null, showIntro = true }) {
+  const { t } = useI18n();
   const [programs, setPrograms] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { containerRef, visible: animVisible } = useStaggerAnimation(3);
 
   useEffect(() => {
     // Programs have their own endpoint now (separate from dated events).
@@ -97,14 +102,13 @@ export default function ProgramCards({ limit = null, showIntro = true }) {
   const visible = typeof limit === 'number' ? programs.slice(0, limit) : programs;
 
   return (
-    <section className="py-16 px-4 bg-slate-50 fade-in-up">
+    <section className="py-16 px-4 bg-slate-50 overflow-hidden">
       <div className="max-w-6xl mx-auto">
         {showIntro && (
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-slate-800">Program dan Inisiatif</h2>
+          <div ref={containerRef} className={`text-center mb-12 ${animVisible ? 'animate-fade-up' : 'opacity-0'}`}>
+            <h2 className="text-3xl font-bold text-slate-800">{t('program.title')}</h2>
             <p className="mt-4 text-slate-500 max-w-2xl mx-auto leading-relaxed">
-              Berbagai inisiatif dan program yang kami jalankan untuk memperkuat ekosistem
-              demokrasi dan reformasi kepemiluan di Indonesia.
+              {t('program.desc')}
             </p>
           </div>
         )}
@@ -115,13 +119,18 @@ export default function ProgramCards({ limit = null, showIntro = true }) {
           </div>
         ) : visible.length === 0 ? (
           <EmptyState
-            title="Tidak ada program"
-            message="Belum ada program atau inisiatif yang dapat ditampilkan saat ini."
+            title={t('program.emptyTitle')}
+            message={t('program.empty')}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {visible.map((program) => (
-              <ProgramCard key={program.id} program={program} />
+            {visible.map((program, i) => (
+              <div
+                key={program.id}
+                className={animVisible ? `animate-fade-up delay-${Math.min(i * 100 + 100, 500)}` : 'opacity-0'}
+              >
+                <ProgramCard program={program} />
+              </div>
             ))}
           </div>
         )}

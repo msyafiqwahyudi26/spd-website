@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useCountUp, parseNumericPrefix } from '@/hooks/useCountUp';
+import { useStaggerAnimation } from '@/hooks/useScrollAnimation';
 
 function AnimatedValue({ rawValue }) {
   // "100+" → animate 100, keep the suffix static.
@@ -21,6 +22,7 @@ function AnimatedValue({ rawValue }) {
  */
 export default function StatsBanner({ fallback = [] }) {
   const [stats, setStats] = useState(null);
+  const { containerRef, visible } = useStaggerAnimation(5);
 
   useEffect(() => {
     let cancelled = false;
@@ -37,10 +39,13 @@ export default function StatsBanner({ fallback = [] }) {
   if (!list || list.length === 0) return null;
 
   return (
-    <section className="bg-orange-500 py-14 px-4">
-      <div className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
-        {list.map((s) => (
-          <div key={s.id} className="text-center">
+    <section className="bg-orange-500 py-14 px-4 overflow-hidden">
+      <div ref={containerRef} className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
+        {list.map((s, i) => (
+          <div
+            key={s.id}
+            className={visible ? `text-center animate-fade-up delay-${Math.min(i * 100 + 100, 500)}` : 'text-center opacity-0'}
+          >
             <p className="text-3xl font-extrabold text-white mb-1">
               <AnimatedValue rawValue={s.value} />
             </p>
