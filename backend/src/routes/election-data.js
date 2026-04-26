@@ -1,6 +1,6 @@
-const router  = require('express').Router();
-const ctrl    = require('../controllers/electionDataController');
-const { requireAuth } = require('../middlewares/auth');
+const router      = require('express').Router();
+const ctrl        = require('../controllers/electionDataController');
+const requireAuth = require('../middlewares/auth');
 const requireRole = require('../middlewares/requireRole');
 
 const canAdmin = requireRole('admin');
