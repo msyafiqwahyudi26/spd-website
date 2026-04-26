@@ -9,6 +9,7 @@ const canAdmin = requireRole('admin');
 router.get('/ppwp',         ctrl.ppwp);
 router.get('/dpr',          ctrl.dpr);
 router.get('/partisipasi',  ctrl.partisipasi);
+router.get('/pemilih',      ctrl.pemilih);   // satupetadata: DP4→DPT per 38 provinsi
 router.get('/status',       ctrl.status);
 
 // Admin-only cache management

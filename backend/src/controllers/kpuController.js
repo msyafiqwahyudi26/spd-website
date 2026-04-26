@@ -10,6 +10,7 @@
  */
 
 const https = require('https');
+const http  = require('http');
 const { ok, fail } = require('../lib/response');
 
 /* ── In-memory cache ───────────────────────────────────────────────────── */
@@ -26,15 +27,23 @@ function setCached(key, data, ttlMs = 60 * 60 * 1000) {
   cache.set(key, { data, expiresAt: Date.now() + ttlMs });
 }
 
-/* ── Generic fetch helper ──────────────────────────────────────────────── */
-function fetchJson(url, timeoutMs = 10000) {
+/* ── Generic fetch helpers ─────────────────────────────────────────────── */
+function _fetchJson(lib, url, timeoutMs = 15000) {
   return new Promise((resolve, reject) => {
-    const req = https.get(url, {
+    const req = lib.get(url, {
       headers: {
         'Accept': 'application/json',
         'User-Agent': 'SPDIndonesia-DataProxy/1.0',
       },
     }, (res) => {
+      // Follow one level of redirect
+      if (res.statusCode === 301 || res.statusCode === 302) {
+        res.resume();
+        const loc = res.headers.location;
+        if (!loc) return reject(new Error(`Redirect without Location from ${url}`));
+        const redirectLib = loc.startsWith('https') ? https : http;
+        return _fetchJson(redirectLib, loc, timeoutMs).then(resolve).catch(reject);
+      }
       if (res.statusCode !== 200) {
         res.resume();
         return reject(new Error(`HTTP ${res.statusCode} from ${url}`));
@@ -53,6 +62,16 @@ function fetchJson(url, timeoutMs = 10000) {
     });
     req.on('error', reject);
   });
+}
+
+// For HTTPS endpoints (Sirekap)
+function fetchJson(url, timeoutMs = 15000) {
+  return _fetchJson(https, url, timeoutMs);
+}
+
+// For HTTP endpoints (satupetadata.kpu.go.id)
+function fetchJsonHttp(url, timeoutMs = 15000) {
+  return _fetchJson(http, url, timeoutMs);
 }
 
 /* ── Endpoint definitions ──────────────────────────────────────────────── */
@@ -183,4 +202,115 @@ exports.clearCache = (req, res) => {
   const count = cache.size;
   cache.clear();
   return ok(res, { cleared: count });
+};
+
+/* ── Satu Peta Data KPU (satupetadata.kpu.go.id) ──────────────────────── */
+
+// Base URL for satupetadata GeoJSON (HTTP, not HTTPS)
+const SATUPETA_BASE = 'http://satupetadata.kpu.go.id/assets/gis//json/geojsonRIDP4.php';
+
+// Data types available from satupetadata
+const PEMILIH_TYPES = [
+  { key: 'dp4',   label: 'DP4',   desc: 'Daftar Penduduk Potensial Pemilih Pemilu' },
+  { key: 'dps',   label: 'DPS',   desc: 'Daftar Pemilih Sementara' },
+  { key: 'dpshp', label: 'DPSHP', desc: 'DPS Hasil Perbaikan' },
+  { key: 'dpt',   label: 'DPT',   desc: 'Daftar Pemilih Tetap' },
+  { key: 'dplk',  label: 'DPLK',  desc: 'Daftar Pemilih Lokasi Khusus' },
+];
+
+/**
+ * Shape raw GeoJSON from satupetadata into a clean per-province array.
+ * Strips polygon geometry (very large) and only keeps the properties.
+ */
+function shapeGeoJson(raw, typeKey, typeLabel) {
+  if (!raw || !Array.isArray(raw.features)) return [];
+  return raw.features
+    .map(f => ({
+      kdProv:   f.properties?.KD_PROV   ?? '',
+      provinsi: f.properties?.PROVINSI  ?? '',
+      jumlah:   f.properties?.JML       ?? 0,
+    }))
+    .sort((a, b) => a.provinsi.localeCompare(b.provinsi));
+}
+
+/**
+ * GET /api/kpu/pemilih
+ *
+ * Returns aggregated data pemilih (DP4 → DPT) from satupetadata.kpu.go.id
+ * for all 38 provinces. Cached for 24 hours — this is historical Pemilu 2024
+ * data that doesn't change.
+ *
+ * Response shape:
+ * {
+ *   updatedAt: ISO string,
+ *   nasional: { dp4, dps, dpshp, dpt, dplk },   // national totals
+ *   provinsi: [                                    // per-province breakdown
+ *     { kdProv, provinsi, dp4, dps, dpshp, dpt, dplk }
+ *   ],
+ *   meta: [{ key, label, desc, total }]            // dataset metadata
+ * }
+ */
+exports.pemilih = async (req, res, next) => {
+  try {
+    const cacheKey = 'kpu:pemilih';
+    let data = getCached(cacheKey);
+
+    if (!data) {
+      // Fetch all 5 types in parallel from satupetadata
+      const fetches = await Promise.allSettled(
+        PEMILIH_TYPES.map(t =>
+          fetchJsonHttp(`${SATUPETA_BASE}?x=${t.key}`)
+            .then(raw => ({ key: t.key, rows: shapeGeoJson(raw, t.key, t.label) }))
+        )
+      );
+
+      // Build province map — keyed by KD_PROV
+      const provMap = {};
+      const nasional = {};
+      const meta = [];
+
+      for (let i = 0; i < PEMILIH_TYPES.length; i++) {
+        const t = PEMILIH_TYPES[i];
+        const result = fetches[i];
+
+        if (result.status === 'rejected') {
+          // Partial failure: mark this dataset as unavailable
+          meta.push({ key: t.key, label: t.label, desc: t.desc, total: null, error: true });
+          continue;
+        }
+
+        const rows = result.value.rows;
+        const total = rows.reduce((s, r) => s + r.jumlah, 0);
+        nasional[t.key] = total;
+        meta.push({ key: t.key, label: t.label, desc: t.desc, total });
+
+        for (const row of rows) {
+          if (!provMap[row.kdProv]) {
+            provMap[row.kdProv] = { kdProv: row.kdProv, provinsi: row.provinsi };
+          }
+          provMap[row.kdProv][t.key] = row.jumlah;
+        }
+      }
+
+      const provinsi = Object.values(provMap)
+        .sort((a, b) => a.provinsi.localeCompare(b.provinsi));
+
+      data = {
+        source: 'satupetadata.kpu.go.id',
+        pemilu: 'Pemilu 2024',
+        updatedAt: new Date().toISOString(),
+        nasional,
+        provinsi,
+        meta,
+      };
+
+      // Cache 24 hours — historical data, changes rarely if ever
+      setCached(cacheKey, data, 24 * 60 * 60 * 1000);
+    }
+
+    return ok(res, data);
+  } catch (err) {
+    console.warn('[KPU proxy] pemilih fetch failed:', err.message);
+    return fail(res, 502, 'Data pemilih KPU sementara tidak tersedia');
+  }
 };

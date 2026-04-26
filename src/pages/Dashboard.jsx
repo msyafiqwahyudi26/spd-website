@@ -48,6 +48,7 @@ const NAV_GROUPS = [
       { name: 'Laporan Tahunan',path: '/dashboard/laporan',     icon: 'doc'       },
       { name: 'Mitra',          path: '/dashboard/mitra',       icon: 'users'     },
       { name: 'Infografis Pemilu', path: '/dashboard/infografis', icon: 'media'   },
+      { name: 'Data KPU Live',     path: '/dashboard/data-kpu',   icon: 'chart'   },
     ],
   },
   {
