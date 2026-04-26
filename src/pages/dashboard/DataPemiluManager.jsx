@@ -1,27 +1,7 @@
-/**
- * DataPemiluManager.jsx
- * ─────────────────────
- * Dashboard admin: input & kelola statistik pemilu per tahun & jenis.
- * Data ini ditampilkan di halaman publik /data-pemilu (stat cards + trend chart).
- *
- * Endpoint: GET/POST/PUT/DELETE /api/election-data
- */
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { api } from '@/lib/api';
 
-/* ── Helpers ──────────────────────────────────────────────────────────────── */
-const fmt    = (n) => n == null ? '—' : Number(n).toLocaleString('id-ID');
-const fmtPct = (n) => n == null ? '—' : `${Number(n).toFixed(2)}%`;
-
-const JENIS_OPTIONS = [
-  'Presiden',
-  'DPR',
-  'DPD',
-  'DPRD Provinsi',
-  'DPRD Kab/Kota',
-];
-
+const JENIS_OPTIONS = ['Presiden', 'DPR', 'DPD', 'DPRD Provinsi', 'DPRD Kab/Kota'];
 const TAHUN_OPTIONS = [2024, 2019, 2014, 2009, 2004, 1999];
 
 const EMPTY_FORM = {
@@ -38,257 +18,108 @@ const EMPTY_FORM = {
   sortOrder: '0',
 };
 
-/* ── Toast ────────────────────────────────────────────────────────────────── */
 function Toast({ toast, onClose }) {
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(onClose, 3500);
+    return () => clearTimeout(t);
+  }, [toast, onClose]);
   if (!toast) return null;
   return (
-    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium
-      ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}>
-      {toast.type === 'success' ? '✓' : '✕'} {toast.message}
-      <button onClick={onClose} className="ml-2 opacity-70 hover:opacity-100">×</button>
+    <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium transition-all ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+      {toast.message}
     </div>
   );
 }
 
-/* ── Form ─────────────────────────────────────────────────────────────────── */
-function ElectionForm({ initial, onSave, onCancel, saving }) {
-  const [form, setForm] = useState(initial || EMPTY_FORM);
-
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave(form);
-  };
-
-  const fieldClass = "w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white";
-  const labelClass = "block text-xs font-semibold text-slate-600 mb-1";
-
+function ConfirmDialog({ message, onConfirm, onCancel }) {
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Identitas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className={labelClass}>Tahun Pemilu *</label>
-          <select value={form.tahun} onChange={e => set('tahun', e.target.value)} className={fieldClass} required>
-            {TAHUN_OPTIONS.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className={labelClass}>Jenis Pemilu *</label>
-          <select value={form.jenisPemilu} onChange={e => set('jenisPemilu', e.target.value)} className={fieldClass} required>
-            {JENIS_OPTIONS.map(j => <option key={j} value={j}>{j}</option>)}
-          </select>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full mx-4">
+        <p className="text-gray-800 font-medium mb-4">{message}</p>
+        <div className="flex gap-3 justify-end">
+          <button onClick={onCancel} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Batal</button>
+          <button onClick={onConfirm} className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">Hapus</button>
         </div>
       </div>
-
-      {/* Persentase */}
-      <div>
-        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Persentase (%)</p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className={labelClass}>Tingkat Partisipasi</label>
-            <input
-              type="number" step="0.01" min="0" max="100"
-              placeholder="81.78"
-              value={form.partisipasi} onChange={e => set('partisipasi', e.target.value)}
-              className={fieldClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>Suara Tidak Sah</label>
-            <input
-              type="number" step="0.01" min="0" max="100"
-              placeholder="2.49"
-              value={form.suaraTidakSah} onChange={e => set('suaraTidakSah', e.target.value)}
-              className={fieldClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>Suara Sah</label>
-            <input
-              type="number" step="0.01" min="0" max="100"
-              placeholder="97.51"
-              value={form.suaraSah} onChange={e => set('suaraSah', e.target.value)}
-              className={fieldClass}
-            />
-            <p className="text-[10px] text-slate-400 mt-0.5">Isi manual atau biarkan kosong</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Jumlah */}
-      <div>
-        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Jumlah</p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div>
-            <label className={labelClass}>DPT (Pemilih)</label>
-            <input
-              type="number" min="0"
-              placeholder="204807222"
-              value={form.jumlahDPT} onChange={e => set('jumlahDPT', e.target.value)}
-              className={fieldClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>Jumlah TPS</label>
-            <input
-              type="number" min="0"
-              placeholder="823220"
-              value={form.jumlahTPS} onChange={e => set('jumlahTPS', e.target.value)}
-              className={fieldClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>Kabupaten/Kota</label>
-            <input
-              type="number" min="0"
-              placeholder="514"
-              value={form.jumlahKabKota} onChange={e => set('jumlahKabKota', e.target.value)}
-              className={fieldClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>Provinsi</label>
-            <input
-              type="number" min="0"
-              placeholder="38"
-              value={form.jumlahProvinsi} onChange={e => set('jumlahProvinsi', e.target.value)}
-              className={fieldClass}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Catatan & sortOrder */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="sm:col-span-2">
-          <label className={labelClass}>Catatan / Sumber Data</label>
-          <input
-            type="text"
-            placeholder="Sumber: KPU RI, final"
-            value={form.catatan} onChange={e => set('catatan', e.target.value)}
-            className={fieldClass}
-          />
-        </div>
-        <div>
-          <label className={labelClass}>Sort Order</label>
-          <input
-            type="number" min="0"
-            value={form.sortOrder} onChange={e => set('sortOrder', e.target.value)}
-            className={fieldClass}
-          />
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-3 pt-2">
-        <button
-          type="submit" disabled={saving}
-          className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg text-sm disabled:opacity-50 transition-colors"
-        >
-          {saving ? 'Menyimpan...' : 'Simpan'}
-        </button>
-        <button
-          type="button" onClick={onCancel}
-          className="px-5 py-2 border border-slate-300 text-slate-600 rounded-lg text-sm hover:bg-slate-50 transition-colors"
-        >
-          Batal
-        </button>
-      </div>
-    </form>
+    </div>
   );
 }
 
-/* ── Row ──────────────────────────────────────────────────────────────────── */
-function DataRow({ row, onEdit, onDelete }) {
-  return (
-    <tr className="border-b border-slate-100 hover:bg-orange-50/30 transition-colors">
-      <td className="px-4 py-3 font-bold text-slate-800 tabular-nums">{row.tahun}</td>
-      <td className="px-4 py-3 text-slate-700">{row.jenisPemilu}</td>
-      <td className="px-4 py-3 text-right tabular-nums">
-        {row.partisipasi != null
-          ? <span className={`font-semibold ${row.partisipasi >= 80 ? 'text-emerald-600' : row.partisipasi >= 70 ? 'text-orange-500' : 'text-red-500'}`}>
-              {fmtPct(row.partisipasi)}
-            </span>
-          : <span className="text-slate-300">—</span>
-        }
-      </td>
-      <td className="px-4 py-3 text-right tabular-nums text-slate-500">{fmtPct(row.suaraTidakSah)}</td>
-      <td className="px-4 py-3 text-right tabular-nums text-slate-600">{fmt(row.jumlahDPT)}</td>
-      <td className="px-4 py-3 text-right tabular-nums text-slate-500">{fmt(row.jumlahTPS)}</td>
-      <td className="px-4 py-3 text-right tabular-nums text-slate-500">{row.jumlahKabKota ?? '—'}</td>
-      <td className="px-4 py-3">
-        <p className="text-xs text-slate-400 truncate max-w-32">{row.catatan || '—'}</p>
-      </td>
-      <td className="px-4 py-3">
-        <div className="flex gap-2">
-          <button
-            onClick={() => onEdit(row)}
-            className="text-xs px-2.5 py-1 rounded border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors"
-          >Edit</button>
-          <button
-            onClick={() => onDelete(row)}
-            className="text-xs px-2.5 py-1 rounded border border-red-200 text-red-500 hover:bg-red-50 transition-colors"
-          >Hapus</button>
-        </div>
-      </td>
-    </tr>
-  );
-}
-
-/* ── Main ─────────────────────────────────────────────────────────────────── */
 export default function DataPemiluManager() {
-  const [items,   setItems]   = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(null);   // null = list | 'new' | {row}
-  const [saving,  setSaving]  = useState(false);
-  const [seeding, setSeeding] = useState(false);
-  const [toast,   setToast]   = useState(null);
-  const [filter,  setFilter]  = useState('');
+  const [items, setItems]         = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [editing, setEditing]     = useState(null); // null=list, {}=form
+  const [form, setForm]           = useState(EMPTY_FORM);
+  const [saving, setSaving]       = useState(false);
+  const [seeding, setSeeding]     = useState(false);
+  const [toast, setToast]         = useState(null);
+  const [confirmId, setConfirmId] = useState(null);
+  const [filterTahun, setFilterTahun] = useState('all');
 
-  const showToast = (type, message) => {
-    setToast({ type, message });
-    setTimeout(() => setToast(null), 4000);
-  };
+  const showToast = (type, message) => setToast({ type, message });
 
-  const load = async () => {
+  const load = () => {
     setLoading(true);
-    try {
-      const data = await api('/election-data');
-      setItems(data);
-    } catch {
-      showToast('error', 'Gagal memuat data');
-    } finally {
-      setLoading(false);
-    }
+    api('/election-data')
+      .then(setItems)
+      .catch(() => showToast('error', 'Gagal memuat data'))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => { load(); }, []);
 
-  const handleSave = async (form) => {
+  const filtered = useMemo(() => {
+    if (filterTahun === 'all') return items;
+    return items.filter(i => String(i.tahun) === filterTahun);
+  }, [items, filterTahun]);
+
+  const openNew = () => {
+    setForm({ ...EMPTY_FORM });
+    setEditing({});
+  };
+
+  const openEdit = (item) => {
+    setForm({
+      tahun:         String(item.tahun),
+      jenisPemilu:   item.jenisPemilu,
+      partisipasi:   item.partisipasi ?? '',
+      suaraTidakSah: item.suaraTidakSah ?? '',
+      suaraSah:      item.suaraSah ?? '',
+      jumlahDPT:     item.jumlahDPT ?? '',
+      jumlahTPS:     item.jumlahTPS ?? '',
+      jumlahKabKota: item.jumlahKabKota ?? '',
+      jumlahProvinsi:item.jumlahProvinsi ?? '',
+      catatan:       item.catatan ?? '',
+      sortOrder:     String(item.sortOrder ?? 0),
+    });
+    setEditing(item);
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
     setSaving(true);
     try {
       const payload = {
-        tahun:          form.tahun,
+        tahun:          String(form.tahun),
         jenisPemilu:    form.jenisPemilu,
-        partisipasi:    form.partisipasi  || null,
-        suaraTidakSah:  form.suaraTidakSah || null,
-        suaraSah:       form.suaraSah     || null,
-        jumlahDPT:      form.jumlahDPT    || null,
-        jumlahTPS:      form.jumlahTPS    || null,
-        jumlahKabKota:  form.jumlahKabKota || null,
-        jumlahProvinsi: form.jumlahProvinsi || null,
+        partisipasi:    form.partisipasi !== '' ? String(form.partisipasi) : '',
+        suaraTidakSah:  form.suaraTidakSah !== '' ? String(form.suaraTidakSah) : '',
+        suaraSah:       form.suaraSah !== '' ? String(form.suaraSah) : '',
+        jumlahDPT:      form.jumlahDPT !== '' ? String(form.jumlahDPT) : '',
+        jumlahTPS:      form.jumlahTPS !== '' ? String(form.jumlahTPS) : '',
+        jumlahKabKota:  form.jumlahKabKota !== '' ? String(form.jumlahKabKota) : '',
+        jumlahProvinsi: form.jumlahProvinsi !== '' ? String(form.jumlahProvinsi) : '',
         catatan:        form.catatan,
-        sortOrder:      form.sortOrder,
+        sortOrder:      String(form.sortOrder || 0),
       };
 
-      if (editing?.id) {
+      if (editing.id) {
         await api(`/election-data/${editing.id}`, { method: 'PUT', body: JSON.stringify(payload) });
-        showToast('success', 'Data diperbarui');
+        showToast('success', 'Data berhasil diperbarui');
       } else {
         await api('/election-data', { method: 'POST', body: JSON.stringify(payload) });
-        showToast('success', 'Data ditambahkan');
+        showToast('success', 'Data berhasil ditambahkan');
       }
       setEditing(null);
       load();
@@ -299,23 +130,23 @@ export default function DataPemiluManager() {
     }
   };
 
-  const handleDelete = async (row) => {
-    if (!confirm(`Hapus data ${row.tahun} – ${row.jenisPemilu}?`)) return;
+  const handleDelete = async (id) => {
     try {
-      await api(`/election-data/${row.id}`, { method: 'DELETE' });
-      showToast('success', 'Data dihapus');
+      await api(`/election-data/${id}`, { method: 'DELETE' });
+      showToast('success', 'Data berhasil dihapus');
       load();
     } catch (err) {
       showToast('error', err.message || 'Gagal menghapus');
+    } finally {
+      setConfirmId(null);
     }
   };
 
   const handleSeed = async () => {
-    if (!confirm('Seed data pemilu historis (1999–2024)? Data yang sudah ada tidak akan ditimpa.')) return;
     setSeeding(true);
     try {
       const result = await api('/election-data/seed', { method: 'POST' });
-      showToast('success', `Seed selesai: ${result.created} ditambah, ${result.skipped} dilewati`);
+      showToast('success', `Seed selesai: ${result.created} ditambahkan, ${result.skipped} sudah ada`);
       load();
     } catch (err) {
       showToast('error', err.message || 'Gagal seed data');
@@ -324,152 +155,189 @@ export default function DataPemiluManager() {
     }
   };
 
-  const toFormValues = (row) => ({
-    tahun:         String(row.tahun),
-    jenisPemilu:   row.jenisPemilu,
-    partisipasi:   row.partisipasi    != null ? String(row.partisipasi)    : '',
-    suaraTidakSah: row.suaraTidakSah  != null ? String(row.suaraTidakSah)  : '',
-    suaraSah:      row.suaraSah       != null ? String(row.suaraSah)       : '',
-    jumlahDPT:     row.jumlahDPT      != null ? String(row.jumlahDPT)      : '',
-    jumlahTPS:     row.jumlahTPS      != null ? String(row.jumlahTPS)      : '',
-    jumlahKabKota: row.jumlahKabKota  != null ? String(row.jumlahKabKota)  : '',
-    jumlahProvinsi:row.jumlahProvinsi != null ? String(row.jumlahProvinsi) : '',
-    catatan:       row.catatan || '',
-    sortOrder:     String(row.sortOrder ?? 0),
-  });
-
-  const filtered = items.filter(r =>
-    !filter || String(r.tahun) === filter
+  const field = (key, label, type = 'text', hint = '') => (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label}{hint && <span className="text-gray-400 font-normal ml-1 text-xs">{hint}</span>}</label>
+      <input
+        type={type}
+        step={type === 'number' ? 'any' : undefined}
+        value={form[key]}
+        onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+      />
+    </div>
   );
 
-  const years = [...new Set(items.map(r => r.tahun))].sort((a, b) => b - a);
-
-  /* ── Form view ──────────────────────────────────────────────────────────── */
   if (editing !== null) {
-    const isNew = editing === 'new';
     return (
-      <div className="space-y-6 max-w-3xl">
-        <div className="flex items-center gap-3">
-          <button onClick={() => setEditing(null)} className="text-slate-400 hover:text-slate-700">←</button>
-          <h1 className="text-xl font-bold text-slate-800">
-            {isNew ? 'Tambah Data Pemilu' : `Edit: ${editing.tahun} – ${editing.jenisPemilu}`}
-          </h1>
-        </div>
-
-        <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-xs text-amber-700">
-          <strong>Catatan:</strong> Data ini bersumber dari laporan resmi KPU pasca-pemilu.
-          Pastikan angka sudah diverifikasi sebelum menyimpan — data ini ditampilkan langsung di halaman publik.
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 p-6">
-          <ElectionForm
-            initial={isNew ? EMPTY_FORM : toFormValues(editing)}
-            onSave={handleSave}
-            onCancel={() => setEditing(null)}
-            saving={saving}
-          />
-        </div>
+      <div className="max-w-2xl mx-auto">
         <Toast toast={toast} onClose={() => setToast(null)} />
+        <div className="flex items-center gap-3 mb-6">
+          <button onClick={() => setEditing(null)} className="text-gray-500 hover:text-gray-700">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <h2 className="text-xl font-bold text-gray-900">{editing.id ? 'Edit Data Pemilu' : 'Tambah Data Pemilu'}</h2>
+        </div>
+
+        <form onSubmit={handleSave} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tahun</label>
+              <select value={form.tahun} onChange={e => setForm(f => ({ ...f, tahun: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                {TAHUN_OPTIONS.map(y => <option key={y} value={y}>{y}</option>)}
+                <option value="custom">Lainnya</option>
+              </select>
+              {form.tahun === 'custom' && (
+                <input type="number" placeholder="Masukkan tahun" onChange={e => setForm(f => ({ ...f, tahun: e.target.value }))} className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Jenis Pemilu</label>
+              <select value={form.jenisPemilu} onChange={e => setForm(f => ({ ...f, jenisPemilu: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                {JENIS_OPTIONS.map(j => <option key={j} value={j}>{j}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100 pt-4">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Statistik Partisipasi (%)</p>
+            <div className="grid grid-cols-3 gap-4">
+              {field('partisipasi',   'Partisipasi', 'number', '0–100')}
+              {field('suaraTidakSah', 'Suara Tidak Sah', 'number', '0–100')}
+              {field('suaraSah',      'Suara Sah', 'number', '0–100')}
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100 pt-4">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Data Pemilih & Lokasi</p>
+            <div className="grid grid-cols-2 gap-4">
+              {field('jumlahDPT',     'Jumlah DPT', 'number')}
+              {field('jumlahTPS',     'Jumlah TPS', 'number')}
+              {field('jumlahKabKota', 'Kab/Kota',   'number')}
+              {field('jumlahProvinsi','Provinsi',    'number')}
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100 pt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Catatan / Sumber Data</label>
+            <textarea
+              value={form.catatan}
+              onChange={e => setForm(f => ({ ...f, catatan: e.target.value }))}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+              placeholder="Contoh: Sumber: KPU RI, Pemilu 14 Februari 2024"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button type="button" onClick={() => setEditing(null)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">Batal</button>
+            <button type="submit" disabled={saving} className="px-6 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-60">
+              {saving ? 'Menyimpan…' : 'Simpan'}
+            </button>
+          </div>
+        </form>
       </div>
     );
   }
 
-  /* ── List view ──────────────────────────────────────────────────────────── */
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+    <div>
+      <Toast toast={toast} onClose={() => setToast(null)} />
+      {confirmId && (
+        <ConfirmDialog
+          message="Hapus data pemilu ini? Tindakan ini tidak dapat dibatalkan."
+          onConfirm={() => handleDelete(confirmId)}
+          onCancel={() => setConfirmId(null)}
+        />
+      )}
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Statistik Pemilu</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Data resmi KPU per tahun & jenis pemilu · ditampilkan di halaman publik{' '}
-            <a href="/data-pemilu" target="_blank" className="text-orange-500 hover:underline">/data-pemilu</a>
-          </p>
+          <h2 className="text-xl font-bold text-gray-900">Statistik Pemilu</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Data partisipasi, suara sah/tidak sah, DPT, TPS, kab/kota per tahun pemilu</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={handleSeed} disabled={seeding}
-            className="text-sm px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-colors"
-          >
-            {seeding ? 'Memuat...' : '↓ Seed Data 1999–2024'}
+          <button onClick={handleSeed} disabled={seeding} className="px-4 py-2 border border-gray-300 text-sm rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-60 flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+            {seeding ? 'Seeding…' : 'Seed Data Historis'}
           </button>
-          <button
-            onClick={() => setEditing('new')}
-            className="text-sm px-4 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-colors"
-          >
-            + Tambah Data
+          <button onClick={openNew} className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            Tambah Data
           </button>
         </div>
       </div>
 
-      {/* Filter */}
-      {years.length > 1 && (
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => setFilter('')}
-            className={`text-xs px-3 py-1 rounded-full border transition-colors
-              ${!filter ? 'bg-orange-500 text-white border-orange-500' : 'border-slate-300 text-slate-600 hover:bg-slate-50'}`}
-          >Semua</button>
-          {years.map(y => (
-            <button
-              key={y}
-              onClick={() => setFilter(String(y))}
-              className={`text-xs px-3 py-1 rounded-full border transition-colors
-                ${filter === String(y) ? 'bg-orange-500 text-white border-orange-500' : 'border-slate-300 text-slate-600 hover:bg-slate-50'}`}
-            >{y}</button>
-          ))}
-        </div>
-      )}
+      {/* Filter tabs */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        {['all', ...TAHUN_OPTIONS.map(String)].map(t => (
+          <button key={t} onClick={() => setFilterTahun(t)}
+            className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${filterTahun === t ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+            {t === 'all' ? 'Semua' : t}
+          </button>
+        ))}
+      </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        {loading ? (
-          <div className="space-y-2 p-6">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="py-16 text-center">
-            <p className="text-slate-400 text-sm mb-3">Belum ada data pemilu</p>
-            <button
-              onClick={handleSeed}
-              className="text-sm px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-            >
-              ↓ Seed Data Awal (1999–2024)
-            </button>
-          </div>
-        ) : (
+      {loading ? (
+        <div className="text-center py-16 text-gray-400">Memuat…</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
+          <p className="text-gray-500 mb-2">Belum ada data</p>
+          <p className="text-sm text-gray-400">Klik <strong>Seed Data Historis</strong> untuk mengisi data 1999–2024 secara otomatis</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wide">Tahun</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wide">Jenis</th>
-                  <th className="px-4 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wide">Partisipasi</th>
-                  <th className="px-4 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wide">Tdk Sah</th>
-                  <th className="px-4 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wide">DPT</th>
-                  <th className="px-4 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wide">TPS</th>
-                  <th className="px-4 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wide">Kab/Kota</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wide">Catatan</th>
+                <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3">Tahun</th>
+                  <th className="px-4 py-3">Jenis</th>
+                  <th className="px-4 py-3 text-right">Partisipasi</th>
+                  <th className="px-4 py-3 text-right">Suara Tdk Sah</th>
+                  <th className="px-4 py-3 text-right">DPT</th>
+                  <th className="px-4 py-3 text-right">TPS</th>
+                  <th className="px-4 py-3 text-right">Kab/Kota</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
-              <tbody>
-                {filtered.map(row => (
-                  <DataRow key={row.id} row={row} onEdit={(r) => setEditing(r)} onDelete={handleDelete} />
+              <tbody className="divide-y divide-gray-100">
+                {filtered.map(item => (
+                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 font-semibold text-gray-900">{item.tahun}</td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">{item.jenisPemilu}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right font-medium">
+                      {item.partisipasi != null ? `${item.partisipasi.toFixed(2)}%` : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-600">
+                      {item.suaraTidakSah != null ? `${item.suaraTidakSah.toFixed(2)}%` : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-600">
+                      {item.jumlahDPT != null ? Number(item.jumlahDPT).toLocaleString('id-ID') : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-600">
+                      {item.jumlahTPS != null ? item.jumlahTPS.toLocaleString('id-ID') : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-600">{item.jumlahKabKota ?? '—'}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2 justify-end">
+                        <button onClick={() => openEdit(item)} className="text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        </button>
+                        <button onClick={() => setConfirmId(item.id)} className="text-gray-400 hover:text-red-600 transition-colors" title="Hapus">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
-
-      <p className="text-xs text-slate-400">
-        {filtered.length} entri{filter ? ` (Pemilu ${filter})` : ''} · Data dikelola manual dari laporan resmi KPU
-      </p>
-
-      <Toast toast={toast} onClose={() => setToast(null)} />
+        </div>
+      )}
     </div>
   );
 }
