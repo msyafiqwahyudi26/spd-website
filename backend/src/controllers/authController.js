@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const prisma = require('../lib/prisma');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -5,6 +6,7 @@ const { log } = require('../lib/logger');
 const { ok, fail } = require('../lib/response');
 const { validate, v } = require('../lib/validate');
 const authProviders = require('../services/authProviders');
+const { addToBlacklist } = require('../lib/tokenBlacklist');
 
 // Constant-time dummy hash used when the looked-up user does not exist.
 const DUMMY_HASH = '$2a$10$7EqJtq98hPqEX7fNZaFWoO6u8TtVxYKvm6MB3E0uW2Pq0PMfE9u9i';
@@ -22,10 +24,33 @@ const COOKIE_OPTIONS = {
 
 const signToken = (user) =>
   jwt.sign(
-    { userId: user.id, role: user.role, name: user.name },
+    {
+      userId: user.id,
+      role:   user.role,
+      name:   user.name,
+      // jti (JWT ID) is a unique identifier per token so we can blacklist
+      // individual tokens on logout without invalidating all sessions.
+      jti: crypto.randomUUID(),
+    },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }
   );
+
+/**
+ * Extract the raw JWT string from the request — cookie first, then Bearer.
+ * Used by logout to blacklist the outgoing token.
+ */
+function extractRawToken(req) {
+  const cookieHeader = req.headers.cookie || '';
+  for (const part of cookieHeader.split(';')) {
+    const [k, ...v] = part.trim().split('=');
+    if (k.trim() === 'spd_token') return v.join('=').trim();
+  }
+  const auth = req.headers.authorization || '';
+  const [scheme, bearer] = auth.split(' ');
+  if (scheme === 'Bearer' && bearer) return bearer;
+  return null;
+}
 
 exports.login = async (req, res, next) => {
   try {
@@ -62,6 +87,19 @@ exports.login = async (req, res, next) => {
 };
 
 exports.logout = (req, res) => {
+  // Blacklist the token so it cannot be replayed via Authorization header
+  // even though the httpOnly cookie will be cleared. This covers the window
+  // between logout and the token's natural 7-day expiry.
+  const rawToken = extractRawToken(req);
+  if (rawToken) {
+    try {
+      const payload = jwt.decode(rawToken);
+      if (payload?.jti && typeof payload.exp === 'number') {
+        addToBlacklist(payload.jti, payload.exp);
+      }
+    } catch { /* ignore malformed tokens */ }
+  }
+
   // Clear the auth cookie by setting it with maxAge=0.
   res.cookie('spd_token', '', { ...COOKIE_OPTIONS, maxAge: 0 });
   return ok(res, { message: 'Logout berhasil' });

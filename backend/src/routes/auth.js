@@ -5,7 +5,7 @@ const { createRateLimit } = require('../middlewares/rateLimit');
 
 const loginLimiter = createRateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 5, // Max 5 failed attempts per IP per 15 minutes — brute-force mitigation
   prefix: 'login',
   message: 'Terlalu banyak percobaan login. Coba lagi dalam beberapa menit.',
 });

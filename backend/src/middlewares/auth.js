@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { fail } = require('../lib/response');
+const { isBlacklisted } = require('../lib/tokenBlacklist');
 
 /**
  * Parse a single cookie value from the raw Cookie header.
@@ -56,6 +57,13 @@ module.exports = (req, res, next) => {
 
     if (!payload || typeof payload !== 'object' || !payload.userId) {
       return fail(res, 401, 'Token tidak valid');
+    }
+
+    // Reject tokens that have been explicitly invalidated (e.g. after logout).
+    // This prevents a captured token from being replayed via Bearer header
+    // even though the httpOnly cookie was cleared.
+    if (isBlacklisted(payload.jti)) {
+      return fail(res, 401, 'Token sudah tidak valid');
     }
 
     req.user = payload;

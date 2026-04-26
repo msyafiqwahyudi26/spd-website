@@ -25,12 +25,47 @@ export function useAuth() {
       if (!cancelled) setUser(null);
     };
 
+    /**
+     * Back-Forward Cache (bfcache) defence.
+     *
+     * Modern browsers (Chrome, Firefox, Safari) snapshot entire page state
+     * into bfcache for instant back/forward navigation. When a page is
+     * restored from bfcache, JavaScript is NOT re-executed from scratch —
+     * the React component tree is restored as-is, meaning auth state from
+     * before logout can reappear.
+     *
+     * `pageshow` fires on both normal loads (persisted=false) and bfcache
+     * restores (persisted=true). We re-verify with the server on restore so
+     * a logged-out session is immediately detected and redirected.
+     */
+    const handlePageShow = (e) => {
+      if (e.persisted && !cancelled) {
+        checkAuth();
+      }
+    };
+
+    /**
+     * Re-verify auth when the tab becomes visible again after being hidden.
+     * Covers the case where a session expires (or is terminated elsewhere)
+     * while the tab is in the background — the user sees the correct state
+     * as soon as they return to the tab.
+     */
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && !cancelled) {
+        checkAuth();
+      }
+    };
+
     window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+    window.addEventListener('pageshow', handlePageShow);
+    document.addEventListener('visibilitychange', handleVisibility);
     checkAuth();
 
     return () => {
       cancelled = true;
       window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+      window.removeEventListener('pageshow', handlePageShow);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, []);
 

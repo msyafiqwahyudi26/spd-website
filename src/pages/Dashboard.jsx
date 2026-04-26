@@ -119,7 +119,18 @@ export default function Dashboard() {
       .catch(() => {});
   }, [user, isAdmin, location.pathname]);
 
-  if (isLoading) return null;
+  // While verifying the session with the server, show a neutral spinner —
+  // never render dashboard content before auth is confirmed. Returning null
+  // here causes a blank flash; a spinner is cleaner and prevents any
+  // accidental content render during the async /auth/me round-trip.
+  if (isLoading) return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="w-7 h-7 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
+  // Not authenticated — redirect to login. `replace` so the dashboard URL
+  // is removed from browser history and the back button cannot re-enter it.
   if (!user) return <Navigate to="/login" replace />;
 
   return (
