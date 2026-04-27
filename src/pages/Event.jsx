@@ -7,13 +7,25 @@ import { api } from '@/lib/api';
 import EmptyState from '../components/ui/EmptyState';
 import { SkeletonCard } from '../components/ui/Skeleton';
 import { useI18n } from '@/i18n';
-import { useStaggerAnimation } from '@/hooks/useScrollAnimation';
 
-function EventCard({ item }) {
+const now = new Date();
+
+function isPast(item) {
+  if (item.startsAt) return new Date(item.startsAt) < now;
+  const d = new Date(item.date);
+  return !isNaN(d) ? d < now : false;
+}
+
+function EventCard({ item, index }) {
   const { t } = useI18n();
+  const past = isPast(item);
+
   return (
-    <article className="group bg-white border border-slate-100 rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-orange-100">
-      <div className="h-44">
+    <article
+      className="group bg-white border border-slate-100 rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-orange-100 animate-fade-up"
+      style={{ animationDelay: `${Math.min(index * 80, 400)}ms` }}
+    >
+      <div className="h-44 relative">
         <Image
           src={item.image ?? null}
           alt={item.title ?? ''}
@@ -21,6 +33,11 @@ function EventCard({ item }) {
           gradient="from-orange-50 to-slate-100"
           icon="photo"
         />
+        {past && (
+          <span className="absolute top-3 left-3 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-slate-800/70 text-white backdrop-blur-sm">
+            SUDAH LEWAT
+          </span>
+        )}
       </div>
       <div className="p-5 flex flex-col">
         <span className="text-xs font-bold tracking-widest uppercase text-orange-500 mb-2">EVENT</span>
@@ -59,18 +76,8 @@ function EventCard({ item }) {
   );
 }
 
-function loadEventsFromStorage() {
-  try {
-    const stored = localStorage.getItem('spd_events');
-    return stored ? JSON.parse(stored).filter(Boolean) : INITIAL_EVENTS;
-  } catch {
-    return INITIAL_EVENTS;
-  }
-}
-
 export default function Event() {
   const { t } = useI18n();
-  const { containerRef, visible } = useStaggerAnimation();
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -85,45 +92,26 @@ export default function Event() {
   useEffect(() => {
     api('/events')
       .then(data => setEvents(Array.isArray(data) ? data : INITIAL_EVENTS))
-      .catch(() => setEvents(loadEventsFromStorage()))
+      .catch(() => {
+        try {
+          const stored = localStorage.getItem('spd_events');
+          setEvents(stored ? JSON.parse(stored).filter(Boolean) : INITIAL_EVENTS);
+        } catch {
+          setEvents(INITIAL_EVENTS);
+        }
+      })
       .finally(() => setIsLoading(false));
-
-    const handleUpdate = () => setEvents(loadEventsFromStorage());
-    window.addEventListener('events_updated', handleUpdate);
-    const handleStorage = (e) => {
-      if (e.key === 'spd_events' && e.newValue) {
-        try { setEvents(JSON.parse(e.newValue).filter(Boolean)); } catch (_) {}
-      }
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => {
-      window.removeEventListener('events_updated', handleUpdate);
-      window.removeEventListener('storage', handleStorage);
-    };
   }, []);
 
-  const now = new Date();
-
   const filtered = useMemo(() => {
-    let result = events;
+    let result = [...events];
 
-    // Filter by status
     if (filter === 'upcoming') {
-      result = result.filter(e => {
-        if (e.startsAt) return new Date(e.startsAt) >= now;
-        // fallback: try parse date string
-        const d = new Date(e.date);
-        return !isNaN(d) ? d >= now : true;
-      });
+      result = result.filter(e => !isPast(e));
     } else if (filter === 'past') {
-      result = result.filter(e => {
-        if (e.startsAt) return new Date(e.startsAt) < now;
-        const d = new Date(e.date);
-        return !isNaN(d) ? d < now : false;
-      });
+      result = result.filter(e => isPast(e));
     }
 
-    // Filter by search
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       result = result.filter(e =>
@@ -160,14 +148,14 @@ export default function Event() {
                 className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors bg-white"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 shrink-0">
               {FILTERS.map(f => (
                 <button
                   key={f.id}
                   onClick={() => setFilter(f.id)}
-                  className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors border ${
+                  className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 border ${
                     filter === f.id
-                      ? 'bg-orange-500 text-white border-orange-500'
+                      ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
                       : 'bg-white text-slate-600 border-slate-200 hover:border-orange-300 hover:text-orange-600'
                   }`}
                 >
@@ -184,24 +172,34 @@ export default function Event() {
           ) : filtered.length === 0 ? (
             <div className="py-12">
               <EmptyState
-                title={search ? 'Event tidak ditemukan' : t('event.empty')}
-                message={search ? `Tidak ada event yang cocok dengan "${search}".` : t('event.empty')}
+                title={
+                  search
+                    ? 'Event tidak ditemukan'
+                    : filter === 'upcoming'
+                    ? 'Tidak ada event mendatang'
+                    : filter === 'past'
+                    ? 'Tidak ada event yang sudah lewat'
+                    : t('event.empty')
+                }
+                message={
+                  search
+                    ? `Tidak ada event yang cocok dengan "${search}".`
+                    : filter === 'upcoming'
+                    ? 'Semua event sudah berlalu. Cek tab "Sudah Berlalu" atau "Semua".'
+                    : t('event.empty')
+                }
+                actionText={filter !== 'semua' || search ? 'Tampilkan Semua Event' : null}
+                onAction={() => { setFilter('semua'); setSearch(''); }}
               />
             </div>
           ) : (
             <>
-              <p className="text-sm text-slate-400 mb-4">{filtered.length} {t('event.found')}</p>
-              <div
-                ref={containerRef}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              >
+              <p className="text-sm text-slate-400 mb-4">
+                {filtered.length} {t('event.found')}
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filtered.map((item, i) => (
-                  <div
-                    key={item.id}
-                    className={visible ? `animate-fade-up delay-${Math.min(i * 100 + 100, 500)}` : 'opacity-0'}
-                  >
-                    <EventCard item={item} />
-                  </div>
+                  <EventCard key={item.id} item={item} index={i} />
                 ))}
               </div>
             </>
