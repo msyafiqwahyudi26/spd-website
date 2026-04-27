@@ -214,14 +214,3 @@ export default function ContactSection() {
     </section>
   );
 }
-                )}
-                {isSubmitting ? t('kontak.sending') : t('kontak.send')}
-              </button>
-            </form>
-          </div>
-
-        </div>
-      </div>
-    </section>
-  );
-}

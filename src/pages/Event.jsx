@@ -210,22 +210,3 @@ export default function Event() {
     </main>
   );
 }
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              >
-                {filtered.map((item, i) => (
-                  <div
-                    key={item.id}
-                    className={`${visible ? 'animate-fade-up' : 'opacity-0'}`}
-                    style={{ animationDelay: `${i * 100}ms` }}
-                  >
-                    <EventCard item={item} />
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </section>
-    </main>
-  );
-}
