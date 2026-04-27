@@ -236,20 +236,31 @@ function StatsSection({ onNotify }) {
 function StatRow({ stat, pending, onCommit, onDelete }) {
   const [value, setValue] = useState(stat.value);
   const [label, setLabel] = useState(stat.label);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   useEffect(() => { setValue(stat.value); setLabel(stat.label); }, [stat.value, stat.label]);
   const dirty = value !== stat.value || label !== stat.label;
   return (
     <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-      <input className="w-20 px-2 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500" value={value} onChange={(e) => setValue(e.target.value)} disabled={pending} />
-      <input className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500" value={label} onChange={(e) => setLabel(e.target.value)} disabled={pending} />
-      {dirty && (
-        <button onClick={() => onCommit(stat.id, { value: value.trim(), label: label.trim() })} disabled={pending || !value.trim() || !label.trim()} className="text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-60 px-2.5 py-1.5 rounded-md">Simpan</button>
+      {confirmDelete ? (
+        <div className="flex-1 flex items-center gap-2 text-xs">
+          <span className="text-red-600 font-medium">Hapus statistik &ldquo;{stat.value} {stat.label}&rdquo;?</span>
+          <button onClick={() => { onDelete(stat.id); setConfirmDelete(false); }} disabled={pending} className="font-semibold text-white bg-red-500 hover:bg-red-600 px-2.5 py-1 rounded-md disabled:opacity-60">Ya</button>
+          <button onClick={() => setConfirmDelete(false)} className="font-medium text-slate-500 hover:text-slate-700">Batal</button>
+        </div>
+      ) : (
+        <>
+          <input className="w-20 px-2 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500" value={value} onChange={(e) => setValue(e.target.value)} disabled={pending} />
+          <input className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500" value={label} onChange={(e) => setLabel(e.target.value)} disabled={pending} />
+          {dirty && (
+            <button onClick={() => onCommit(stat.id, { value: value.trim(), label: label.trim() })} disabled={pending || !value.trim() || !label.trim()} className="text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-60 px-2.5 py-1.5 rounded-md">Simpan</button>
+          )}
+          <button onClick={() => setConfirmDelete(true)} disabled={pending} className="text-slate-400 hover:text-red-500 disabled:opacity-50 transition-colors shrink-0" title="Hapus statistik ini">
+            {pending ? <Spinner small /> : (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            )}
+          </button>
+        </>
       )}
-      <button onClick={() => onDelete(stat.id)} disabled={pending} className="text-slate-400 hover:text-red-500 disabled:opacity-50 transition-colors" title="Hapus">
-        {pending ? <Spinner small /> : (
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-        )}
-      </button>
     </div>
   );
 }
@@ -337,19 +348,30 @@ function InlineMissionSection({ onNotify }) {
 
 function MissionRow({ item, pending, onCommit, onDelete }) {
   const [text, setText] = useState(item.text);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   useEffect(() => { setText(item.text); }, [item.text]);
   const dirty = text !== item.text;
   return (
     <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-      <input className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500" value={text} onChange={(e) => setText(e.target.value)} disabled={pending} />
-      {dirty && (
-        <button onClick={() => onCommit(item.id, { text: text.trim() })} disabled={pending || !text.trim()} className="text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-60 px-2.5 py-1.5 rounded-md">Simpan</button>
+      {confirmDelete ? (
+        <div className="flex-1 flex items-center gap-2 text-xs">
+          <span className="text-red-600 font-medium line-clamp-1">Hapus poin misi ini?</span>
+          <button onClick={() => { onDelete(item.id); setConfirmDelete(false); }} disabled={pending} className="font-semibold text-white bg-red-500 hover:bg-red-600 px-2.5 py-1 rounded-md disabled:opacity-60 shrink-0">Ya</button>
+          <button onClick={() => setConfirmDelete(false)} className="font-medium text-slate-500 hover:text-slate-700 shrink-0">Batal</button>
+        </div>
+      ) : (
+        <>
+          <input className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500" value={text} onChange={(e) => setText(e.target.value)} disabled={pending} />
+          {dirty && (
+            <button onClick={() => onCommit(item.id, { text: text.trim() })} disabled={pending || !text.trim()} className="text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-60 px-2.5 py-1.5 rounded-md">Simpan</button>
+          )}
+          <button onClick={() => setConfirmDelete(true)} disabled={pending} className="text-slate-400 hover:text-red-500 disabled:opacity-50 transition-colors shrink-0" title="Hapus poin misi ini">
+            {pending ? <Spinner small /> : (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            )}
+          </button>
+        </>
       )}
-      <button onClick={() => onDelete(item.id)} disabled={pending} className="text-slate-400 hover:text-red-500 disabled:opacity-50 transition-colors" title="Hapus">
-        {pending ? <Spinner small /> : (
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-        )}
-      </button>
     </div>
   );
 }
@@ -548,6 +570,7 @@ function ApproachRow({ item, pending, onCommit, onDelete }) {
   const [iconUrl, setIconUrl]       = useState(item.iconUrl || '');
   const [title, setTitle]           = useState(item.title);
   const [description, setDescription] = useState(item.description || '');
+  const [confirmDelete, setConfirmDelete] = useState(false);
   useEffect(() => {
     setIconKey(item.iconKey);
     setIconUrl(item.iconUrl || '');
@@ -561,27 +584,37 @@ function ApproachRow({ item, pending, onCommit, onDelete }) {
     description !== (item.description || '');
   return (
     <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-2">
-      <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-2 items-start">
-        <IconPicker
-          iconKey={iconKey}
-          iconUrl={iconUrl}
-          onIconKey={setIconKey}
-          onIconUrl={setIconUrl}
-          disabled={pending}
-        />
-        <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} disabled={pending} />
-        <div className="flex items-start gap-1.5 pt-0.5">
-          {dirty && (
-            <button onClick={() => onCommit(item.id, { iconKey, iconUrl, title: title.trim(), description: description.trim() })} disabled={pending || !title.trim()} className="text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-60 px-2.5 py-1.5 rounded-md">Simpan</button>
-          )}
-          <button onClick={() => onDelete(item.id)} disabled={pending} className="text-slate-400 hover:text-red-500 disabled:opacity-50 transition-colors px-2 py-1.5" title="Hapus">
-            {pending ? <Spinner small /> : (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-            )}
-          </button>
+      {confirmDelete ? (
+        <div className="flex items-center gap-3 py-1 text-xs">
+          <span className="text-red-600 font-medium flex-1">Hapus &ldquo;{item.title}&rdquo;?</span>
+          <button onClick={() => { onDelete(item.id); setConfirmDelete(false); }} disabled={pending} className="font-semibold text-white bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-md disabled:opacity-60">Ya, hapus</button>
+          <button onClick={() => setConfirmDelete(false)} className="font-medium text-slate-500 hover:text-slate-700">Batal</button>
         </div>
-      </div>
-      <textarea className={inputCls + ' resize-none'} rows={2} value={description} onChange={(e) => setDescription(e.target.value)} disabled={pending} />
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-2 items-start">
+            <IconPicker
+              iconKey={iconKey}
+              iconUrl={iconUrl}
+              onIconKey={setIconKey}
+              onIconUrl={setIconUrl}
+              disabled={pending}
+            />
+            <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} disabled={pending} />
+            <div className="flex items-start gap-1.5 pt-0.5">
+              {dirty && (
+                <button onClick={() => onCommit(item.id, { iconKey, iconUrl, title: title.trim(), description: description.trim() })} disabled={pending || !title.trim()} className="text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-60 px-2.5 py-1.5 rounded-md">Simpan</button>
+              )}
+              <button onClick={() => setConfirmDelete(true)} disabled={pending} className="text-slate-400 hover:text-red-500 disabled:opacity-50 transition-colors px-2 py-1.5 shrink-0" title="Hapus item ini">
+                {pending ? <Spinner small /> : (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                )}
+              </button>
+            </div>
+          </div>
+          <textarea className={inputCls + ' resize-none'} rows={2} value={description} onChange={(e) => setDescription(e.target.value)} disabled={pending} />
+        </>
+      )}
     </div>
   );
 }
@@ -753,6 +786,12 @@ function FooterLinksSection({ onNotify }) {
         </p>
       </div>
 
+      <div className="px-6 py-3 bg-blue-50 border-b border-blue-100">
+        <p className="text-xs text-blue-700">
+          <strong>ℹ Cara kerja tab ini:</strong> Setiap perubahan (tambah, simpan, hapus) langsung tersimpan ke database saat tombol diklik — tidak perlu tombol &ldquo;Simpan Pengaturan&rdquo; global. Penghapusan selalu meminta konfirmasi terlebih dahulu.
+        </p>
+      </div>
+
       <div className="p-6 space-y-8">
         <FooterLinkColumn
           title="Kolom Navigasi"
@@ -832,20 +871,42 @@ function FooterLinkColumn({ title, help, section, items, loading, pendingId, onA
 function FooterLinkRow({ item, pending, onUpdate, onDelete }) {
   const [label, setLabel] = useState(item.label);
   const [url, setUrl]     = useState(item.url);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   useEffect(() => { setLabel(item.label); setUrl(item.url); }, [item.label, item.url]);
   const dirty = label !== item.label || url !== item.url;
   return (
     <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-      <input className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500" value={label} onChange={(e) => setLabel(e.target.value)} disabled={pending} />
-      <input className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono text-xs" value={url} onChange={(e) => setUrl(e.target.value)} disabled={pending} />
-      {dirty && (
-        <button onClick={() => onUpdate(item.id, { label: label.trim(), url: url.trim() })} disabled={pending || !label.trim() || !url.trim()} className="text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-60 px-2.5 py-1.5 rounded-md">Simpan</button>
+      {confirmDelete ? (
+        <div className="flex-1 flex items-center gap-2 text-xs">
+          <span className="text-red-600 font-medium">Hapus tautan &ldquo;{item.label}&rdquo;?</span>
+          <button
+            onClick={() => { onDelete(item.id); setConfirmDelete(false); }}
+            disabled={pending}
+            className="font-semibold text-white bg-red-500 hover:bg-red-600 px-2.5 py-1 rounded-md disabled:opacity-60"
+          >
+            Ya, hapus
+          </button>
+          <button
+            onClick={() => setConfirmDelete(false)}
+            className="font-medium text-slate-500 hover:text-slate-700"
+          >
+            Batal
+          </button>
+        </div>
+      ) : (
+        <>
+          <input className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500" value={label} onChange={(e) => setLabel(e.target.value)} disabled={pending} />
+          <input className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono text-xs" value={url} onChange={(e) => setUrl(e.target.value)} disabled={pending} />
+          {dirty && (
+            <button onClick={() => onUpdate(item.id, { label: label.trim(), url: url.trim() })} disabled={pending || !label.trim() || !url.trim()} className="text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-60 px-2.5 py-1.5 rounded-md">Simpan</button>
+          )}
+          <button onClick={() => setConfirmDelete(true)} disabled={pending} className="text-slate-400 hover:text-red-500 disabled:opacity-50 transition-colors shrink-0" title="Hapus tautan ini">
+            {pending ? <Spinner small /> : (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            )}
+          </button>
+        </>
       )}
-      <button onClick={() => onDelete(item.id)} disabled={pending} className="text-slate-400 hover:text-red-500 disabled:opacity-50 transition-colors" title="Hapus">
-        {pending ? <Spinner small /> : (
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-        )}
-      </button>
     </div>
   );
 }

@@ -13,6 +13,14 @@ const SUGGESTED_KEYS = [
   { value: 'global.placeholder', label: 'global.placeholder — gambar fallback' },
 ];
 
+// Maps semantic keys → human-readable location + which Settings.images field to clear
+const KEY_META = {
+  'homepage.hero':      { desc: 'latar belakang Hero di halaman Beranda', settingsField: 'hero' },
+  'header.logo':        { desc: 'logo di header navigasi',                settingsField: 'logo' },
+  'footer.logo':        { desc: 'logo di footer',                         settingsField: 'logo' },
+  'global.placeholder': { desc: 'gambar fallback saat foto tidak tersedia', settingsField: 'placeholder' },
+};
+
 const KEY_RE = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 
 function formatBytes(n) {
@@ -159,6 +167,7 @@ function MediaCard({ item, onAssignKey, onDelete }) {
   };
 
   const isPdf = item.type === 'application/pdf';
+  const keyMeta = item.key ? KEY_META[item.key] : null;
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col">
@@ -234,20 +243,29 @@ function MediaCard({ item, onAssignKey, onDelete }) {
 
         <div className="flex items-center justify-end pt-1 border-t border-slate-100">
           {confirm ? (
-            <div className="flex items-center gap-2 text-[11px]">
-              <span className="text-slate-500">Yakin hapus?</span>
-              <button
-                onClick={() => { onDelete(item.id, item.key); setConfirm(false); }}
-                className="font-semibold text-red-600 hover:text-red-700"
-              >
-                Ya
-              </button>
-              <button
-                onClick={() => setConfirm(false)}
-                className="font-medium text-slate-500 hover:text-slate-700"
-              >
-                Batal
-              </button>
+            <div className="flex flex-col gap-1.5 w-full text-[11px]">
+              {keyMeta && (
+                <div className="bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5">
+                  <p className="text-amber-700 font-medium leading-snug">
+                    ⚠ Gambar ini dipakai sebagai <strong>{keyMeta.desc}</strong>. Menghapus akan membersihkan referensinya secara otomatis.
+                  </p>
+                </div>
+              )}
+              <div className="flex items-center justify-end gap-2">
+                <span className="text-slate-500">Yakin hapus?</span>
+                <button
+                  onClick={() => { onDelete(item.id, item.key); setConfirm(false); }}
+                  className="font-semibold text-red-600 hover:text-red-700"
+                >
+                  Ya, hapus
+                </button>
+                <button
+                  onClick={() => setConfirm(false)}
+                  className="font-medium text-slate-500 hover:text-slate-700"
+                >
+                  Batal
+                </button>
+              </div>
             </div>
           ) : (
             <button
@@ -313,7 +331,26 @@ export default function MediaManager() {
     try {
       await api(`/media/${id}`, { method: 'DELETE' });
       setItems((prev) => prev.filter((m) => m.id !== id));
-      if (key) invalidateMediaKey(key);
+      if (key) {
+        invalidateMediaKey(key);
+        // Auto-clear the corresponding Settings field so the frontend
+        // doesn't keep showing a broken image reference.
+        const meta = KEY_META[key];
+        if (meta?.settingsField) {
+          try {
+            const current = await api('/settings');
+            const images = { ...(current?.images || {}) };
+            images[meta.settingsField] = '';
+            await api('/settings', {
+              method: 'PUT',
+              body: JSON.stringify({ images }),
+            });
+            window.dispatchEvent(new Event('settings_updated'));
+          } catch (e) {
+            console.warn('Could not auto-clear settings reference:', e);
+          }
+        }
+      }
       setToast('Gambar dihapus');
     } catch (err) {
       setToast({ message: err?.message || 'Gagal menghapus', kind: 'error' });

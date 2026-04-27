@@ -793,4 +793,32 @@ export default function DataPemilu() {
         selectedJenis={selectedJenis}
         onTahunChange={setSelectedTahun}
         onJenisChange={setSelectedJenis}
-    
+      />
+
+      <StatCards
+        dbRow={dbRow}
+        prevRow={prevRow}
+        partisipasiData={partisipasiData}
+        partisipasiStatus={partisipasiStatus}
+        pemilihData={pemilihData}
+        pemilihStatus={pemilihStatus}
+        tahun={selectedTahun}
+      />
+
+      {/* Daftar pemilih per provinsi hanya tersedia untuk 2024 (KPU live) */}
+      {selectedTahun === 2024 && (
+        <DaftarPemilihSection data={pemilihData} status={pemilihStatus} />
+      )}
+
+      <TrendSection
+        items={electionItems}
+        selectedJenis={selectedJenis}
+        onJenisChange={setSelectedJenis}
+      />
+
+      <InfografisSection />
+
+      <KolaborasiCTA />
+    </>
+  );
+}

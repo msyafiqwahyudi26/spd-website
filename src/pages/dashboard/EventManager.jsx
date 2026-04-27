@@ -7,13 +7,16 @@ import {
 } from './shared';
 import MediaPicker from './MediaPicker';
 
-function EventImageField({ value, onChange, disabled }) {
+function EventImageField({ value, onChange, disabled, initialValue }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const preview = value ? resolveMediaUrl(value) : null;
+  // Show a "pending remove" indicator when the image was cleared but not yet saved
+  const pendingRemoval = !value && !!initialValue;
+
   return (
     <div>
       <label className="block text-sm font-medium text-slate-700 mb-1">Gambar Event</label>
-      <div className="flex items-start gap-3">
+      <div className={`flex items-start gap-3 rounded-lg p-2 -mx-2 transition-colors ${pendingRemoval ? 'bg-amber-50' : ''}`}>
         <div className="w-40 h-24 rounded-lg bg-slate-50 border border-slate-200 shrink-0 overflow-hidden flex items-center justify-center">
           {preview ? (
             <img src={preview} alt="" className="w-full h-full object-cover" />
@@ -38,11 +41,17 @@ function EventImageField({ value, onChange, disabled }) {
                 disabled={disabled}
                 className="text-xs font-medium text-slate-500 hover:text-red-500 px-3 py-1.5 rounded-md border border-slate-200 disabled:opacity-60"
               >
-                Hapus
+                Hapus Foto
               </button>
             )}
           </div>
-          <p className="text-xs text-slate-400">Gambar header di halaman detail event.</p>
+          {pendingRemoval ? (
+            <p className="text-xs text-amber-700 font-medium">
+              ⚠ Foto ditandai untuk dihapus — tekan <strong>Simpan Event</strong> di bawah untuk mengonfirmasi.
+            </p>
+          ) : (
+            <p className="text-xs text-slate-400">Gambar header di halaman detail event.</p>
+          )}
         </div>
       </div>
       <MediaPicker open={pickerOpen} filter="image" onClose={() => setPickerOpen(false)} onSelect={(m) => onChange(m.url)} />
@@ -186,7 +195,7 @@ function EventForm({ initial, onSave, onCancel, saving }) {
             />
           </Field>
 
-          <EventImageField value={form.image} onChange={(v) => set('image', v)} disabled={saving} />
+          <EventImageField value={form.image} initialValue={initial.image} onChange={(v) => set('image', v)} disabled={saving} />
         </div>
 
         <div className="flex gap-3 pt-2 border-t border-slate-100">

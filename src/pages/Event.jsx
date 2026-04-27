@@ -193,4 +193,21 @@ export default function Event() {
               <p className="text-sm text-slate-400 mb-4">{filtered.length} {t('event.found')}</p>
               <div
                 ref={containerRef}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-col
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              >
+                {filtered.map((item, i) => (
+                  <div
+                    key={item.id}
+                    className={visible ? `animate-fade-up delay-${Math.min(i * 100 + 100, 500)}` : 'opacity-0'}
+                  >
+                    <EventCard item={item} />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}

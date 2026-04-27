@@ -33,4 +33,31 @@ export default function Hero({ title, subtitle, children, bgImage }) {
           ref={headlineRef}
           className={`text-4xl sm:text-5xl font-bold text-white leading-tight drop-shadow-sm ${
             headlineVisible ? 'animate-fade-up' : 'opacity-0'
-   
+          }`}
+        >
+          {title}
+        </h1>
+        {subtitle && (
+          <p
+            ref={subtitleRef}
+            className={`mt-5 text-base sm:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed ${
+              subtitleVisible ? 'animate-fade-up delay-100' : 'opacity-0'
+            }`}
+          >
+            {subtitle}
+          </p>
+        )}
+        {children && (
+          <div
+            ref={childrenRef}
+            className={`mt-9 flex flex-col sm:flex-row items-center justify-center gap-3 ${
+              childrenVisible ? 'animate-fade-up delay-200' : 'opacity-0'
+            }`}
+          >
+            {children}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
