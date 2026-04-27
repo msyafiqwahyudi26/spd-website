@@ -42,7 +42,7 @@ function PublikasiCard({ item, isDragging }) {
   const imgSrc = image ? resolveMediaUrl(image) : null;
 
   return (
-    <article className="group h-full bg-white border border-slate-100 rounded-xl overflow-hidden flex flex-col transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:border-orange-100">
+    <article className="group h-full bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg hover:border-orange-200">
       {imgSrc ? (
         <div className="relative h-44 overflow-hidden bg-slate-100 shrink-0">
           <img
@@ -53,31 +53,31 @@ function PublikasiCard({ item, isDragging }) {
           />
         </div>
       ) : (
-        <div className="h-44 bg-gradient-to-br from-orange-50 to-orange-100 shrink-0 flex items-center justify-center">
-          <svg className="w-12 h-12 text-orange-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="h-44 bg-gradient-to-br from-orange-50 to-amber-50 shrink-0 flex items-center justify-center">
+          <svg className="w-10 h-10 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         </div>
       )}
-      <div className="p-6 flex flex-col flex-1">
-        <span className={`text-xs font-bold tracking-widest uppercase mb-3 ${categoryColor}`}>
+      <div className="p-5 flex flex-col flex-1">
+        <span className={`text-xs font-bold tracking-widest uppercase mb-2 ${categoryColor}`}>
           {category}
         </span>
-        <h3 className="font-bold text-slate-800 text-base leading-snug mb-3 shrink-0">
+        <h3 className="font-bold text-slate-800 text-sm leading-snug mb-3 shrink-0 line-clamp-2">
           {title}
         </h3>
-        <p className="text-sm text-slate-500 leading-relaxed mb-5 flex-1 line-clamp-3">
+        <p className="text-xs text-slate-500 leading-relaxed mb-4 flex-1 line-clamp-3">
           {description}
         </p>
-        <div className="flex items-center justify-between pt-4 border-t border-slate-100 shrink-0">
+        <div className="flex items-center justify-between pt-3 border-t border-slate-100 shrink-0">
           <span className="text-xs text-slate-400">{date}</span>
           <Link
             to={getDetailPath(item)}
             onClick={(e) => isDragging && e.preventDefault()}
-            className="text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors duration-200 inline-flex items-center gap-1"
+            className="text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors duration-200 inline-flex items-center gap-1"
           >
             Baca
-            <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+            <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
           </Link>
         </div>
       </div>
@@ -192,8 +192,8 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
   const scrollBy = (direction) => {
     const track = trackRef.current;
     if (!track) return;
-    const cardWidth = track.querySelector('[data-card]')?.offsetWidth ?? 340;
-    track.scrollBy({ left: direction * (cardWidth + 24), behavior: 'smooth' });
+    const cardWidth = track.querySelector('[data-card]')?.offsetWidth ?? 280;
+    track.scrollBy({ left: direction * (cardWidth + 16), behavior: 'smooth' });
   };
 
   return (
@@ -294,27 +294,33 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
           </div>
         </div>
       ) : (
-        <div className="pl-4 sm:pl-[max(1rem,calc((100vw-72rem)/2))]">
-          <div
-            ref={trackRef}
-            className={`flex gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-2 ${grabbing ? 'cursor-grabbing' : 'cursor-grab'}`}
-            style={{ userSelect: 'none' }}
-            onMouseDown={onMouseDown}
-            onMouseMove={onMouseMove}
-            onMouseUp={onMouseUp}
-            onMouseLeave={onMouseUp}
-          >
-            {filteredAndSorted.map((item) => (
-              <div
-                key={item.id}
-                data-card
-                className="snap-start shrink-0 w-[calc(100vw-3.5rem)] sm:w-80 lg:w-[340px]"
-              >
-                <PublikasiCard item={item} isDragging={drag.current.moved} />
-              </div>
-            ))}
-            <div className="shrink-0 w-4 sm:w-8" aria-hidden="true" />
+        <div className="relative">
+          {/* Carousel track — left-padded to align with container, fades at right */}
+          <div className="pl-4 sm:pl-[max(1rem,calc((100vw-80rem)/2))]">
+            <div
+              ref={trackRef}
+              className={`flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-3 ${grabbing ? 'cursor-grabbing' : 'cursor-grab'}`}
+              style={{ userSelect: 'none' }}
+              onMouseDown={onMouseDown}
+              onMouseMove={onMouseMove}
+              onMouseUp={onMouseUp}
+              onMouseLeave={onMouseUp}
+            >
+              {filteredAndSorted.map((item) => (
+                <div
+                  key={item.id}
+                  data-card
+                  className="snap-start shrink-0 w-[calc(100vw-5rem)] sm:w-64 md:w-72 lg:w-[280px]"
+                >
+                  <PublikasiCard item={item} isDragging={drag.current.moved} />
+                </div>
+              ))}
+              {/* Right spacer so last card doesn't butt against the fade */}
+              <div className="shrink-0 w-12 sm:w-24" aria-hidden="true" />
+            </div>
           </div>
+          {/* Right-side fade gradient — visual boundary + hint that more cards exist */}
+          <div className="absolute right-0 top-0 bottom-3 w-24 bg-gradient-to-l from-white via-white/70 to-transparent pointer-events-none" aria-hidden="true" />
         </div>
       )}
 
