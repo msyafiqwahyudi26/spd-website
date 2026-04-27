@@ -48,7 +48,7 @@ export default function Image({
     <div className={`relative overflow-hidden ${className}`}>
       {/* Skeleton shown while the image is loading */}
       {!loaded && (
-        <div className={`absolute inset-0 bg-slate-100 animate-pulse flex flex-col items-center justify-center`}>
+        <div className="absolute inset-0 bg-slate-100 animate-pulse flex flex-col items-center justify-center">
           <FallbackIcon type={icon} />
         </div>
       )}

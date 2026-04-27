@@ -110,6 +110,8 @@ const DICT = {
     'kontak.subject': 'Subjek',
     'kontak.message': 'Pesan',
     'kontak.send': 'Kirim Pesan',
+    'kontak.namePlaceholder': 'Nama lengkap Anda',
+    'kontak.messagePlaceholder': 'Tulis pesan Anda...',
     'kontak.sending': 'Mengirim...',
     'kontak.success': 'Pesan berhasil dikirim! Kami akan menghubungi Anda segera.',
     'kontak.error': 'Gagal mengirim pesan. Silakan coba lagi.',
@@ -181,8 +183,6 @@ const DICT = {
     // Kontak page
     'kontak.hero.title': 'Hubungi Kami',
     'kontak.hero.subtitle': 'Ada pertanyaan, usulan kerja sama, atau ingin bergabung dengan kami? Kami siap mendengar.',
-    'kontak.namePlaceholder': 'Nama lengkap Anda',
-    'kontak.messagePlaceholder': 'Tulis pesan Anda...',
 
     // About overview page
     'about.overview.hero.subtitle': 'Mengenal lebih dalam Sindikasi Pemilu dan Demokrasi — pusat kolaborasi multihak dalam penguatan demokrasi dan reformasi kepemiluan Indonesia.',
@@ -316,6 +316,8 @@ const DICT = {
     'kontak.subject': 'Subject',
     'kontak.message': 'Message',
     'kontak.send': 'Send Message',
+    'kontak.namePlaceholder': 'Your full name',
+    'kontak.messagePlaceholder': 'Write your message here...',
     'kontak.sending': 'Sending...',
     'kontak.success': 'Message sent successfully! We will get back to you shortly.',
     'kontak.error': 'Failed to send message. Please try again.',
@@ -387,8 +389,6 @@ const DICT = {
     // Kontak page
     'kontak.hero.title': 'Contact Us',
     'kontak.hero.subtitle': 'Have a question, a collaboration idea, or want to join us? We\'d love to hear from you.',
-    'kontak.namePlaceholder': 'Your full name',
-    'kontak.messagePlaceholder': 'Write your message here...',
 
     // About overview page
     'about.overview.hero.subtitle': 'Learn more about Sindikasi Pemilu dan Demokrasi — a multi-stakeholder collaborative hub for strengthening democracy and electoral reform in Indonesia.',

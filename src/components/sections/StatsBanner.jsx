@@ -45,4 +45,14 @@ export default function StatsBanner({ fallback = [] }) {
           <div
             key={s.id}
             className={visible ? `text-center animate-fade-up delay-${Math.min(i * 100 + 100, 500)}` : 'text-center opacity-0'}
-    
+          >
+            <p className="text-3xl font-extrabold text-white mb-1">
+              <AnimatedValue rawValue={s.value} />
+            </p>
+            <p className="text-xs text-white/80 tracking-wide">{s.label}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
