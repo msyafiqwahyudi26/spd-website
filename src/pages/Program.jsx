@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Hero from '../components/sections/Hero';
 import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
+import { useI18n } from '@/i18n';
 
 /* ── Default icon for programs without an image ───────────────────────────── */
 const DefaultIcon = () => (
@@ -16,6 +17,7 @@ const DefaultIcon = () => (
 
 /* ── Program card (grid) ─────────────────────────────────────────────────── */
 function ProgramCard({ program }) {
+  const { t } = useI18n();
   const href = program.link || `/program/${program.slug}`;
   const isExternal = program.link && program.link.startsWith('http');
   const imgSrc = program.image ? resolveMediaUrl(program.image) : null;
@@ -71,7 +73,7 @@ function ProgramCard({ program }) {
           rel={isExternal ? 'noopener noreferrer' : undefined}
           className="text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors inline-flex items-center gap-1 self-start mt-auto"
         >
-          Selengkapnya
+          {t('program.readMore')}
           <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
         </Link>
       </div>
@@ -81,6 +83,7 @@ function ProgramCard({ program }) {
 
 /* ── Featured card (first / pinned program, full width) ──────────────────── */
 function FeaturedCard({ program }) {
+  const { t } = useI18n();
   const href = program.link || `/program/${program.slug}`;
   const isExternal = program.link && program.link.startsWith('http');
   const imgSrc = program.image ? resolveMediaUrl(program.image) : null;
@@ -111,7 +114,7 @@ function FeaturedCard({ program }) {
         )}
         <div className="absolute top-4 left-4">
           <span className="text-[10px] font-bold tracking-widest uppercase bg-orange-500 text-white px-2.5 py-1 rounded-full">
-            PROGRAM UNGGULAN
+            {t('program.featured')}
           </span>
         </div>
       </div>
@@ -132,7 +135,7 @@ function FeaturedCard({ program }) {
           </p>
         )}
         <span className="text-sm font-semibold text-orange-500 group-hover:text-orange-600 inline-flex items-center gap-1.5 transition-colors">
-          Lihat program ini
+          {t('program.viewThis')}
           <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
         </span>
       </div>
@@ -142,15 +145,17 @@ function FeaturedCard({ program }) {
 
 /* ── Category tabs ───────────────────────────────────────────────────────── */
 function CategoryTabs({ categories, active, onSelect }) {
+  const { t } = useI18n();
+  const allLabel = t('program.allCategories');
   if (categories.length <= 1) return null;
   return (
     <div className="flex flex-wrap gap-2 mb-8">
-      {['Semua', ...categories].map((cat) => (
+      {[allLabel, ...categories].map((cat) => (
         <button
           key={cat}
-          onClick={() => onSelect(cat === 'Semua' ? null : cat)}
+          onClick={() => onSelect(cat === allLabel ? null : cat)}
           className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all duration-200 ${
-            (cat === 'Semua' && active === null) || cat === active
+            (cat === allLabel && active === null) || cat === active
               ? 'bg-orange-500 border-orange-500 text-white shadow-sm'
               : 'bg-white border-slate-200 text-slate-600 hover:border-orange-300 hover:text-orange-500'
           }`}
@@ -182,6 +187,7 @@ function Skeleton() {
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
 export default function Program() {
+  const { t } = useI18n();
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState(null);
@@ -209,8 +215,8 @@ export default function Program() {
   return (
     <>
       <Hero
-        title="Program dan Inisiatif"
-        subtitle="Berbagai inisiatif dan program yang kami jalankan untuk memperkuat ekosistem demokrasi dan reformasi kepemiluan di Indonesia."
+        title={t('program.hero.title')}
+        subtitle={t('program.hero.subtitle')}
       />
 
       <section className="py-16 px-4 bg-slate-50">
@@ -228,9 +234,7 @@ export default function Program() {
           ) : filtered.length === 0 ? (
             <div className="text-center py-16">
               <p className="text-slate-400 text-sm">
-                {activeCategory
-                  ? `Tidak ada program dalam kategori "${activeCategory}".`
-                  : 'Belum ada program yang dipublikasikan.'}
+                {activeCategory ? t('program.noCategory') : t('program.noPrograms')}
               </p>
             </div>
           ) : (
@@ -251,13 +255,13 @@ export default function Program() {
           {!loading && filtered.length > 0 && (
             <div className="mt-12 pt-10 border-t border-slate-200 text-center">
               <p className="text-sm text-slate-500 mb-4">
-                Ingin berkontribusi atau mengetahui lebih lanjut tentang program kami?
+                {t('program.contributeText')}
               </p>
               <Link
                 to="/kontak"
                 className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-6 py-3 rounded-lg transition-colors shadow-sm"
               >
-                Hubungi Kami
+                {t('program.contact')}
                 <span>→</span>
               </Link>
             </div>

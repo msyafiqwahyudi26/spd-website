@@ -5,6 +5,7 @@ import LineChart, { DEFAULT_SERIES } from '../components/charts/LineChart';
 import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { useI18n } from '@/i18n';
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */
 const fmt    = (n) => n == null ? '—' : Number(n).toLocaleString('id-ID');
@@ -752,6 +753,7 @@ function KolaborasiCTA() {
 
 /* ── Page ───────────────────────────────────────────────────────────────── */
 export default function DataPemilu() {
+  const { t } = useI18n();
   const [selectedTahun, setSelectedTahun] = useState(2024);
   const [selectedJenis, setSelectedJenis] = useState('Presiden');
 
@@ -776,8 +778,8 @@ export default function DataPemilu() {
   return (
     <>
       <Hero
-        title="Platform Data Pemilu SPD"
-        subtitle="Portal data pemilu Indonesia dengan visualisasi interaktif untuk mendukung demokrasi yang berbasis data."
+        title={t('data.title')}
+        subtitle={t('data.subtitle')}
       />
 
       <StatusBanner

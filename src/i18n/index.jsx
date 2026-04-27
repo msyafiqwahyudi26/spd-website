@@ -146,11 +146,41 @@ const DICT = {
     'about.team.title': 'Tim Kami',
 
     // Data Pemilu
-    'data.title': 'Data Pemilu',
-    'data.subtitle': 'Data dan statistik pemilihan umum Indonesia',
+    'data.title': 'Platform Data Pemilu SPD',
+    'data.subtitle': 'Portal data pemilu Indonesia dengan visualisasi interaktif untuk mendukung demokrasi yang berbasis data.',
     'data.participation': 'Partisipasi Pemilih',
     'data.infografis': 'Infografis',
     'data.source': 'Sumber: KPU RI',
+
+    // Program page
+    'program.featured': 'PROGRAM UNGGULAN',
+    'program.viewThis': 'Lihat program ini',
+    'program.allCategories': 'Semua',
+    'program.noCategory': 'Tidak ada program dalam kategori ini.',
+    'program.noPrograms': 'Belum ada program yang dipublikasikan.',
+    'program.contributeText': 'Ingin berkontribusi atau mengetahui lebih lanjut tentang program kami?',
+    'program.contact': 'Hubungi Kami',
+    'program.hero.title': 'Program dan Inisiatif',
+    'program.hero.subtitle': 'Berbagai inisiatif dan program yang kami jalankan untuk memperkuat ekosistem demokrasi dan reformasi kepemiluan di Indonesia.',
+
+    // Publikasi page titles
+    'pub.hero.title': 'Publikasi dan Analisis',
+    'pub.hero.subtitle': 'Artikel, riset, dan analisis SPD tentang pemilu dan demokrasi di Indonesia.',
+    'pub.riset.title': 'Hasil Riset SPD',
+    'pub.riset.subtitle': 'Laporan riset, kajian, dan studi empiris Sindikasi Pemilu dan Demokrasi.',
+    'pub.buku.title': 'Buku SPD',
+    'pub.buku.subtitle': 'Koleksi buku dan e-book yang diterbitkan oleh Sindikasi Pemilu dan Demokrasi.',
+
+    // Footer newsletter form
+    'footer.tagline': 'Pusat kerja kolaboratif multihak untuk mempelajari dan memperkuat isu-isu pemilu dan demokrasi di Indonesia secara konsisten.',
+    'footer.emailPlaceholder': 'Email Anda',
+    'footer.emailRequired': 'Masukkan email Anda.',
+    'footer.subscribeSuccess': 'Terima kasih, kami akan mengirimi Anda update.',
+    'footer.subscribeFail': 'Gagal berlangganan. Coba lagi sebentar.',
+
+    // Kontak page
+    'kontak.hero.title': 'Hubungi Kami',
+    'kontak.hero.subtitle': 'Ada pertanyaan, usulan kerja sama, atau ingin bergabung dengan kami? Kami siap mendengar.',
   },
 
   en: {
@@ -276,11 +306,41 @@ const DICT = {
     'about.team.title': 'Our Team',
 
     // Data Pemilu
-    'data.title': 'Election Data',
-    'data.subtitle': 'Indonesian general election data and statistics',
+    'data.title': 'SPD Election Data Platform',
+    'data.subtitle': 'Indonesia\'s election data portal with interactive visualizations to support data-driven democracy.',
     'data.participation': 'Voter Participation',
     'data.infografis': 'Infographics',
     'data.source': 'Source: KPU RI',
+
+    // Program page
+    'program.featured': 'FEATURED PROGRAM',
+    'program.viewThis': 'View this program',
+    'program.allCategories': 'All',
+    'program.noCategory': 'No programs in this category.',
+    'program.noPrograms': 'No published programs yet.',
+    'program.contributeText': 'Want to contribute or learn more about our programs?',
+    'program.contact': 'Contact Us',
+    'program.hero.title': 'Programs & Initiatives',
+    'program.hero.subtitle': 'The initiatives and programs we run to strengthen the democracy ecosystem and electoral reform in Indonesia.',
+
+    // Publikasi page titles
+    'pub.hero.title': 'Publications & Analysis',
+    'pub.hero.subtitle': 'Articles, research, and analysis from SPD on elections and democracy in Indonesia.',
+    'pub.riset.title': 'SPD Research',
+    'pub.riset.subtitle': 'Research reports, studies, and empirical analysis from Sindikasi Pemilu dan Demokrasi.',
+    'pub.buku.title': 'SPD Books',
+    'pub.buku.subtitle': 'Books and e-books published by Sindikasi Pemilu dan Demokrasi.',
+
+    // Footer newsletter form
+    'footer.tagline': 'A multi-stakeholder collaborative hub studying and strengthening electoral and democratic issues in Indonesia.',
+    'footer.emailPlaceholder': 'Your email',
+    'footer.emailRequired': 'Please enter your email.',
+    'footer.subscribeSuccess': 'Thank you! We\'ll send you updates.',
+    'footer.subscribeFail': 'Subscription failed. Please try again.',
+
+    // Kontak page
+    'kontak.hero.title': 'Contact Us',
+    'kontak.hero.subtitle': 'Have a question, a collaboration idea, or want to join us? We\'d love to hear from you.',
   },
 };
 

@@ -1,12 +1,14 @@
 import Hero from '../components/sections/Hero';
 import ContactSection from '../components/sections/ContactSection';
+import { useI18n } from '@/i18n';
 
 export default function Kontak() {
+  const { t } = useI18n();
   return (
     <>
       <Hero
-        title="Kontak"
-        subtitle="Hubungi kami untuk bekerja sama, berkolaborasi, atau dukungan."
+        title={t('kontak.hero.title')}
+        subtitle={t('kontak.hero.subtitle')}
       />
       <ContactSection />
     </>

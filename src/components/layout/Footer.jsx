@@ -57,6 +57,7 @@ const SOCIAL_ICONS = {
 const SOCIAL_LABELS = { facebook: 'Facebook', twitter: 'Twitter / X', linkedin: 'LinkedIn', instagram: 'Instagram' };
 
 function NewsletterForm() {
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState({ kind: 'idle', message: '' });
 
@@ -65,7 +66,7 @@ function NewsletterForm() {
     if (status.kind === 'loading') return;
     const value = email.trim();
     if (!value) {
-      setStatus({ kind: 'error', message: 'Masukkan email Anda.' });
+      setStatus({ kind: 'error', message: t('footer.emailRequired') });
       return;
     }
     setStatus({ kind: 'loading', message: '' });
@@ -74,12 +75,12 @@ function NewsletterForm() {
         method: 'POST',
         body: JSON.stringify({ email: value }),
       });
-      setStatus({ kind: 'success', message: 'Terima kasih, kami akan mengirimi Anda update.' });
+      setStatus({ kind: 'success', message: t('footer.subscribeSuccess') });
       setEmail('');
     } catch (err) {
       setStatus({
         kind: 'error',
-        message: err?.message || 'Gagal berlangganan. Coba lagi sebentar.',
+        message: err?.message || t('footer.subscribeFail'),
       });
     }
   };
@@ -116,7 +117,7 @@ function NewsletterForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={status.kind === 'loading'}
-          placeholder="Email Anda"
+          placeholder={t('footer.emailPlaceholder')}
           className="flex-1 min-w-0 bg-slate-800 border border-slate-700 text-white text-sm px-3 py-2.5 rounded-l-md placeholder:text-slate-500 focus:outline-none focus:border-orange-500 transition-colors duration-200 disabled:opacity-70"
         />
         <button
@@ -176,8 +177,7 @@ export default function Footer() {
               {settings.siteName}
             </p>
             <p className="text-sm text-slate-400 leading-relaxed mb-6">
-              Pusat kerja kolaboratif multihak untuk mempelajari dan memperkuat
-              isu-isu pemilu dan demokrasi di Indonesia secara konsisten.
+              {t('footer.tagline')}
             </p>
             <div className="flex gap-2">
               {['facebook', 'twitter', 'linkedin', 'instagram'].map((key) => {
