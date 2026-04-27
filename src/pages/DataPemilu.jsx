@@ -123,7 +123,7 @@ function StatusBanner({ electionStatus, pemilihStatus, updatedAt }) {
   if (dbOk && kpuOk) {
     return (
       <div className="bg-emerald-50 border-b border-emerald-200" role="note">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-start gap-3">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-start gap-3">
           <svg className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -140,7 +140,7 @@ function StatusBanner({ electionStatus, pemilihStatus, updatedAt }) {
   if (dbOk && !kpuOk) {
     return (
       <div className="bg-blue-50 border-b border-blue-200" role="note">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-start gap-3">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-start gap-3">
           <svg className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
           </svg>
@@ -155,7 +155,7 @@ function StatusBanner({ electionStatus, pemilihStatus, updatedAt }) {
 
   return (
     <div className="bg-amber-50 border-b border-amber-200" role="note">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-start gap-3">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex items-start gap-3">
         <svg className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
         </svg>
@@ -172,7 +172,7 @@ function StatusBanner({ electionStatus, pemilihStatus, updatedAt }) {
 function FilterBar({ selectedTahun, selectedJenis, onTahunChange, onJenisChange }) {
   return (
     <section className="py-6 px-4 bg-white border-b border-slate-100">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
         <Select
           options={TAHUN_OPTIONS.map(o => o.label)}
           value={TAHUN_OPTIONS.find(o => o.tahun === selectedTahun)?.label || 'Pemilu 2024'}
@@ -332,7 +332,7 @@ function StatCards({
       ref={animRef}
       className={`py-8 px-4 bg-white ${visible ? 'animate-fade-up' : 'opacity-0'}`}
     >
-      <div className="max-w-6xl mx-auto space-y-3">
+      <div className="max-w-7xl mx-auto space-y-3">
         {!hasDb && (
           <div className="text-xs text-slate-400 bg-slate-50 rounded-lg px-4 py-2 border border-slate-200">
             Tidak ada data tersimpan untuk Pemilu {tahun} jenis ini.{' '}
@@ -382,7 +382,7 @@ function DaftarPemilihSection({ data, status }) {
   if (status === 'loading') {
     return (
       <section className="py-12 px-4 bg-slate-50">
-        <div className="max-w-6xl mx-auto space-y-3">
+        <div className="max-w-7xl mx-auto space-y-3">
           <div className="h-6 w-48 bg-slate-200 rounded animate-pulse" />
           <div className="h-4 w-80 bg-slate-100 rounded animate-pulse" />
           <div className="mt-6 space-y-2">
@@ -396,7 +396,7 @@ function DaftarPemilihSection({ data, status }) {
   if (status === 'error' || !data) {
     return (
       <section className="py-12 px-4 bg-slate-50">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
             <p className="text-amber-800 font-semibold text-sm">Data per provinsi tidak tersedia</p>
             <p className="text-amber-600 text-xs mt-1">Koneksi ke Satu Peta Data KPU tidak berhasil. Coba refresh halaman.</p>
@@ -441,7 +441,7 @@ function DaftarPemilihSection({ data, status }) {
       ref={animRef}
       className={`py-16 px-4 bg-slate-50 ${visible ? 'animate-fade-up' : 'opacity-0'}`}
     >
-      <div className="max-w-6xl mx-auto space-y-10">
+      <div className="max-w-7xl mx-auto space-y-10">
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -589,7 +589,7 @@ function TrendSection({ items, selectedJenis, onJenisChange }) {
       ref={animRef}
       className={`py-16 px-4 bg-white ${visible ? 'animate-fade-up' : 'opacity-0'}`}
     >
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <h2 className="text-2xl font-bold text-slate-800 mb-8">Tren Data Pemilu</h2>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-3 bg-white border border-slate-200 rounded-xl p-6">
@@ -676,7 +676,7 @@ function InfografisSection() {
       ref={animRef}
       className={`py-16 px-4 bg-white ${visible ? 'animate-fade-up' : 'opacity-0'}`}
     >
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <h2 className="text-2xl font-bold text-slate-800 mb-8">Infografis Pemilu</h2>
         {loading && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -727,7 +727,7 @@ function KolaborasiCTA() {
       ref={animRef}
       className={`py-16 px-4 bg-slate-50 ${visible ? 'animate-fade-up' : 'opacity-0'}`}
     >
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start justify-between gap-8">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start justify-between gap-8">
         <div className="max-w-lg">
           <h2 className="text-2xl font-bold text-slate-800 mb-3">Kolaborasi Data Terbuka</h2>
           <p className="text-sm text-slate-500 leading-relaxed">
@@ -793,32 +793,4 @@ export default function DataPemilu() {
         selectedJenis={selectedJenis}
         onTahunChange={setSelectedTahun}
         onJenisChange={setSelectedJenis}
-      />
-
-      <StatCards
-        dbRow={dbRow}
-        prevRow={prevRow}
-        partisipasiData={partisipasiData}
-        partisipasiStatus={partisipasiStatus}
-        pemilihData={pemilihData}
-        pemilihStatus={pemilihStatus}
-        tahun={selectedTahun}
-      />
-
-      {/* Daftar pemilih per provinsi hanya tersedia untuk 2024 (KPU live) */}
-      {selectedTahun === 2024 && (
-        <DaftarPemilihSection data={pemilihData} status={pemilihStatus} />
-      )}
-
-      <TrendSection
-        items={electionItems}
-        selectedJenis={selectedJenis}
-        onJenisChange={setSelectedJenis}
-      />
-
-      <InfografisSection />
-
-      <KolaborasiCTA />
-    </>
-  );
-}
+    

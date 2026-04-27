@@ -168,7 +168,7 @@ export default function Footer() {
   const layananItems = (layananLinks && layananLinks.length > 0) ? layananLinks : FALLBACK_LAYANAN;
   return (
     <footer className="bg-slate-900 text-white relative">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
 
           {/* Col 1 — SPD Info */}
@@ -253,7 +253,7 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-slate-800">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
           <p className="text-xs text-slate-500 text-center">
             {t('footer.copyright')}
           </p>
@@ -270,3 +270,4 @@ export default function Footer() {
     </footer>
   );
 }
+                                                                                                          

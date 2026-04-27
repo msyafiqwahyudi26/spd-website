@@ -61,7 +61,7 @@ export default function FeatureCards() {
 
   return (
     <section className="py-16 px-4 bg-white overflow-hidden">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div ref={containerRef} className={`text-center mb-12 ${visible ? 'animate-fade-up' : 'opacity-0'}`}>
           <h2 className="text-3xl font-bold text-slate-800">{t('feature.title')}</h2>
           <p className="mt-4 text-slate-500 max-w-2xl mx-auto leading-relaxed">
@@ -75,16 +75,4 @@ export default function FeatureCards() {
               key={item.id}
               className={visible ? `animate-fade-up delay-${[100, 200, 300][i] || 100}` : 'opacity-0'}
             >
-              <FeatureCard
-                iconKey={item.iconKey || 'collaboration'}
-                iconUrl={item.iconUrl || ''}
-                title={item.title}
-                description={item.description}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
+      

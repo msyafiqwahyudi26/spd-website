@@ -103,7 +103,7 @@ export default function ProgramCards({ limit = null, showIntro = true }) {
 
   return (
     <section className="py-16 px-4 bg-slate-50 overflow-hidden">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {showIntro && (
           <div ref={containerRef} className={`text-center mb-12 ${animVisible ? 'animate-fade-up' : 'opacity-0'}`}>
             <h2 className="text-3xl font-bold text-slate-800">{t('program.title')}</h2>
@@ -124,17 +124,4 @@ export default function ProgramCards({ limit = null, showIntro = true }) {
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {visible.map((program, i) => (
-              <div
-                key={program.id}
-                className={animVisible ? `animate-fade-up delay-${Math.min(i * 100 + 100, 500)}` : 'opacity-0'}
-              >
-                <ProgramCard program={program} />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
+            {visible.map((program, i) 

@@ -40,19 +40,9 @@ export default function StatsBanner({ fallback = [] }) {
 
   return (
     <section className="bg-orange-500 py-14 px-4 overflow-hidden">
-      <div ref={containerRef} className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
+      <div ref={containerRef} className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
         {list.map((s, i) => (
           <div
             key={s.id}
             className={visible ? `text-center animate-fade-up delay-${Math.min(i * 100 + 100, 500)}` : 'text-center opacity-0'}
-          >
-            <p className="text-3xl font-extrabold text-white mb-1">
-              <AnimatedValue rawValue={s.value} />
-            </p>
-            <p className="text-xs text-white/80 tracking-wide">{s.label}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
+    

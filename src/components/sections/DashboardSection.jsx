@@ -56,7 +56,7 @@ export default function DashboardSection() {
 
   return (
     <section className="py-16 px-4 bg-slate-50">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
 
         {/* Header */}
         <div className="text-center mb-10">

@@ -75,7 +75,7 @@ export default function ContactSection() {
       ref={animRef}
       className={`py-16 px-4 bg-white ${visible ? 'animate-fade-up' : 'opacity-0'}`}
     >
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-slate-800">{t('kontak.title')}</h2>
           <p className="mt-4 text-slate-500 max-w-xl mx-auto leading-relaxed">
@@ -160,7 +160,7 @@ export default function ContactSection() {
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Nama lengkap Anda"
+                  placeholder={t('kontak.namePlaceholder')}
                   maxLength={200}
                   className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors duration-200"
                 />
@@ -188,7 +188,7 @@ export default function ContactSection() {
                   rows={5}
                   value={form.message}
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  placeholder="Tulis pesan Anda..."
+                  placeholder={t('kontak.messagePlaceholder')}
                   maxLength={5000}
                   className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors duration-200 resize-none"
                 />
@@ -203,14 +203,4 @@ export default function ContactSection() {
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                )}
-                {isSubmitting ? t('kontak.sending') : t('kontak.send')}
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+          

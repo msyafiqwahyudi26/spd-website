@@ -10,7 +10,4 @@ export default function Kontak() {
         title={t('kontak.hero.title')}
         subtitle={t('kontak.hero.subtitle')}
       />
-      <ContactSection />
-    </>
-  );
-}
+      <Contact

@@ -10,6 +10,7 @@ import { useI18n } from '@/i18n';
 import { useStaggerAnimation } from '@/hooks/useScrollAnimation';
 
 function EventCard({ item }) {
+  const { t } = useI18n();
   return (
     <article className="group bg-white border border-slate-100 rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-orange-100">
       <div className="h-44">
@@ -50,7 +51,7 @@ function EventCard({ item }) {
           to={`/event/${item.slug || String(item.id)}`}
           className="text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors duration-200 inline-flex items-center gap-1 self-start"
         >
-          Lihat Detail
+          {t('common.viewDetail')}
           <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
         </Link>
       </div>
@@ -136,14 +137,14 @@ export default function Event() {
   }, [events, filter, search]);
 
   return (
-    <main className="min-h-screen bg-slate-50 fade-in-up">
+    <div className="min-h-screen bg-slate-50 fade-in-up">
       <Hero
-        title="Event & Kegiatan"
-        subtitle="Ikuti berbagai diskusi, webinar, dan kegiatan publik yang kami selenggarakan."
+        title={t('event.title')}
+        subtitle={t('event.subtitle')}
       />
 
       <section className="py-16">
-        <div className="max-w-6xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4">
 
           {/* Search + Filter Bar */}
           <div className="flex flex-col sm:flex-row gap-3 mb-8">
@@ -192,21 +193,4 @@ export default function Event() {
               <p className="text-sm text-slate-400 mb-4">{filtered.length} {t('event.found')}</p>
               <div
                 ref={containerRef}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              >
-                {filtered.map((item, i) => (
-                  <div
-                    key={item.id}
-                    className={visible ? `animate-fade-up delay-${Math.min(i * 100 + 100, 500)}` : 'opacity-0'}
-                  >
-                    <EventCard item={item} />
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </section>
-    </main>
-  );
-}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-col

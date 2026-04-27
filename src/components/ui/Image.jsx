@@ -45,21 +45,23 @@ export default function Image({
   }
 
   return (
-    <>
+    <div className={`relative overflow-hidden ${className}`}>
       {/* Skeleton shown while the image is loading */}
       {!loaded && (
-        <div className={`bg-slate-100 animate-pulse flex flex-col items-center justify-center ${className}`}>
+        <div className={`absolute inset-0 bg-slate-100 animate-pulse flex flex-col items-center justify-center`}>
           <FallbackIcon type={icon} />
         </div>
       )}
       <img
         src={src}
         alt={alt}
-        className={`object-cover ${className} ${loaded ? 'block' : 'hidden'}`}
+        className={`object-cover w-full h-full transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+        loading="lazy"
+        decoding="async"
         onLoad={() => setLoaded(true)}
         onError={() => setFailed(true)}
       />
-    </>
+    </div>
   );
 }
 

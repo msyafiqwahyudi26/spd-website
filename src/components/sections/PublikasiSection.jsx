@@ -200,7 +200,7 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
 
   return (
     <section className="py-16 bg-white fade-in-up overflow-hidden">
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4">
         
         {/* Header and Controls */}
         <div className="flex flex-col gap-6 mb-10">
@@ -274,7 +274,7 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
       </div>
 
       {isLoading ? (
-        <div className={`max-w-6xl mx-auto px-4 grid grid-cols-1 ${isPage ? 'sm:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-3'} gap-6`}>
+        <div className={`max-w-7xl mx-auto px-4 grid grid-cols-1 ${isPage ? 'sm:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-3'} gap-6`}>
           {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
         </div>
       ) : filteredAndSorted.length === 0 ? (
@@ -288,7 +288,7 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
           }}
         />
       ) : isPage ? (
-        <div className="max-w-6xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAndSorted.map((item) => (
               <PublikasiCard key={item.id} item={item} isDragging={false} />
@@ -299,35 +299,4 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
         <div className="pl-4 sm:pl-[max(1rem,calc((100vw-72rem)/2))]">
           <div
             ref={trackRef}
-            className={`flex gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-2 ${grabbing ? 'cursor-grabbing' : 'cursor-grab'}`}
-            style={{ userSelect: 'none' }}
-            onMouseDown={onMouseDown}
-            onMouseMove={onMouseMove}
-            onMouseUp={onMouseUp}
-            onMouseLeave={onMouseUp}
-          >
-            {filteredAndSorted.map((item) => (
-              <div
-                key={item.id}
-                data-card
-                className="snap-start shrink-0 w-[calc(100vw-3.5rem)] sm:w-80 lg:w-[340px]"
-              >
-                <PublikasiCard item={item} isDragging={drag.current.moved} />
-              </div>
-            ))}
-            {/* Right-edge breathing room */}
-            <div className="shrink-0 w-4 sm:w-8" aria-hidden="true" />
-          </div>
-        </div>
-      )}
-
-      {!isPage && (
-        <div className="max-w-6xl mx-auto px-4 mt-10 flex justify-center">
-          <Button href="/publikasi" variant="primary">
-            {t('pub.viewAll')}
-          </Button>
-        </div>
-      )}
-    </section>
-  );
-}
+            className={`flex gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-2 ${grabbing ? '

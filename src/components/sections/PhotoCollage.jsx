@@ -149,7 +149,7 @@ export default function PhotoCollage({
 
   return (
     <section className="py-16 px-4 bg-slate-50 fade-in-up">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <h2 className="text-3xl font-bold text-slate-800">{title}</h2>
           {subtitle && (

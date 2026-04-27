@@ -45,7 +45,7 @@ export default function Profil() {
         ref={animRef1}
         className={`py-16 px-4 bg-white ${visible1 ? 'animate-fade-up' : 'opacity-0'}`}
       >
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl font-bold text-slate-800 mb-6">{t('about.profil.who')}</h2>
           <div className="space-y-4 text-slate-600 leading-relaxed text-sm">
             {introText.split(/\n\n+/).map((para, i) => (
@@ -60,7 +60,7 @@ export default function Profil() {
         ref={animRef2}
         className={`py-16 px-4 bg-slate-50 ${visible2 ? 'animate-fade-up' : 'opacity-0'}`}
       >
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="mb-10">
             <h2 className="text-2xl font-bold text-slate-800 mb-3">{t('about.profil.journey.title')}</h2>
             <p className="text-sm text-slate-500 leading-relaxed">
@@ -87,9 +87,4 @@ export default function Profil() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-    </>
-  );
-}
+          </d

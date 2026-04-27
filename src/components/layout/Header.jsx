@@ -89,7 +89,7 @@ function TopBar({ settings }) {
 
   return (
     <div className="bg-slate-900 text-slate-300">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-8 text-xs">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-8 text-xs">
         <div className="flex items-center gap-3">
           {keys.length > 0 ? (
             keys.map((k) => (
@@ -193,7 +193,7 @@ export default function Header() {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <TopBar settings={settings} />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-20">
 
           {/* Logo */}
@@ -237,7 +237,7 @@ export default function Header() {
       {/* Mobile Menu */}
       {menuOpen && (
         <div className="md:hidden border-t border-slate-100 bg-white">
-          <nav className="max-w-6xl mx-auto px-4 py-2 flex flex-col gap-1" aria-label="Navigasi seluler">
+          <nav className="max-w-7xl mx-auto px-4 py-2 flex flex-col gap-1" aria-label="Navigasi seluler">
             {NAV_LINKS.map((link) => (
               <div key={link.id}>
                 <NavLink

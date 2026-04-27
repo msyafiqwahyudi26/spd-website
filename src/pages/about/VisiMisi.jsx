@@ -87,7 +87,7 @@ export default function VisiMisi() {
         ref={animRef1}
         className={`py-16 px-4 bg-white ${visible1 ? 'animate-fade-up' : 'opacity-0'}`}
       >
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
 
           {/* Visi */}
           <div className="mb-14">
@@ -148,16 +148,4 @@ export default function VisiMisi() {
                 key={cv.id}
                 className="group bg-white border border-slate-100 rounded-xl p-6 text-center transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:shadow-orange-100/50 hover:border-orange-100"
               >
-                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:scale-110 group-hover:bg-orange-500">
-                  {cv.iconNode}
-                </div>
-                <h3 className="font-bold text-slate-800 mb-2 transition-colors duration-200 group-hover:text-orange-600">{cv.title}</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">{cv.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    </>
-  );
-}
+                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4 transition-all duration-
