@@ -379,37 +379,11 @@ function DaftarPemilihSection({ data, status }) {
   const [sortKey, setSortKey] = useState('dpt');
   const [sortDir, setSortDir] = useState('desc');
 
-  if (status === 'loading') {
-    return (
-      <section className="py-12 px-4 bg-slate-50">
-        <div className="max-w-7xl mx-auto space-y-3">
-          <div className="h-6 w-48 bg-slate-200 rounded animate-pulse" />
-          <div className="h-4 w-80 bg-slate-100 rounded animate-pulse" />
-          <div className="mt-6 space-y-2">
-            {[...Array(6)].map((_, i) => <div key={i} className="h-9 bg-slate-200 rounded animate-pulse" />)}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (status === 'error' || !data) {
-    return (
-      <section className="py-12 px-4 bg-slate-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
-            <p className="text-amber-800 font-semibold text-sm">Data per provinsi tidak tersedia</p>
-            <p className="text-amber-600 text-xs mt-1">Koneksi ke Satu Peta Data KPU tidak berhasil. Coba refresh halaman.</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  const n   = data.nasional ?? {};
+  // Derived data — computed unconditionally so hooks are always called before any early-return
+  const n   = data?.nasional ?? {};
   const dp4 = n.dp4 ?? 1;
 
-  const rows = (data.provinsi ?? []).map(r => ({
+  const rows = (data?.provinsi ?? []).map(r => ({
     ...r,
     selisih: r.dp4 && r.dpt ? r.dp4 - r.dpt : null,
     persen:  r.dp4 && r.dpt ? (r.dpt / r.dp4) * 100 : null,
@@ -436,11 +410,37 @@ function DaftarPemilihSection({ data, status }) {
       ? <span className="text-slate-300 ml-0.5">↕</span>
       : <span className="text-orange-500 ml-0.5">{sortDir === 'asc' ? '↑' : '↓'}</span>;
 
+  // Always render the outer section so ref is attached on mount —
+  // this prevents the IntersectionObserver from missing its target
+  // when data arrives asynchronously after the first render.
   return (
     <section
       ref={animRef}
-      className={`py-16 px-4 bg-slate-50 ${visible ? 'animate-fade-up' : 'opacity-0'}`}
+      className={`py-12 px-4 bg-slate-50 ${visible ? 'animate-fade-up' : 'opacity-0'}`}
     >
+      {/* Loading skeleton */}
+      {status === 'loading' && (
+        <div className="max-w-7xl mx-auto space-y-3">
+          <div className="h-6 w-48 bg-slate-200 rounded animate-pulse" />
+          <div className="h-4 w-80 bg-slate-100 rounded animate-pulse" />
+          <div className="mt-6 space-y-2">
+            {[...Array(6)].map((_, i) => <div key={i} className="h-9 bg-slate-200 rounded animate-pulse" />)}
+          </div>
+        </div>
+      )}
+
+      {/* Error state */}
+      {(status === 'error' || (!data && status !== 'loading')) && (
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
+            <p className="text-amber-800 font-semibold text-sm">Data per provinsi tidak tersedia</p>
+            <p className="text-amber-600 text-xs mt-1">Koneksi ke Satu Peta Data KPU tidak berhasil. Coba refresh halaman.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Full content — only when data is ready */}
+      {status === 'ok' && data && (
       <div className="max-w-7xl mx-auto space-y-10">
 
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -555,6 +555,7 @@ function DaftarPemilihSection({ data, status }) {
           <p className="mt-2 text-xs text-slate-400">{filtered.length} provinsi</p>
         </div>
       </div>
+      )}
     </section>
   );
 }

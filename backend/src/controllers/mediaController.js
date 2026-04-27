@@ -3,9 +3,33 @@ const fs = require('fs');
 const prisma = require('../lib/prisma');
 const { log } = require('../lib/logger');
 const { ok, fail } = require('../lib/response');
-const { publicPrefixFor } = require('../middlewares/upload');
+const { publicPrefixFor, IMAGES_DIR, DOCS_DIR, MEDIA_DIR } = require('../middlewares/upload');
 
 const KEY_RE = /^[a-z0-9][a-z0-9._-]{0,63}$/;
+
+// Allowed upload root directories — used to prevent path-traversal attacks
+const ALLOWED_DIRS = [IMAGES_DIR, DOCS_DIR, MEDIA_DIR].map(d => path.resolve(d));
+
+/**
+ * Safely delete a file referenced by a /uploads/... URL.
+ * Guards against path-traversal (e.g. url = '/uploads/../../etc/passwd').
+ */
+function safeUnlink(url) {
+  try {
+    const rel = (url || '').replace(/^\/uploads\//, '');
+    // Resolve to an absolute path — path.join won't normalise '../..'
+    const target = path.resolve(path.join(__dirname, '..', '..', 'uploads'), rel);
+    // Only delete if the resolved path sits inside one of our known upload dirs
+    const inAllowed = ALLOWED_DIRS.some(dir => target.startsWith(dir + path.sep) || target === dir);
+    if (!inAllowed) {
+      console.warn('[media] Rejected unsafe delete path:', target);
+      return;
+    }
+    if (fs.existsSync(target)) fs.unlinkSync(target);
+  } catch (e) {
+    console.warn('[media] safeUnlink error:', e.message);
+  }
+}
 
 function toPublic(row) {
   return {
@@ -70,10 +94,7 @@ exports.upload = async (req, res, next) => {
     if (previous && previous.id !== created.id) {
       try { await prisma.media.delete({ where: { id: previous.id } }); } catch {}
       // Physical file removal is best-effort.
-      try {
-        const rel = previous.url.replace(/^\/uploads\//, '');
-        fs.unlinkSync(path.join(process.cwd(), 'uploads', rel));
-      } catch {}
+      safeUnlink(previous.url);
     }
 
     log('media_upload', 'media', {
@@ -140,11 +161,8 @@ exports.remove = async (req, res, next) => {
 
     await prisma.media.delete({ where: { id } });
 
-    // Best-effort delete of the physical file.
-    try {
-      const rel = existing.url.replace(/^\/uploads\//, '');
-      fs.unlinkSync(path.join(process.cwd(), 'uploads', rel));
-    } catch {}
+    // Best-effort delete of the physical file (path-traversal safe).
+    safeUnlink(existing.url);
 
     log('media_delete', 'media', {
       entityId: id,

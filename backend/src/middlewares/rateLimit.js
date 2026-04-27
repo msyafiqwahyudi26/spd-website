@@ -45,11 +45,11 @@ function createRateLimit({
   };
 }
 
-// Periodic prune so the memory store doesn't grow unbounded on a long
-// uptime with many unique IPs. Safe no-op for stores with native TTL.
+// Periodic prune every 15 min (was 1 h) — keeps memory bounded under
+// sustained high-traffic with many unique IPs. No-op for Redis-backed stores.
 setInterval(() => {
   const cutoff = Date.now() - 24 * 60 * 60 * 1000;
   store.prune(cutoff);
-}, 60 * 60 * 1000).unref?.();
+}, 15 * 60 * 1000).unref?.();
 
 module.exports = { createRateLimit, getClientIp };

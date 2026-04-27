@@ -1,17 +1,54 @@
 /**
  * KPU Satu Data Proxy Controller
  *
- * Proxies public KPU data endpoints with in-memory caching (TTL 1 hour by
- * default) so the frontend always loads fast and KPU servers aren't hammered.
+ * Proxies public KPU data endpoints with:
+ *  - In-memory cache (24 hours TTL) — KPU election data is historical, not live
+ *  - File-based persistent backup — if KPU goes down or changes endpoints,
+ *    the last successful fetch is served from disk so the page never goes blank
  *
  * Data sources:
- *  - sirekap-obj-data.kpu.go.id  — real-time hitung cepat (Sirekap)
- *  - opendata.kpu.go.id           — historical open datasets
+ *  - sirekap-obj-data.kpu.go.id  — Sirekap hitung cepat (Pilpres & partisipasi)
+ *  - satupetadata.kpu.go.id       — Data pemilih per provinsi (DP4 → DPT)
  */
 
 const https = require('https');
 const http  = require('http');
+const path  = require('path');
+const fs    = require('fs');
 const { ok, fail } = require('../lib/response');
+
+/* ── Backup directory (backend/data/) ─────────────────────────────────── */
+const BACKUP_DIR = path.join(__dirname, '..', '..', 'data');
+if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
+
+function backupPath(key) {
+  // key like 'kpu:pemilih' → 'kpu-backup-pemilih.json'
+  return path.join(BACKUP_DIR, `kpu-backup-${key.replace('kpu:', '')}.json`);
+}
+
+/** Persist data to disk. Non-fatal — logs warn on failure. */
+function saveBackup(key, data) {
+  try {
+    fs.writeFileSync(backupPath(key), JSON.stringify({ savedAt: new Date().toISOString(), data }), 'utf8');
+  } catch (e) {
+    console.warn('[KPU backup] Could not write backup for', key, ':', e.message);
+  }
+}
+
+/** Load last-known-good data from disk. Returns null if unavailable. */
+function loadBackup(key) {
+  try {
+    const raw = fs.readFileSync(backupPath(key), 'utf8');
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.data) {
+      // Annotate with backup metadata so frontend can show a warning
+      return { ...parsed.data, _fromBackup: true, _backupSavedAt: parsed.savedAt };
+    }
+  } catch {
+    // No backup file yet or corrupt — that's fine
+  }
+  return null;
+}
 
 /* ── In-memory cache ───────────────────────────────────────────────────── */
 const cache = new Map();
@@ -23,12 +60,15 @@ function getCached(key) {
   return entry.data;
 }
 
-function setCached(key, data, ttlMs = 60 * 60 * 1000) {
+// Default TTL: 24 hours — all KPU data is historical (Pemilu 2024 is over)
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function setCached(key, data, ttlMs = DAY_MS) {
   cache.set(key, { data, expiresAt: Date.now() + ttlMs });
 }
 
 /* ── Generic fetch helpers ─────────────────────────────────────────────── */
-function _fetchJson(lib, url, timeoutMs = 15000) {
+function _fetchJson(lib, url, timeoutMs = 20000) {
   return new Promise((resolve, reject) => {
     const req = lib.get(url, {
       headers: {
@@ -36,7 +76,6 @@ function _fetchJson(lib, url, timeoutMs = 15000) {
         'User-Agent': 'SPDIndonesia-DataProxy/1.0',
       },
     }, (res) => {
-      // Follow one level of redirect
       if (res.statusCode === 301 || res.statusCode === 302) {
         res.resume();
         const loc = res.headers.location;
@@ -64,37 +103,20 @@ function _fetchJson(lib, url, timeoutMs = 15000) {
   });
 }
 
-// For HTTPS endpoints (Sirekap)
-function fetchJson(url, timeoutMs = 15000) {
-  return _fetchJson(https, url, timeoutMs);
-}
-
-// For HTTP endpoints (satupetadata.kpu.go.id)
-function fetchJsonHttp(url, timeoutMs = 15000) {
-  return _fetchJson(http, url, timeoutMs);
-}
+function fetchJson(url, timeoutMs = 20000)     { return _fetchJson(https, url, timeoutMs); }
+function fetchJsonHttp(url, timeoutMs = 20000) { return _fetchJson(http,  url, timeoutMs); }
 
 /* ── Endpoint definitions ──────────────────────────────────────────────── */
-// Sirekap: live hitung suara Pilpres 2024 (nasional)
 const SIREKAP_PPWP   = 'https://sirekap-obj-data.kpu.go.id/pemilu/hhcw/ppwp.json';
-// Sirekap: live hitung suara DPR 2024 (nasional)
 const SIREKAP_DPR    = 'https://sirekap-obj-data.kpu.go.id/pemilu/hhcw/pdpr.json';
-// Sirekap: partisipasi nasional (TPS yang sudah lapor)
 const SIREKAP_PART   = 'https://sirekap-obj-data.kpu.go.id/pemilu/partisipasi/ppwp.json';
 
-/* ── Helpers to reshape Sirekap payload ───────────────────────────────── */
+/* ── Sirekap shapers ───────────────────────────────────────────────────── */
 function shapePpwp(raw) {
-  // Sirekap PPWP shape: { chart: { [paslon_id]: votes }, tungsura: { ... } }
   const chart = raw?.chart || {};
   const candidates = Object.entries(chart).map(([id, suara]) => ({ id, suara }));
   const totalSuara = candidates.reduce((s, c) => s + (c.suara || 0), 0);
-  return {
-    source: 'sirekap',
-    type: 'ppwp',
-    candidates,
-    totalSuara,
-    raw: raw?.table ?? null,
-  };
+  return { source: 'sirekap', type: 'ppwp', candidates, totalSuara, raw: raw?.table ?? null };
 }
 
 function shapeDpr(raw) {
@@ -105,99 +127,102 @@ function shapeDpr(raw) {
 }
 
 function shapePartisipasi(raw) {
-  // Shape: { persen_partisipasi, total_tps, tps_melapor, ... }
   return {
     source: 'sirekap',
     type: 'partisipasi',
     persenPartisipasi: raw?.persen_partisipasi ?? null,
-    totalTps: raw?.total_tps ?? null,
-    tpsMelapor: raw?.tps_melapor ?? null,
+    totalTps:          raw?.total_tps          ?? null,
+    tpsMelapor:        raw?.tps_melapor        ?? null,
     data: raw,
   };
 }
 
 /* ── Controllers ───────────────────────────────────────────────────────── */
 
-/**
- * GET /api/kpu/ppwp
- * Hasil hitung suara Pilpres 2024 (Sirekap, nasional)
- */
+/** GET /api/kpu/ppwp — Hasil hitung suara Pilpres 2024 */
 exports.ppwp = async (req, res, next) => {
+  const cacheKey = 'kpu:ppwp';
   try {
-    const cacheKey = 'kpu:ppwp';
     let data = getCached(cacheKey);
     if (!data) {
       const raw = await fetchJson(SIREKAP_PPWP);
       data = shapePpwp(raw);
-      setCached(cacheKey, data, 60 * 60 * 1000); // 1 hour
+      setCached(cacheKey, data, DAY_MS);
+      saveBackup(cacheKey, data);
     }
     return ok(res, data);
   } catch (err) {
     console.warn('[KPU proxy] ppwp fetch failed:', err.message);
+    const backup = loadBackup(cacheKey);
+    if (backup) return ok(res, backup);
     return fail(res, 502, 'Data KPU sementara tidak tersedia');
   }
 };
 
-/**
- * GET /api/kpu/dpr
- * Hasil hitung suara DPR 2024 (Sirekap, nasional)
- */
+/** GET /api/kpu/dpr — Hasil hitung suara DPR 2024 */
 exports.dpr = async (req, res, next) => {
+  const cacheKey = 'kpu:dpr';
   try {
-    const cacheKey = 'kpu:dpr';
     let data = getCached(cacheKey);
     if (!data) {
       const raw = await fetchJson(SIREKAP_DPR);
       data = shapeDpr(raw);
-      setCached(cacheKey, data, 60 * 60 * 1000);
+      setCached(cacheKey, data, DAY_MS);
+      saveBackup(cacheKey, data);
     }
     return ok(res, data);
   } catch (err) {
     console.warn('[KPU proxy] dpr fetch failed:', err.message);
+    const backup = loadBackup(cacheKey);
+    if (backup) return ok(res, backup);
     return fail(res, 502, 'Data KPU sementara tidak tersedia');
   }
 };
 
-/**
- * GET /api/kpu/partisipasi
- * Tingkat partisipasi Pemilu 2024 (Sirekap)
- */
+/** GET /api/kpu/partisipasi — Tingkat partisipasi Pemilu 2024 */
 exports.partisipasi = async (req, res, next) => {
+  const cacheKey = 'kpu:partisipasi';
   try {
-    const cacheKey = 'kpu:partisipasi';
     let data = getCached(cacheKey);
     if (!data) {
       const raw = await fetchJson(SIREKAP_PART);
       data = shapePartisipasi(raw);
-      setCached(cacheKey, data, 60 * 60 * 1000);
+      setCached(cacheKey, data, DAY_MS);   // 24h — final data doesn't change
+      saveBackup(cacheKey, data);
     }
     return ok(res, data);
   } catch (err) {
     console.warn('[KPU proxy] partisipasi fetch failed:', err.message);
+    const backup = loadBackup(cacheKey);
+    if (backup) return ok(res, backup);
     return fail(res, 502, 'Data KPU sementara tidak tersedia');
   }
 };
 
-/**
- * GET /api/kpu/status
- * Health-check: returns cache state & timestamps without hitting KPU
- */
+/** GET /api/kpu/status — Cache state + backup availability */
 exports.status = (req, res) => {
   const entries = [];
   for (const [key, entry] of cache.entries()) {
+    const backupExists = fs.existsSync(backupPath(key));
+    let backupSavedAt = null;
+    if (backupExists) {
+      try {
+        const b = JSON.parse(fs.readFileSync(backupPath(key), 'utf8'));
+        backupSavedAt = b.savedAt;
+      } catch {}
+    }
     entries.push({
       key,
-      expiresAt: new Date(entry.expiresAt).toISOString(),
-      ttlSec: Math.round((entry.expiresAt - Date.now()) / 1000),
+      expiresAt:    new Date(entry.expiresAt).toISOString(),
+      ttlSec:       Math.round((entry.expiresAt - Date.now()) / 1000),
+      backupExists,
+      backupSavedAt,
     });
   }
   return ok(res, { cached: entries, count: entries.length });
 };
 
-/**
- * POST /api/kpu/cache/clear  (admin only)
- * Force-expire all cached KPU data so next request re-fetches from source
- */
+/** POST /api/kpu/cache/clear — Force-expire cache (admin only) */
 exports.clearCache = (req, res) => {
   const count = cache.size;
   cache.clear();
@@ -206,10 +231,8 @@ exports.clearCache = (req, res) => {
 
 /* ── Satu Peta Data KPU (satupetadata.kpu.go.id) ──────────────────────── */
 
-// Base URL for satupetadata GeoJSON (HTTP, not HTTPS)
 const SATUPETA_BASE = 'http://satupetadata.kpu.go.id/assets/gis//json/geojsonRIDP4.php';
 
-// Data types available from satupetadata
 const PEMILIH_TYPES = [
   { key: 'dp4',   label: 'DP4',   desc: 'Daftar Penduduk Potensial Pemilih Pemilu' },
   { key: 'dps',   label: 'DPS',   desc: 'Daftar Pemilih Sementara' },
@@ -218,17 +241,13 @@ const PEMILIH_TYPES = [
   { key: 'dplk',  label: 'DPLK',  desc: 'Daftar Pemilih Lokasi Khusus' },
 ];
 
-/**
- * Shape raw GeoJSON from satupetadata into a clean per-province array.
- * Strips polygon geometry (very large) and only keeps the properties.
- */
-function shapeGeoJson(raw, typeKey, typeLabel) {
+function shapeGeoJson(raw) {
   if (!raw || !Array.isArray(raw.features)) return [];
   return raw.features
     .map(f => ({
-      kdProv:   f.properties?.KD_PROV   ?? '',
-      provinsi: f.properties?.PROVINSI  ?? '',
-      jumlah:   f.properties?.JML       ?? 0,
+      kdProv:   f.properties?.KD_PROV  ?? '',
+      provinsi: f.properties?.PROVINSI ?? '',
+      jumlah:   f.properties?.JML      ?? 0,
     }))
     .sort((a, b) => a.provinsi.localeCompare(b.provinsi));
 }
@@ -236,35 +255,25 @@ function shapeGeoJson(raw, typeKey, typeLabel) {
 /**
  * GET /api/kpu/pemilih
  *
- * Returns aggregated data pemilih (DP4 → DPT) from satupetadata.kpu.go.id
- * for all 38 provinces. Cached for 24 hours — this is historical Pemilu 2024
- * data that doesn't change.
- *
- * Response shape:
- * {
- *   updatedAt: ISO string,
- *   nasional: { dp4, dps, dpshp, dpt, dplk },   // national totals
- *   provinsi: [                                    // per-province breakdown
- *     { kdProv, provinsi, dp4, dps, dpshp, dpt, dplk }
- *   ],
- *   meta: [{ key, label, desc, total }]            // dataset metadata
- * }
+ * Aggregated DP4→DPT data for all 38 provinces.
+ * Cached 24h in memory + persisted to disk as backup.
+ * If satupetadata is unreachable, serves last saved backup so the page
+ * always shows data (even if KPU changes the endpoint next election cycle).
  */
 exports.pemilih = async (req, res, next) => {
+  const cacheKey = 'kpu:pemilih';
   try {
-    const cacheKey = 'kpu:pemilih';
     let data = getCached(cacheKey);
 
     if (!data) {
-      // Fetch all 5 types in parallel from satupetadata
+      // Fetch all 5 voter-list types in parallel
       const fetches = await Promise.allSettled(
         PEMILIH_TYPES.map(t =>
           fetchJsonHttp(`${SATUPETA_BASE}?x=${t.key}`)
-            .then(raw => ({ key: t.key, rows: shapeGeoJson(raw, t.key, t.label) }))
+            .then(raw => ({ key: t.key, rows: shapeGeoJson(raw) }))
         )
       );
 
-      // Build province map — keyed by KD_PROV
       const provMap = {};
       const nasional = {};
       const meta = [];
@@ -274,7 +283,6 @@ exports.pemilih = async (req, res, next) => {
         const result = fetches[i];
 
         if (result.status === 'rejected') {
-          // Partial failure: mark this dataset as unavailable
           meta.push({ key: t.key, label: t.label, desc: t.desc, total: null, error: true });
           continue;
         }
@@ -295,22 +303,33 @@ exports.pemilih = async (req, res, next) => {
       const provinsi = Object.values(provMap)
         .sort((a, b) => a.provinsi.localeCompare(b.provinsi));
 
+      // Require at least dp4 data to be valid — if all failed, throw
+      if (!nasional.dp4 && !nasional.dpt) {
+        throw new Error('All satupetadata fetches failed');
+      }
+
       data = {
-        source: 'satupetadata.kpu.go.id',
-        pemilu: 'Pemilu 2024',
+        source:    'satupetadata.kpu.go.id',
+        pemilu:    'Pemilu 2024',
         updatedAt: new Date().toISOString(),
         nasional,
         provinsi,
         meta,
       };
 
-      // Cache 24 hours — historical data, changes rarely if ever
-      setCached(cacheKey, data, 24 * 60 * 60 * 1000);
+      setCached(cacheKey, data, DAY_MS);
+      saveBackup(cacheKey, data);   // persist to disk for offline fallback
     }
 
     return ok(res, data);
   } catch (err) {
     console.warn('[KPU proxy] pemilih fetch failed:', err.message);
+    // Serve last known good data from disk if available
+    const backup = loadBackup(cacheKey);
+    if (backup) {
+      setCached(cacheKey, backup, DAY_MS); // re-warm memory cache with backup
+      return ok(res, backup);
+    }
     return fail(res, 502, 'Data pemilih KPU sementara tidak tersedia');
   }
 };

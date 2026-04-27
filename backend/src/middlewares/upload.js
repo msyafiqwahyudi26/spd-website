@@ -58,7 +58,11 @@ function fileFilter(req, file, cb) {
 const uploadImage = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 25 * 1024 * 1024 }, // 25 MB raw; sharp will compress images down
+  limits: {
+    fileSize: 25 * 1024 * 1024, // 25 MB raw; sharp will compress images down
+    files: 1,                    // prevent multi-file DoS via multipart abuse
+    fields: 5,                   // reasonable bound on form fields
+  },
 }).single('file');
 
 /**
