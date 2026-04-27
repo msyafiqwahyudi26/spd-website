@@ -109,7 +109,7 @@ function ArrowButton({ direction, onClick, disabled }) {
 export default function PublikasiSection({ isPage = false, contentTypeFilter = null }) {
   const { t } = useI18n();
   const trackRef = useRef(null);
-  const drag = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false });
+  const drag = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false, vel: 0, lastX: 0, lastT: 0, raf: null });
   const [grabbing, setGrabbing] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -171,8 +171,10 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
 
   const onMouseDown = (e) => {
     if (isPage) return;
+    if (drag.current.raf) cancelAnimationFrame(drag.current.raf);
     const track = trackRef.current;
-    drag.current = { active: true, startX: e.pageX, scrollLeft: track.scrollLeft, moved: false };
+    track.style.scrollSnapType = 'none'; // freeze snap while dragging
+    drag.current = { active: true, startX: e.pageX, scrollLeft: track.scrollLeft, moved: false, vel: 0, lastX: e.pageX, lastT: Date.now(), raf: null };
     setGrabbing(true);
   };
 
@@ -180,6 +182,11 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
     if (isPage || !drag.current.active) return;
     const dx = e.pageX - drag.current.startX;
     if (Math.abs(dx) > 4) drag.current.moved = true;
+    const now = Date.now();
+    const dt = now - drag.current.lastT;
+    if (dt > 0) drag.current.vel = (drag.current.lastX - e.pageX) / dt;
+    drag.current.lastX = e.pageX;
+    drag.current.lastT = now;
     trackRef.current.scrollLeft = drag.current.scrollLeft - dx;
   };
 
@@ -187,6 +194,20 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
     if (isPage) return;
     drag.current.active = false;
     setGrabbing(false);
+    const track = trackRef.current;
+    if (!track) return;
+    // Momentum coast
+    let vel = drag.current.vel * 120;
+    const coast = () => {
+      if (Math.abs(vel) < 0.5) {
+        track.style.scrollSnapType = ''; // re-enable snap when settled
+        return;
+      }
+      track.scrollLeft += vel;
+      vel *= 0.88;
+      drag.current.raf = requestAnimationFrame(coast);
+    };
+    drag.current.raf = requestAnimationFrame(coast);
   };
 
   const scrollBy = (direction) => {
@@ -194,6 +215,8 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
     if (!track) return;
     const cardWidth = track.querySelector('[data-card]')?.offsetWidth ?? 280;
     track.scrollBy({ left: direction * (cardWidth + 16), behavior: 'smooth' });
+    // Ensure snap stays active during button-triggered scrolls
+    track.style.scrollSnapType = '';
   };
 
   return (
@@ -295,31 +318,31 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
         </div>
       ) : (
         <div className="relative">
-          {/* Carousel track — left-padded to align with container, fades at right */}
-          <div className="pl-4 sm:pl-[max(1rem,calc((100vw-80rem)/2))]">
-            <div
-              ref={trackRef}
-              className={`flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-3 ${grabbing ? 'cursor-grabbing' : 'cursor-grab'}`}
-              style={{ userSelect: 'none' }}
-              onMouseDown={onMouseDown}
-              onMouseMove={onMouseMove}
-              onMouseUp={onMouseUp}
-              onMouseLeave={onMouseUp}
-            >
-              {filteredAndSorted.map((item) => (
-                <div
-                  key={item.id}
-                  data-card
-                  className="snap-start shrink-0 w-[calc(100vw-5rem)] sm:w-64 md:w-72 lg:w-[280px]"
-                >
-                  <PublikasiCard item={item} isDragging={drag.current.moved} />
-                </div>
-              ))}
-              {/* Right spacer so last card doesn't butt against the fade */}
-              <div className="shrink-0 w-12 sm:w-24" aria-hidden="true" />
-            </div>
+          {/* Carousel track — full-bleed, cards reach both edges */}
+          <div
+            ref={trackRef}
+            className={`flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-3 ${grabbing ? 'cursor-grabbing' : 'cursor-grab'}`}
+            style={{ userSelect: 'none', scrollPaddingLeft: '1rem' }}
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseUp}
+          >
+            {/* Left spacer so first card starts with a breath of space from edge */}
+            <div className="shrink-0 w-4 sm:w-6" aria-hidden="true" />
+            {filteredAndSorted.map((item) => (
+              <div
+                key={item.id}
+                data-card
+                className="snap-start shrink-0 w-[calc(100vw-5rem)] sm:w-64 md:w-72 lg:w-[280px]"
+              >
+                <PublikasiCard item={item} isDragging={drag.current.moved} />
+              </div>
+            ))}
+            {/* Right spacer so last card doesn't butt against the fade */}
+            <div className="shrink-0 w-12 sm:w-24" aria-hidden="true" />
           </div>
-          {/* Right-side fade gradient — visual boundary + hint that more cards exist */}
+          {/* Right-side fade gradient */}
           <div className="absolute right-0 top-0 bottom-3 w-24 bg-gradient-to-l from-white via-white/70 to-transparent pointer-events-none" aria-hidden="true" />
         </div>
       )}
