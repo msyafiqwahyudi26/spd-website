@@ -87,4 +87,9 @@ export default function Profil() {
                 </div>
               </div>
             ))}
-          </d
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}

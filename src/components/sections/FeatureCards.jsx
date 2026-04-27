@@ -75,4 +75,16 @@ export default function FeatureCards() {
               key={item.id}
               className={visible ? `animate-fade-up delay-${[100, 200, 300][i] || 100}` : 'opacity-0'}
             >
-      
+              <FeatureCard
+                iconKey={item.iconKey || 'collaboration'}
+                iconUrl={item.iconUrl || ''}
+                title={item.title}
+                description={item.description}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}

@@ -124,4 +124,17 @@ export default function ProgramCards({ limit = null, showIntro = true }) {
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {visible.map((program, i) 
+            {visible.map((program, i) => (
+              <div
+                key={program.id}
+                className={animVisible ? `animate-fade-up delay-${Math.min(i * 100 + 100, 500)}` : 'opacity-0'}
+              >
+                <ProgramCard program={program} />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
