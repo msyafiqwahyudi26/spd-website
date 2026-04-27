@@ -11,9 +11,6 @@ import { useI18n } from '@/i18n';
 const DEFAULT_VISION =
   'Menjadi pusat kerja kolaboratif multihak dalam mempromosikan penguatan demokrasi dan reformasi kepemiluan.';
 
-// Icon registry for Core Values — matches the vocabulary used by the
-// Approach / CoreValue admin dropdown. White-on-slate styling to match
-// the existing CORE_VALUES visual treatment.
 const CV_ICONS = {
   collaboration: (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-6 h-6" aria-hidden="true">
@@ -55,15 +52,10 @@ export default function VisiMisi() {
     return () => { cancelled = true; };
   }, []);
 
-  // Vision: use saved setting if non-empty, else fall back to DEFAULT text.
   const visionText = (settings.content?.vision || '').trim() || DEFAULT_VISION;
-  // Missions: API list if non-empty, else static fallback (with uniform shape).
   const missionList = missions && missions.length > 0
     ? missions
     : MISI_ITEMS.map(m => ({ id: m.id, text: m.text }));
-  // Core values: API rows have iconKey + optional iconUrl; static fallback has icon JSX.
-  // Merge into a uniform { id, title, description, iconNode } shape.
-  // Custom iconUrl takes precedence over preset iconKey.
   const coreValueList = coreValues && coreValues.length > 0
     ? coreValues.map(cv => {
         const resolvedUrl = cv.iconUrl ? resolveMediaUrl(cv.iconUrl) : '';
@@ -130,12 +122,12 @@ export default function VisiMisi() {
         </div>
       </section>
 
-      {/* Core Values — part of institutional ethos; belongs with Visi & Misi. */}
+      {/* Core Values */}
       <section
         ref={animRef2}
         className={`py-16 px-4 bg-slate-50 border-t border-slate-100 ${visible2 ? 'animate-fade-up' : 'opacity-0'}`}
       >
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-bold text-slate-800">{t('about.visimisi.corevalue.title')}</h2>
             <p className="mt-2 text-sm text-slate-500">
@@ -148,4 +140,16 @@ export default function VisiMisi() {
                 key={cv.id}
                 className="group bg-white border border-slate-100 rounded-xl p-6 text-center transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:shadow-orange-100/50 hover:border-orange-100"
               >
-                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4 transition-all duration-
+                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:scale-110 group-hover:bg-orange-500">
+                  {cv.iconNode}
+                </div>
+                <h3 className="font-bold text-slate-800 mb-2 transition-colors duration-200 group-hover:text-orange-600">{cv.title}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">{cv.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}

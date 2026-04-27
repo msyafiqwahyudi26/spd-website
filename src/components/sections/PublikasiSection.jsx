@@ -149,8 +149,6 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
     return () => window.removeEventListener('publikasi_updated', handleUpdate);
   }, []);
 
-  // When a contentTypeFilter is active, pre-filter the list so the
-  // category dropdown only shows categories relevant to that type.
   const baseList = contentTypeFilter
     ? publikasiList.filter(p => p.contentType === contentTypeFilter)
     : publikasiList;
@@ -201,7 +199,7 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
   return (
     <section className="py-16 bg-white fade-in-up overflow-hidden">
       <div className="max-w-7xl mx-auto px-4">
-        
+
         {/* Header and Controls */}
         <div className="flex flex-col gap-6 mb-10">
 
@@ -299,4 +297,34 @@ export default function PublikasiSection({ isPage = false, contentTypeFilter = n
         <div className="pl-4 sm:pl-[max(1rem,calc((100vw-72rem)/2))]">
           <div
             ref={trackRef}
-            className={`flex gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-2 ${grabbing ? '
+            className={`flex gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-2 ${grabbing ? 'cursor-grabbing' : 'cursor-grab'}`}
+            style={{ userSelect: 'none' }}
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseUp}
+          >
+            {filteredAndSorted.map((item) => (
+              <div
+                key={item.id}
+                data-card
+                className="snap-start shrink-0 w-[calc(100vw-3.5rem)] sm:w-80 lg:w-[340px]"
+              >
+                <PublikasiCard item={item} isDragging={drag.current.moved} />
+              </div>
+            ))}
+            <div className="shrink-0 w-4 sm:w-8" aria-hidden="true" />
+          </div>
+        </div>
+      )}
+
+      {!isPage && (
+        <div className="max-w-7xl mx-auto px-4 mt-10 flex justify-center">
+          <Button href="/publikasi" variant="primary">
+            {t('pub.viewAll')}
+          </Button>
+        </div>
+      )}
+    </section>
+  );
+}
