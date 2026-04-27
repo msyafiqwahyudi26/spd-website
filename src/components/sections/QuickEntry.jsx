@@ -64,14 +64,14 @@ function InlineSubscribe() {
     e.preventDefault();
     if (status.kind === 'loading') return;
     const v = email.trim();
-    if (!v) { setStatus({ kind: 'error', msg: 'Masukkan email Anda.' }); return; }
+    if (!v) { setStatus({ kind: 'error', msg: t('footer.emailRequired') }); return; }
     setStatus({ kind: 'loading', msg: '' });
     try {
       await api('/subscribers', { method: 'POST', body: JSON.stringify({ email: v }) });
-      setStatus({ kind: 'success', msg: 'Terima kasih, kami akan kirim update.' });
+      setStatus({ kind: 'success', msg: t('footer.subscribeSuccess') });
       setEmail('');
     } catch (err) {
-      setStatus({ kind: 'error', msg: err?.message || 'Gagal berlangganan.' });
+      setStatus({ kind: 'error', msg: err?.message || t('footer.subscribeFail') });
     }
   };
 

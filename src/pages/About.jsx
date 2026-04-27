@@ -3,54 +3,16 @@ import Hero from '../components/sections/Hero';
 import AboutSubNav from './about/SubNav';
 import StatsBanner from '../components/sections/StatsBanner';
 import { STATS } from '../data/about';
-
-// The "Tentang Kami" overview is a map, not a mega-page. Each subpage owns
-// its own content; this page introduces SPD in one paragraph, shows the
-// institutional stats, and routes visitors to the right detail page.
-const SUBPAGES = [
-  {
-    id: 'profil',
-    label: 'Profil',
-    desc: 'Sejarah, identitas organisasi, dan perjalanan SPD sejak 2016.',
-    href: '/tentang-kami/profil',
-  },
-  {
-    id: 'visi-misi',
-    label: 'Visi & Misi',
-    desc: 'Arah strategis dan nilai-nilai dasar (core values) yang memandu kerja SPD.',
-    href: '/tentang-kami/visi-misi',
-  },
-  {
-    id: 'struktur',
-    label: 'Struktur',
-    desc: 'Tim yang menjalankan riset, advokasi, dan program SPD.',
-    href: '/tentang-kami/struktur',
-  },
-  {
-    id: 'mitra',
-    label: 'Mitra',
-    desc: 'Jaringan kemitraan strategis SPD di ekosistem kepemiluan.',
-    href: '/tentang-kami/mitra',
-  },
-  {
-    id: 'laporan',
-    label: 'Laporan Tahunan',
-    desc: 'Laporan kegiatan dan transparansi keuangan per tahun.',
-    href: '/tentang-kami/laporan-tahunan',
-  },
-];
+import { useI18n } from '@/i18n';
 
 function Intro() {
+  const { t } = useI18n();
   return (
     <section className="py-16 px-4 bg-white">
       <div className="max-w-3xl mx-auto text-center">
-        <h2 className="text-3xl font-bold text-slate-800 mb-6">Siapa Kami, Singkatnya</h2>
+        <h2 className="text-3xl font-bold text-slate-800 mb-6">{t('about.overview.intro.title')}</h2>
         <p className="text-slate-600 leading-relaxed">
-          Sindikasi Pemilu dan Demokrasi (SPD) adalah organisasi masyarakat sipil yang
-          didirikan pada 2016. Kami hadir sebagai pusat kerja kolaboratif multihak untuk
-          mempelajari, mendampingi, dan memperkuat isu-isu pemilu dan demokrasi di
-          Indonesia — melalui riset, advokasi kebijakan, dan kerja bersama organisasi
-          sipil, akademisi, komunitas kreatif, dan lembaga penyelenggara pemilu.
+          {t('about.overview.intro.text')}
         </p>
       </div>
     </section>
@@ -58,13 +20,48 @@ function Intro() {
 }
 
 function SubpageMap() {
+  const { t } = useI18n();
+
+  const SUBPAGES = [
+    {
+      id: 'profil',
+      label: t('about.profil'),
+      desc: t('about.subpage.profil.desc'),
+      href: '/tentang-kami/profil',
+    },
+    {
+      id: 'visi-misi',
+      label: t('about.visimisi'),
+      desc: t('about.subpage.visimisi.desc'),
+      href: '/tentang-kami/visi-misi',
+    },
+    {
+      id: 'struktur',
+      label: t('about.struktur'),
+      desc: t('about.subpage.struktur.desc'),
+      href: '/tentang-kami/struktur',
+    },
+    {
+      id: 'mitra',
+      label: t('about.mitra'),
+      desc: t('about.subpage.mitra.desc'),
+      href: '/tentang-kami/mitra',
+    },
+    {
+      id: 'laporan',
+      label: t('about.laporan'),
+      desc: t('about.subpage.laporan.desc'),
+      href: '/tentang-kami/laporan-tahunan',
+    },
+  ];
+
   return (
     <section className="py-16 px-4 bg-slate-50 border-t border-slate-100">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10">
-          <h2 className="text-2xl font-bold text-slate-800">Jelajahi Tentang Kami</h2>
+          <h2 className="text-2xl font-bold text-slate-800">{t('about.overview.explore.title')}</h2>
           <p className="mt-2 text-sm text-slate-500">
-            Setiap topik memiliki halaman tersendiri — pilih yang ingin Anda dalami.
+            {t('about.overview.explore.subtitle')}
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -99,11 +96,12 @@ function SubpageMap() {
 }
 
 export default function About() {
+  const { t } = useI18n();
   return (
     <>
       <Hero
-        title="Tentang Kami"
-        subtitle="Mengenal lebih dalam Sindikasi Pemilu dan Demokrasi — pusat kolaborasi multihak dalam penguatan demokrasi dan reformasi kepemiluan Indonesia."
+        title={t('nav.about')}
+        subtitle={t('about.overview.hero.subtitle')}
       />
       <AboutSubNav />
 

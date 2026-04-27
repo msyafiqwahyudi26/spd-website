@@ -181,6 +181,27 @@ const DICT = {
     // Kontak page
     'kontak.hero.title': 'Hubungi Kami',
     'kontak.hero.subtitle': 'Ada pertanyaan, usulan kerja sama, atau ingin bergabung dengan kami? Kami siap mendengar.',
+
+    // About overview page
+    'about.overview.hero.subtitle': 'Mengenal lebih dalam Sindikasi Pemilu dan Demokrasi — pusat kolaborasi multihak dalam penguatan demokrasi dan reformasi kepemiluan Indonesia.',
+    'about.overview.intro.title': 'Siapa Kami, Singkatnya',
+    'about.overview.intro.text': 'Sindikasi Pemilu dan Demokrasi (SPD) adalah organisasi masyarakat sipil yang didirikan pada 2016. Kami hadir sebagai pusat kerja kolaboratif multihak untuk mempelajari, mendampingi, dan memperkuat isu-isu pemilu dan demokrasi di Indonesia — melalui riset, advokasi kebijakan, dan kerja bersama organisasi sipil, akademisi, komunitas kreatif, dan lembaga penyelenggara pemilu.',
+    'about.overview.explore.title': 'Jelajahi Tentang Kami',
+    'about.overview.explore.subtitle': 'Setiap topik memiliki halaman tersendiri — pilih yang ingin Anda dalami.',
+
+    // Visi Misi page
+    'about.visimisi.hero.subtitle': 'Tujuan dan arah strategis Sindikasi Pemilu dan Demokrasi.',
+    'about.visimisi.visi': 'Visi',
+    'about.visimisi.misi': 'Misi',
+    'about.visimisi.corevalue.title': 'Core Value',
+    'about.visimisi.corevalue.subtitle': 'Prinsip-prinsip yang mendasari setiap aksi kolaboratif SPD.',
+
+    // About subpage descriptions
+    'about.subpage.profil.desc': 'Sejarah, identitas organisasi, dan perjalanan SPD sejak 2016.',
+    'about.subpage.visimisi.desc': 'Arah strategis dan nilai-nilai dasar (core values) yang memandu kerja SPD.',
+    'about.subpage.struktur.desc': 'Tim yang menjalankan riset, advokasi, dan program SPD.',
+    'about.subpage.mitra.desc': 'Jaringan kemitraan strategis SPD di ekosistem kepemiluan.',
+    'about.subpage.laporan.desc': 'Laporan kegiatan dan transparansi keuangan per tahun.',
   },
 
   en: {
@@ -341,6 +362,27 @@ const DICT = {
     // Kontak page
     'kontak.hero.title': 'Contact Us',
     'kontak.hero.subtitle': 'Have a question, a collaboration idea, or want to join us? We\'d love to hear from you.',
+
+    // About overview page
+    'about.overview.hero.subtitle': 'Learn more about Sindikasi Pemilu dan Demokrasi — a multi-stakeholder collaborative hub for strengthening democracy and electoral reform in Indonesia.',
+    'about.overview.intro.title': 'Who We Are, Briefly',
+    'about.overview.intro.text': 'Sindikasi Pemilu dan Demokrasi (SPD) is a civil society organization founded in 2016. We exist as a multi-stakeholder collaborative hub to study, support, and strengthen electoral and democracy issues in Indonesia — through research, policy advocacy, and collaboration with civil society organizations, academics, creative communities, and electoral bodies.',
+    'about.overview.explore.title': 'Explore About Us',
+    'about.overview.explore.subtitle': 'Each topic has its own page — choose what you\'d like to explore.',
+
+    // Visi Misi page
+    'about.visimisi.hero.subtitle': 'The goals and strategic direction of Sindikasi Pemilu dan Demokrasi.',
+    'about.visimisi.visi': 'Vision',
+    'about.visimisi.misi': 'Mission',
+    'about.visimisi.corevalue.title': 'Core Values',
+    'about.visimisi.corevalue.subtitle': 'The principles underlying every collaborative action by SPD.',
+
+    // About subpage descriptions
+    'about.subpage.profil.desc': 'History, organizational identity, and SPD\'s journey since 2016.',
+    'about.subpage.visimisi.desc': 'Strategic direction and core values guiding SPD\'s work.',
+    'about.subpage.struktur.desc': 'The team running SPD\'s research, advocacy, and programs.',
+    'about.subpage.mitra.desc': 'SPD\'s strategic partnership network in the electoral ecosystem.',
+    'about.subpage.laporan.desc': 'Activity reports and financial transparency by year.',
   },
 };
 
