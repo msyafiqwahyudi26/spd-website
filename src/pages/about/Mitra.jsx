@@ -3,19 +3,19 @@ import AboutSubNav from './SubNav';
 import PartnersGrid from '../../components/sections/PartnersGrid';
 import { MITRA } from '../../data/about';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { useI18n } from '@/i18n';
 
-// Provide the old static MITRA list as a fallback so the page isn't blank
-// until the admin populates the dynamic list from the dashboard.
 const FALLBACK = MITRA.map((m) => ({ id: m.id, name: m.name.replace(/\n/g, ' ') }));
 
 export default function Mitra() {
+  const { t } = useI18n();
   const [animRef, visible] = useScrollAnimation();
 
   return (
     <>
       <Hero
-        title="Mitra Kolaborasi"
-        subtitle="Jaringan kemitraan strategis SPD dalam ekosistem kepemiluan Indonesia."
+        title={t('about.mitra')}
+        subtitle={t('about.mitra.hero.subtitle')}
         bgImage={null}
       />
       <AboutSubNav />
@@ -26,11 +26,9 @@ export default function Mitra() {
       >
         <div className="max-w-4xl mx-auto">
           <div className="mb-10">
-            <h2 className="text-2xl font-bold text-slate-800 mb-3">Mitra Kami</h2>
+            <h2 className="text-2xl font-bold text-slate-800 mb-3">{t('about.mitra.section.title')}</h2>
             <p className="text-sm text-slate-500 leading-relaxed max-w-2xl">
-              SPD berkolaborasi dengan berbagai institusi — penyelenggara pemilu, lembaga pengawas,
-              perguruan tinggi, dan organisasi sipil — untuk mendorong reformasi kepemiluan yang
-              komprehensif dan berbasis bukti.
+              {t('about.mitra.section.subtitle')}
             </p>
           </div>
 

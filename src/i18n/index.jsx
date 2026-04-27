@@ -202,6 +202,29 @@ const DICT = {
     'about.subpage.struktur.desc': 'Tim yang menjalankan riset, advokasi, dan program SPD.',
     'about.subpage.mitra.desc': 'Jaringan kemitraan strategis SPD di ekosistem kepemiluan.',
     'about.subpage.laporan.desc': 'Laporan kegiatan dan transparansi keuangan per tahun.',
+
+    // Profil sub-page
+    'about.profil.hero.subtitle': 'Mengenal lebih dalam Sindikasi Pemilu dan Demokrasi.',
+    'about.profil.who': 'Siapa Kami',
+    'about.profil.journey.title': 'Perjalanan SPD',
+    'about.profil.journey.subtitle': 'Sejak tahun 2016 hingga kini, SPD terus berkontribusi sebagai pusat kolaboratif dalam ekosistem kepemiluan Indonesia.',
+
+    // Struktur sub-page
+    'about.struktur.hero.subtitle': 'Tim yang berdedikasi di balik kerja-kerja demokrasi SPD.',
+    'about.struktur.team.title': 'Tim Kami',
+    'about.struktur.team.subtitle': 'Klik salah satu kartu untuk melihat profil singkat.',
+
+    // Mitra sub-page
+    'about.mitra.hero.subtitle': 'Jaringan kemitraan strategis SPD dalam ekosistem kepemiluan Indonesia.',
+    'about.mitra.section.title': 'Mitra Kami',
+    'about.mitra.section.subtitle': 'SPD berkolaborasi dengan berbagai institusi — penyelenggara pemilu, lembaga pengawas, perguruan tinggi, dan organisasi sipil — untuk mendorong reformasi kepemiluan yang komprehensif dan berbasis bukti.',
+
+    // Laporan Tahunan sub-page
+    'about.laporan.hero.subtitle': 'Transparansi dan akuntabilitas kerja-kerja SPD setiap tahunnya.',
+    'about.laporan.section.title': 'Laporan Kegiatan',
+    'about.laporan.section.subtitle': 'SPD berkomitmen pada transparansi dengan menerbitkan laporan tahunan yang mendokumentasikan program, riset, dan dampak kerja organisasi.',
+    'about.laporan.download': 'Unduh PDF',
+    'about.laporan.soon': 'Segera tersedia',
   },
 
   en: {
@@ -383,6 +406,29 @@ const DICT = {
     'about.subpage.struktur.desc': 'The team running SPD\'s research, advocacy, and programs.',
     'about.subpage.mitra.desc': 'SPD\'s strategic partnership network in the electoral ecosystem.',
     'about.subpage.laporan.desc': 'Activity reports and financial transparency by year.',
+
+    // Profil sub-page
+    'about.profil.hero.subtitle': 'Learn more about Sindikasi Pemilu dan Demokrasi.',
+    'about.profil.who': 'Who We Are',
+    'about.profil.journey.title': 'SPD\'s Journey',
+    'about.profil.journey.subtitle': 'Since 2016, SPD has continuously contributed as a collaborative hub in Indonesia\'s electoral ecosystem.',
+
+    // Struktur sub-page
+    'about.struktur.hero.subtitle': 'The dedicated team behind SPD\'s democracy work.',
+    'about.struktur.team.title': 'Our Team',
+    'about.struktur.team.subtitle': 'Click a card to see a short profile.',
+
+    // Mitra sub-page
+    'about.mitra.hero.subtitle': 'SPD\'s strategic partnership network in Indonesia\'s electoral ecosystem.',
+    'about.mitra.section.title': 'Our Partners',
+    'about.mitra.section.subtitle': 'SPD collaborates with diverse institutions — election organizers, oversight bodies, universities, and civil society organizations — to advance comprehensive, evidence-based electoral reform.',
+
+    // Laporan Tahunan sub-page
+    'about.laporan.hero.subtitle': 'Transparency and accountability in SPD\'s annual work.',
+    'about.laporan.section.title': 'Activity Reports',
+    'about.laporan.section.subtitle': 'SPD is committed to transparency by publishing annual reports documenting programs, research, and organizational impact.',
+    'about.laporan.download': 'Download PDF',
+    'about.laporan.soon': 'Coming soon',
   },
 };
 

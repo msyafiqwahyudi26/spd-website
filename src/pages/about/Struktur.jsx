@@ -6,9 +6,8 @@ import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 import { TEAM_FEATURED, TEAM_MEMBERS } from '../../data/about';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { useI18n } from '@/i18n';
 
-// Reshape the API row (name, role, expertise, bio, photoUrl, featured) into
-// the shape the shared <TeamGrid> expects ({ id, name, role, expertise, bio, src }).
 function toCardShape(row) {
   return {
     id:        row.id,
@@ -21,6 +20,7 @@ function toCardShape(row) {
 }
 
 export default function Struktur() {
+  const { t } = useI18n();
   const [animRef, visible] = useScrollAnimation();
   const [data, setData] = useState(null);
 
@@ -40,10 +40,6 @@ export default function Struktur() {
     return () => { cancelled = true; };
   }, []);
 
-  // Until the API has responded (null), show the static fallback so the
-  // page isn't empty on first paint. If the admin has added no members,
-  // data.members is [] and we still show the fallback static list so the
-  // page isn't blank.
   const useFallback = !data || (!data.featured && data.members.length === 0);
   const featured = useFallback ? TEAM_FEATURED : data.featured;
   const members  = useFallback ? TEAM_MEMBERS  : data.members;
@@ -51,8 +47,8 @@ export default function Struktur() {
   return (
     <>
       <Hero
-        title="Struktur Organisasi"
-        subtitle="Tim yang berdedikasi di balik kerja-kerja demokrasi SPD."
+        title={t('about.struktur')}
+        subtitle={t('about.struktur.hero.subtitle')}
         bgImage={null}
       />
       <AboutSubNav />
@@ -63,9 +59,9 @@ export default function Struktur() {
       >
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-slate-800">Tim Kami</h2>
+            <h2 className="text-2xl font-bold text-slate-800">{t('about.struktur.team.title')}</h2>
             <p className="mt-2 text-sm text-slate-500">
-              Klik salah satu kartu untuk melihat profil singkat.
+              {t('about.struktur.team.subtitle')}
             </p>
           </div>
           <TeamGrid featured={featured} members={members} />

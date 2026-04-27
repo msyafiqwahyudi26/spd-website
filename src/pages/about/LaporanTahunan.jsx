@@ -4,9 +4,8 @@ import AboutSubNav from './SubNav';
 import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { useI18n } from '@/i18n';
 
-// Static fallback kept so the page isn't blank before the admin populates
-// the list. Replaced the moment the API returns any row.
 const LAPORAN_FALLBACK = [
   { id: 'f-2023', year: 2023, title: 'Laporan Tahunan SPD 2023', summary: 'Ringkasan program, riset, dan capaian SPD sepanjang tahun 2023.', fileUrl: null },
   { id: 'f-2022', year: 2022, title: 'Laporan Tahunan SPD 2022', summary: 'Dokumentasi kegiatan advokasi, riset kepemiluan, dan pengembangan kapasitas selama 2022.', fileUrl: null },
@@ -15,6 +14,7 @@ const LAPORAN_FALLBACK = [
 ];
 
 export default function LaporanTahunan() {
+  const { t } = useI18n();
   const [animRef, visible] = useScrollAnimation();
   const [rows, setRows] = useState(null);
 
@@ -31,8 +31,8 @@ export default function LaporanTahunan() {
   return (
     <>
       <Hero
-        title="Laporan Tahunan"
-        subtitle="Transparansi dan akuntabilitas kerja-kerja SPD setiap tahunnya."
+        title={t('about.laporan')}
+        subtitle={t('about.laporan.hero.subtitle')}
         bgImage={null}
       />
       <AboutSubNav />
@@ -43,10 +43,9 @@ export default function LaporanTahunan() {
       >
         <div className="max-w-4xl mx-auto">
           <div className="mb-10">
-            <h2 className="text-2xl font-bold text-slate-800 mb-3">Laporan Kegiatan</h2>
+            <h2 className="text-2xl font-bold text-slate-800 mb-3">{t('about.laporan.section.title')}</h2>
             <p className="text-sm text-slate-500 leading-relaxed">
-              SPD berkomitmen pada transparansi dengan menerbitkan laporan tahunan yang mendokumentasikan
-              program, riset, dan dampak kerja organisasi.
+              {t('about.laporan.section.subtitle')}
             </p>
           </div>
 
@@ -76,14 +75,14 @@ export default function LaporanTahunan() {
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-4-4 4m0 0-4-4m4 4V4" />
                         </svg>
-                        Unduh PDF
+                        {t('about.laporan.download')}
                       </a>
                     ) : (
                       <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
-                        Segera tersedia
+                        {t('about.laporan.soon')}
                       </span>
                     )}
                   </div>
