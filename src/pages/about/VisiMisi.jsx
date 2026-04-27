@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { useSettings } from '../../hooks/useSettings';
 import { MISI_ITEMS, CORE_VALUES } from '../../data/about';
 import { resolveMediaUrl } from '@/lib/media';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 const DEFAULT_VISION =
   'Menjadi pusat kerja kolaboratif multihak dalam mempromosikan penguatan demokrasi dan reformasi kepemiluan.';
@@ -36,6 +37,8 @@ const CV_ICONS = {
 };
 
 export default function VisiMisi() {
+  const [animRef1, visible1] = useScrollAnimation();
+  const [animRef2, visible2] = useScrollAnimation();
   const { settings } = useSettings();
   const [missions, setMissions] = useState(null);
   const [coreValues, setCoreValues] = useState(null);
@@ -78,7 +81,10 @@ export default function VisiMisi() {
       />
       <AboutSubNav />
 
-      <section className="py-16 px-4 bg-white">
+      <section
+        ref={animRef1}
+        className={`py-16 px-4 bg-white ${visible1 ? 'animate-fade-up' : 'opacity-0'}`}
+      >
         <div className="max-w-4xl mx-auto">
 
           {/* Visi */}
@@ -123,7 +129,10 @@ export default function VisiMisi() {
       </section>
 
       {/* Core Values — part of institutional ethos; belongs with Visi & Misi. */}
-      <section className="py-16 px-4 bg-slate-50 border-t border-slate-100">
+      <section
+        ref={animRef2}
+        className={`py-16 px-4 bg-slate-50 border-t border-slate-100 ${visible2 ? 'animate-fade-up' : 'opacity-0'}`}
+      >
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-bold text-slate-800">Core Value</h2>

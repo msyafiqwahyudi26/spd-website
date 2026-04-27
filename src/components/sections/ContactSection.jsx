@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { api } from '@/lib/api';
 import { useSettings } from '@/hooks/useSettings';
+import { useI18n } from '@/i18n';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 const LOCATION = {
   label: 'Alamat',
@@ -21,6 +23,8 @@ const EMAIL_ICON = (
 );
 
 export default function ContactSection() {
+  const { t } = useI18n();
+  const [animRef, visible] = useScrollAnimation();
   const { settings } = useSettings();
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [status, setStatus] = useState({ kind: 'idle', message: '' });
@@ -35,7 +39,7 @@ export default function ContactSection() {
     }
 
     setIsSubmitting(true);
-    setStatus({ kind: 'loading', message: 'Mengirim...' });
+    setStatus({ kind: 'loading', message: t('kontak.sending') });
     try {
       await api('/contacts', {
         method: 'POST',
@@ -45,12 +49,12 @@ export default function ContactSection() {
           message: form.message.trim(),
         }),
       });
-      setStatus({ kind: 'success', message: 'Pesan berhasil terkirim. Terima kasih.' });
+      setStatus({ kind: 'success', message: t('kontak.success') });
       setForm({ name: '', email: '', message: '' });
     } catch (err) {
       setStatus({
         kind: 'error',
-        message: err?.message || 'Gagal mengirim pesan. Coba lagi sebentar.',
+        message: err?.message || t('kontak.error'),
       });
     } finally {
       setIsSubmitting(false);
@@ -67,13 +71,15 @@ export default function ContactSection() {
   }[status.kind] || '';
 
   return (
-    <section className="py-16 px-4 bg-white fade-in-up">
+    <section
+      ref={animRef}
+      className={`py-16 px-4 bg-white ${visible ? 'animate-fade-up' : 'opacity-0'}`}
+    >
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-slate-800">Hubungi Kami</h2>
+          <h2 className="text-3xl font-bold text-slate-800">{t('kontak.title')}</h2>
           <p className="mt-4 text-slate-500 max-w-xl mx-auto leading-relaxed">
-            Sampaikan pesan, pertanyaan, atau ide kolaborasi Anda kepada tim kami.
-            Kami akan merespons secepatnya.
+            {t('kontak.subtitle')}
           </p>
         </div>
 
@@ -81,7 +87,7 @@ export default function ContactSection() {
 
           <div>
             <h3 className="text-base font-semibold text-slate-800 mb-6">
-              Informasi Kontak
+              {t('kontak.address')}
             </h3>
             <ul className="space-y-5">
               <li className="flex items-start gap-4">
@@ -90,7 +96,7 @@ export default function ContactSection() {
                 </span>
                 <div>
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-0.5">
-                    {LOCATION.label}
+                    {t('kontak.address')}
                   </p>
                   <p className="text-sm text-slate-700 leading-relaxed">{LOCATION.value}</p>
                 </div>
@@ -101,7 +107,7 @@ export default function ContactSection() {
                 </span>
                 <div>
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-0.5">
-                    Email
+                    {t('kontak.email')}
                   </p>
                   <a
                     href={`mailto:${contactEmail}`}
@@ -120,7 +126,7 @@ export default function ContactSection() {
                   </span>
                   <div>
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-0.5">
-                      Telepon / WhatsApp
+                      {t('kontak.phone')}
                     </p>
                     <a
                       href={`https://wa.me/${contactPhone.replace(/\D/g, '')}`}
@@ -138,7 +144,7 @@ export default function ContactSection() {
 
           <div>
             <h3 className="text-base font-semibold text-orange-500 mb-6">
-              Kirim Pesan
+              {t('kontak.send')}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               {status.kind !== 'idle' && (
@@ -148,7 +154,7 @@ export default function ContactSection() {
               )}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Nama
+                  {t('kontak.name')}
                 </label>
                 <input
                   type="text"
@@ -162,7 +168,7 @@ export default function ContactSection() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Email
+                  {t('kontak.email')}
                 </label>
                 <input
                   type="email"
@@ -176,7 +182,7 @@ export default function ContactSection() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Pesan
+                  {t('kontak.message')}
                 </label>
                 <textarea
                   rows={5}
@@ -199,7 +205,17 @@ export default function ContactSection() {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
                 )}
-                {isSubmitting ? 'Mengirim...' : 'Kirim Pesan'}
+                {isSubmitting ? t('kontak.sending') : t('kontak.send')}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+                )}
+                {isSubmitting ? t('kontak.sending') : t('kontak.send')}
               </button>
             </form>
           </div>

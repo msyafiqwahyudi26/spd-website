@@ -98,6 +98,11 @@ body {
 /* Stagger delay utilities */
 .delay-75  { animation-delay: 75ms; }
 .delay-100 { animation-delay: 100ms; }
+
+/* Page transition — fade in when route changes */
+main {
+  animation: fadeIn 0.25s ease both;
+}
 .delay-150 { animation-delay: 150ms; }
 .delay-200 { animation-delay: 200ms; }
 .delay-300 { animation-delay: 300ms; }
@@ -127,4 +132,9 @@ body {
 }
 .img-zoom:hover img {
   transform: scale(1.06);
+}
+
+/* Smooth page transition — fade in on every route change */
+main {
+  animation: fadeIn 0.22s ease both;
 }

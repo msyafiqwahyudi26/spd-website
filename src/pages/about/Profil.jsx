@@ -4,6 +4,7 @@ import AboutSubNav from './SubNav';
 import { api } from '@/lib/api';
 import { useSettings } from '../../hooks/useSettings';
 import { PERJALANAN } from '../../data/about';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 const DEFAULT_INTRO = `Sindikasi Pemilu dan Demokrasi (SPD) adalah organisasi masyarakat sipil yang didirikan pada tahun 2016 dengan komitmen untuk mempelajari dan memperkuat isu-isu pemilu dan demokrasi di Indonesia secara konsisten.
 
@@ -12,6 +13,8 @@ Sebagai organisasi yang berfokus pada kolaborasi multihak, SPD bertujuan untuk m
 SPD berkomitmen menjadi pusat kerja kolaboratif yang mendorong transparansi, akuntabilitas, dan inovasi dalam penyelenggaraan demokrasi dan kepemiluan Indonesia.`;
 
 export default function Profil() {
+  const [animRef1, visible1] = useScrollAnimation();
+  const [animRef2, visible2] = useScrollAnimation();
   const { settings } = useSettings();
   const [milestones, setMilestones] = useState(null);
 
@@ -37,7 +40,10 @@ export default function Profil() {
       <AboutSubNav />
 
       {/* Sekilas SPD */}
-      <section className="py-16 px-4 bg-white">
+      <section
+        ref={animRef1}
+        className={`py-16 px-4 bg-white ${visible1 ? 'animate-fade-up' : 'opacity-0'}`}
+      >
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-slate-800 mb-6">Siapa Kami</h2>
           <div className="space-y-4 text-slate-600 leading-relaxed text-sm">
@@ -49,7 +55,10 @@ export default function Profil() {
       </section>
 
       {/* Perjalanan */}
-      <section className="py-16 px-4 bg-slate-50">
+      <section
+        ref={animRef2}
+        className={`py-16 px-4 bg-slate-50 ${visible2 ? 'animate-fade-up' : 'opacity-0'}`}
+      >
         <div className="max-w-4xl mx-auto">
           <div className="mb-10">
             <h2 className="text-2xl font-bold text-slate-800 mb-3">Perjalanan SPD</h2>

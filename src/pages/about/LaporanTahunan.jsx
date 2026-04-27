@@ -3,6 +3,7 @@ import Hero from '../../components/sections/Hero';
 import AboutSubNav from './SubNav';
 import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 // Static fallback kept so the page isn't blank before the admin populates
 // the list. Replaced the moment the API returns any row.
@@ -14,6 +15,7 @@ const LAPORAN_FALLBACK = [
 ];
 
 export default function LaporanTahunan() {
+  const [animRef, visible] = useScrollAnimation();
   const [rows, setRows] = useState(null);
 
   useEffect(() => {
@@ -35,7 +37,10 @@ export default function LaporanTahunan() {
       />
       <AboutSubNav />
 
-      <section className="py-16 px-4 bg-white">
+      <section
+        ref={animRef}
+        className={`py-16 px-4 bg-white ${visible ? 'animate-fade-up' : 'opacity-0'}`}
+      >
         <div className="max-w-4xl mx-auto">
           <div className="mb-10">
             <h2 className="text-2xl font-bold text-slate-800 mb-3">Laporan Kegiatan</h2>

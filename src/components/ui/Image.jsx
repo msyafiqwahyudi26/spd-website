@@ -1,17 +1,21 @@
 import { useState, useEffect } from 'react';
-import { getSettingsSync } from '@/hooks/useSettings';
 
 /**
  * Smart image with graceful fallback.
- * Drop-in replacement for <img> — shows styled placeholder when src is null or fails.
+ * Drop-in replacement for <img> — shows a styled placeholder when src is
+ * null/undefined or when the image fails to load.
  *
  * Props:
- *   src          — image URL/import (null → shows fallback immediately)
+ *   src          — resolved image URL (null → shows fallback immediately)
  *   alt          — alt text for the <img>
  *   className    — applied to both img and fallback wrapper
- *   gradient     — Tailwind classes (from-* to-*) for fallback bg (default: slate)
- *   label        — optional caption shown inside fallback
- *   icon         — 'photo' | 'chart' | 'logo' — picks fallback icon style
+ *   gradient     — Tailwind gradient classes for fallback bg
+ *   label        — optional text inside fallback
+ *   icon         — 'photo' | 'chart' | 'logo'
+ *
+ * NOTE: Do NOT pass a globalPlaceholder as fallback — doing so causes a
+ * "flash" where the placeholder loads first and then disappears when the
+ * real src arrives. Callers should resolve the URL to null if absent.
  */
 export default function Image({
   src,
@@ -23,17 +27,15 @@ export default function Image({
 }) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
-  const settings = getSettingsSync();
-  const globalPlaceholder = settings?.images?.placeholder || null;
 
+  // Reset load/fail state whenever src changes (e.g. SPA navigation)
   useEffect(() => {
     setFailed(false);
     setLoaded(false);
   }, [src]);
 
-  const finalSrc = src || globalPlaceholder;
-
-  if (!finalSrc || failed) {
+  // No src or failed to load → show styled fallback immediately
+  if (!src || failed) {
     return (
       <div className={`bg-gradient-to-br ${gradient} flex flex-col items-center justify-center gap-2 overflow-hidden ${className}`}>
         <FallbackIcon type={icon} />
@@ -44,13 +46,14 @@ export default function Image({
 
   return (
     <>
-      {!loaded && !failed && (
-        <div className={`bg-slate-200 animate-pulse flex flex-col items-center justify-center ${className}`}>
+      {/* Skeleton shown while the image is loading */}
+      {!loaded && (
+        <div className={`bg-slate-100 animate-pulse flex flex-col items-center justify-center ${className}`}>
           <FallbackIcon type={icon} />
         </div>
       )}
       <img
-        src={finalSrc}
+        src={src}
         alt={alt}
         className={`object-cover ${className} ${loaded ? 'block' : 'hidden'}`}
         onLoad={() => setLoaded(true)}

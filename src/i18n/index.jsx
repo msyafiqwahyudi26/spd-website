@@ -127,6 +127,12 @@ const DICT = {
     'event.noEvents': 'Belum ada kegiatan yang dijadwalkan.',
     'event.upcoming': 'Akan Datang',
     'event.past': 'Sudah Lewat',
+    'event.filterAll': 'Semua',
+    'event.filterUpcoming': 'Mendatang',
+    'event.filterPast': 'Sudah Berlalu',
+    'event.found': 'event ditemukan',
+    'event.search': 'Cari event...',
+    'event.empty': 'Belum ada event yang tersedia.',
 
     // About
     'about.page.title': 'Tentang Kami',
@@ -251,6 +257,12 @@ const DICT = {
     'event.noEvents': 'No events scheduled yet.',
     'event.upcoming': 'Upcoming',
     'event.past': 'Past',
+    'event.filterAll': 'All',
+    'event.filterUpcoming': 'Upcoming',
+    'event.filterPast': 'Past',
+    'event.found': 'events found',
+    'event.search': 'Search events...',
+    'event.empty': 'No events available yet.',
 
     // About
     'about.page.title': 'About Us',

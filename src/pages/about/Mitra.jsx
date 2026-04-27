@@ -2,12 +2,15 @@ import Hero from '../../components/sections/Hero';
 import AboutSubNav from './SubNav';
 import PartnersGrid from '../../components/sections/PartnersGrid';
 import { MITRA } from '../../data/about';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 // Provide the old static MITRA list as a fallback so the page isn't blank
 // until the admin populates the dynamic list from the dashboard.
 const FALLBACK = MITRA.map((m) => ({ id: m.id, name: m.name.replace(/\n/g, ' ') }));
 
 export default function Mitra() {
+  const [animRef, visible] = useScrollAnimation();
+
   return (
     <>
       <Hero
@@ -17,7 +20,10 @@ export default function Mitra() {
       />
       <AboutSubNav />
 
-      <section className="py-16 px-4 bg-white">
+      <section
+        ref={animRef}
+        className={`py-16 px-4 bg-white ${visible ? 'animate-fade-up' : 'opacity-0'}`}
+      >
         <div className="max-w-4xl mx-auto">
           <div className="mb-10">
             <h2 className="text-2xl font-bold text-slate-800 mb-3">Mitra Kami</h2>

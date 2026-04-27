@@ -6,6 +6,8 @@ import { INITIAL_EVENTS } from '../data/events';
 import { api } from '@/lib/api';
 import EmptyState from '../components/ui/EmptyState';
 import { SkeletonCard } from '../components/ui/Skeleton';
+import { useI18n } from '@/i18n';
+import { useStaggerAnimation } from '@/hooks/useScrollAnimation';
 
 function EventCard({ item }) {
   return (
@@ -65,17 +67,19 @@ function loadEventsFromStorage() {
   }
 }
 
-const FILTERS = [
-  { id: 'semua',    label: 'Semua' },
-  { id: 'upcoming', label: 'Mendatang' },
-  { id: 'past',     label: 'Sudah Berlalu' },
-];
-
 export default function Event() {
+  const { t } = useI18n();
+  const { containerRef, visible } = useStaggerAnimation();
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('semua');
+
+  const FILTERS = [
+    { id: 'semua',    label: t('event.filterAll') },
+    { id: 'upcoming', label: t('event.filterUpcoming') },
+    { id: 'past',     label: t('event.filterPast') },
+  ];
 
   useEffect(() => {
     api('/events')
@@ -151,7 +155,7 @@ export default function Event() {
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Cari event..."
+                placeholder={t('event.search')}
                 className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors bg-white"
               />
             </div>
@@ -179,16 +183,43 @@ export default function Event() {
           ) : filtered.length === 0 ? (
             <div className="py-12">
               <EmptyState
-                title={search ? 'Event tidak ditemukan' : 'Tidak ada event'}
-                message={search ? `Tidak ada event yang cocok dengan "${search}".` : 'Belum ada event atau kegiatan yang dijadwalkan.'}
+                title={search ? 'Event tidak ditemukan' : t('event.empty')}
+                message={search ? `Tidak ada event yang cocok dengan "${search}".` : t('event.empty')}
               />
             </div>
           ) : (
             <>
-              <p className="text-sm text-slate-400 mb-4">{filtered.length} event ditemukan</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filtered.map((item) => (
-                  <EventCard key={item.id} item={item} />
+              <p className="text-sm text-slate-400 mb-4">{filtered.length} {t('event.found')}</p>
+              <div
+                ref={containerRef}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              >
+                {filtered.map((item, i) => (
+                  <div
+                    key={item.id}
+                    className={visible ? `animate-fade-up delay-${Math.min(i * 100 + 100, 500)}` : 'opacity-0'}
+                  >
+                    <EventCard item={item} />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+    </main>
+  );
+}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              >
+                {filtered.map((item, i) => (
+                  <div
+                    key={item.id}
+                    className={`${visible ? 'animate-fade-up' : 'opacity-0'}`}
+                    style={{ animationDelay: `${i * 100}ms` }}
+                  >
+                    <EventCard item={item} />
+                  </div>
                 ))}
               </div>
             </>

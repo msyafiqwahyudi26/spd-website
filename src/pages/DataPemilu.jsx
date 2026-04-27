@@ -4,6 +4,7 @@ import Hero from '../components/sections/Hero';
 import LineChart, { DEFAULT_SERIES } from '../components/charts/LineChart';
 import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */
 const fmt    = (n) => n == null ? '—' : Number(n).toLocaleString('id-ID');
@@ -223,6 +224,7 @@ function StatCards({
   pemilihData,     pemilihStatus,
   tahun,
 }) {
+  const [animRef, visible] = useScrollAnimation();
   const isLivePart  = partisipasiStatus === 'ok';
   const isLivePemil = pemilihStatus     === 'ok' && tahun === 2024;
   const hasDb       = !!dbRow;
@@ -325,7 +327,10 @@ function StatCards({
   ];
 
   return (
-    <section className="py-8 px-4 bg-white">
+    <section
+      ref={animRef}
+      className={`py-8 px-4 bg-white ${visible ? 'animate-fade-up' : 'opacity-0'}`}
+    >
       <div className="max-w-6xl mx-auto space-y-3">
         {!hasDb && (
           <div className="text-xs text-slate-400 bg-slate-50 rounded-lg px-4 py-2 border border-slate-200">
@@ -368,6 +373,7 @@ function FunnelBar({ label, value, max, color, pct }) {
 }
 
 function DaftarPemilihSection({ data, status }) {
+  const [animRef, visible] = useScrollAnimation();
   const [search, setSearch]   = useState('');
   const [sortKey, setSortKey] = useState('dpt');
   const [sortDir, setSortDir] = useState('desc');
@@ -430,7 +436,10 @@ function DaftarPemilihSection({ data, status }) {
       : <span className="text-orange-500 ml-0.5">{sortDir === 'asc' ? '↑' : '↓'}</span>;
 
   return (
-    <section className="py-16 px-4 bg-slate-50">
+    <section
+      ref={animRef}
+      className={`py-16 px-4 bg-slate-50 ${visible ? 'animate-fade-up' : 'opacity-0'}`}
+    >
       <div className="max-w-6xl mx-auto space-y-10">
 
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -551,6 +560,7 @@ function DaftarPemilihSection({ data, status }) {
 
 /* ── 5. Tren Data Pemilu (from DB) ──────────────────────────────────────── */
 function TrendSection({ items, selectedJenis, onJenisChange }) {
+  const [animRef, visible] = useScrollAnimation();
   // Build chart data from DB for selected jenis
   const jenisLabel = JENIS_OPTIONS.find(o => o.jenis === selectedJenis)?.label || 'Pemilu Presiden';
 
@@ -574,7 +584,10 @@ function TrendSection({ items, selectedJenis, onJenisChange }) {
   );
 
   return (
-    <section className="py-16 px-4 bg-white">
+    <section
+      ref={animRef}
+      className={`py-16 px-4 bg-white ${visible ? 'animate-fade-up' : 'opacity-0'}`}
+    >
       <div className="max-w-6xl mx-auto">
         <h2 className="text-2xl font-bold text-slate-800 mb-8">Tren Data Pemilu</h2>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -642,6 +655,7 @@ function TrendSection({ items, selectedJenis, onJenisChange }) {
 
 /* ── 6. Infografis Pemilu ───────────────────────────────────────────────── */
 function InfografisSection() {
+  const [animRef, visible] = useScrollAnimation();
   const [items, setItems]     = useState([]);
   const [loading, setLoading] = useState(true);
   const [error,  setError]    = useState(false);
@@ -657,7 +671,10 @@ function InfografisSection() {
   if (!loading && !error && items.length === 0) return null;
 
   return (
-    <section className="py-16 px-4 bg-white">
+    <section
+      ref={animRef}
+      className={`py-16 px-4 bg-white ${visible ? 'animate-fade-up' : 'opacity-0'}`}
+    >
       <div className="max-w-6xl mx-auto">
         <h2 className="text-2xl font-bold text-slate-800 mb-8">Infografis Pemilu</h2>
         {loading && (
@@ -702,8 +719,13 @@ function InfografisSection() {
 
 /* ── 7. Kolaborasi CTA ──────────────────────────────────────────────────── */
 function KolaborasiCTA() {
+  const [animRef, visible] = useScrollAnimation();
+
   return (
-    <section className="py-16 px-4 bg-slate-50">
+    <section
+      ref={animRef}
+      className={`py-16 px-4 bg-slate-50 ${visible ? 'animate-fade-up' : 'opacity-0'}`}
+    >
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start justify-between gap-8">
         <div className="max-w-lg">
           <h2 className="text-2xl font-bold text-slate-800 mb-3">Kolaborasi Data Terbuka</h2>
