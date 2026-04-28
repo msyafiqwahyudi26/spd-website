@@ -86,7 +86,7 @@ module.exports = async function ogMeta(req, res, next) {
   if (pubMatch) {
     try {
       const pub = await prisma.publication.findFirst({
-        where:  { slug: pubMatch[1], status: 'published' },
+        where:  { slug: pubMatch[1] },
         select: { title: true, description: true, image: true, slug: true },
       });
       if (pub) {
@@ -97,8 +97,9 @@ module.exports = async function ogMeta(req, res, next) {
           url:         `${BASE_URL}/publikasi/${pub.slug}`,
         }));
       }
-    } catch { /* fall through */ }
-    return next();
+    } catch { /* ignore DB errors, use generic fallback */ }
+    // Return generic OG so bots always get valid Open Graph HTML
+    return res.type('html').send(ogHtml({ url: `${BASE_URL}${p}` }));
   }
 
   // ── /event/:slug ───────────────────────────────────────────────────────
@@ -117,8 +118,8 @@ module.exports = async function ogMeta(req, res, next) {
           url:         `${BASE_URL}/event/${ev.slug}`,
         }));
       }
-    } catch { /* fall through */ }
-    return next();
+    } catch { /* ignore DB errors, use generic fallback */ }
+    return res.type('html').send(ogHtml({ url: `${BASE_URL}${p}` }));
   }
 
   // ── /program/:slug ─────────────────────────────────────────────────────
@@ -137,8 +138,8 @@ module.exports = async function ogMeta(req, res, next) {
           url:         `${BASE_URL}/program/${prog.slug}`,
         }));
       }
-    } catch { /* fall through */ }
-    return next();
+    } catch { /* ignore DB errors, use generic fallback */ }
+    return res.type('html').send(ogHtml({ url: `${BASE_URL}${p}` }));
   }
 
   next();

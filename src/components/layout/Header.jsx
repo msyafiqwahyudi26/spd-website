@@ -202,7 +202,7 @@ export default function Header() {
               src={logoSrc}
               alt={settings.siteName || 'SPD Indonesia'}
               onError={(e) => { e.currentTarget.src = logo; }}
-              className="h-14 sm:h-30 w-auto object-contain"
+              className="h-12 sm:h-14 w-auto object-contain max-h-full"
             />
           </NavLink>
 
@@ -274,8 +274,4 @@ export default function Header() {
       )}
     </header>
   );
-}
-
-}
-
 }
