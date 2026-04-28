@@ -22,7 +22,7 @@ const EMAIL_ICON = (
   </svg>
 );
 
-export default function ContactSection() {
+export default function ContactSection({ hideTitle = false }) {
   const { t } = useI18n();
   const [animRef, visible] = useScrollAnimation();
   const { settings } = useSettings();
@@ -76,12 +76,14 @@ export default function ContactSection() {
       className={`py-16 px-4 bg-white ${visible ? 'animate-fade-up' : 'opacity-0'}`}
     >
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-slate-800">{t('kontak.title')}</h2>
-          <p className="mt-4 text-slate-500 max-w-xl mx-auto leading-relaxed">
-            {t('kontak.subtitle')}
-          </p>
-        </div>
+        {!hideTitle && (
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-slate-800">{t('kontak.title')}</h2>
+            <p className="mt-4 text-slate-500 max-w-xl mx-auto leading-relaxed">
+              {t('kontak.subtitle')}
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
 

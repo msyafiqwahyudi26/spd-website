@@ -107,6 +107,7 @@ model Contact {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+  @@index([status])
 }
 
 model Log {
@@ -120,6 +121,8 @@ model Log {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+  @@index([action])
+  @@index([entity])
 }
 
 model Setting {
@@ -305,6 +308,7 @@ model Subscriber {
   unsubscribedAt DateTime?
 
   @@index([createdAt])
+  @@index([status])
 }
 
 // ElectionData — statistik pemilu per tahun & jenis pemilu.

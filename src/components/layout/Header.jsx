@@ -196,13 +196,14 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-20">
 
-          {/* Logo */}
+          {/* Logo — inline style prevents FOUC flash before Tailwind loads */}
           <NavLink to="/" className="flex items-center shrink-0">
             <img
               src={logoSrc}
               alt={settings.siteName || 'SPD Indonesia'}
               onError={(e) => { e.currentTarget.src = logo; }}
-              className="h-12 sm:h-14 w-auto object-contain max-h-full"
+              className="w-auto object-contain"
+              style={{ height: '56px', maxHeight: '56px' }}
             />
           </NavLink>
 
