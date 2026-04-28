@@ -150,6 +150,8 @@ model Setting {
   socialLinkedin  String   @default("")
   socialInstagram String   @default("")
   socialYoutube   String   @default("")
+  // Logo height in pixels, controllable from admin dashboard (range 40–120).
+  logoHeight      Int      @default(76)
   updatedAt       DateTime @updatedAt @default(now())
 }
 

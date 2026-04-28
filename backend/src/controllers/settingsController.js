@@ -21,6 +21,7 @@ const DEFAULTS = {
   socialLinkedin: '',
   socialInstagram: '',
   socialYoutube: '',
+  logoHeight: 76,
 };
 
 function toPublic(row) {
@@ -50,6 +51,7 @@ function toPublic(row) {
       instagram: src.socialInstagram || '',
       youtube:   src.socialYoutube   || '',
     },
+    logoHeight: typeof src.logoHeight === 'number' ? src.logoHeight : 76,
   };
 }
 
@@ -102,6 +104,9 @@ exports.update = async (req, res, next) => {
     if (typeof social.linkedin  === 'string') data.socialLinkedin  = social.linkedin.trim().slice(0, 500);
     if (typeof social.instagram === 'string') data.socialInstagram = social.instagram.trim().slice(0, 500);
     if (typeof social.youtube   === 'string') data.socialYoutube   = social.youtube.trim().slice(0, 500);
+    if (typeof body.logoHeight === 'number') {
+      data.logoHeight = Math.min(120, Math.max(40, Math.round(body.logoHeight)));
+    }
 
     const existing = await getRow();
     const updated = await prisma.setting.update({

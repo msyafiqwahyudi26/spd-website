@@ -189,6 +189,7 @@ export default function Header() {
   const { t } = useI18n();
   // Dashboard can override settings.images.logo; bundled orange SPD logo is the default.
   const logoSrc = resolveMedia(logo, settings.images?.logo);
+  const logoH = Math.min(120, Math.max(40, Number(settings.logoHeight) || 76));
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -203,7 +204,7 @@ export default function Header() {
               alt={settings.siteName || 'SPD Indonesia'}
               onError={(e) => { e.currentTarget.src = logo; }}
               className="w-auto object-contain"
-              style={{ height: '76px', maxHeight: '76px', transition: 'none' }}
+              style={{ height: `${logoH}px`, maxHeight: `${logoH}px`, transition: 'none' }}
             />
           </NavLink>
 

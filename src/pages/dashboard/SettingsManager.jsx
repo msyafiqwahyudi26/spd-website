@@ -1032,6 +1032,7 @@ export default function SettingsManager() {
     email:    settings.email,
     phone:    settings.phone || '',
     logo:     settings.images.logo,
+    logoHeight: Number(settings.logoHeight) || 76,
     hero:     settings.images.hero,
     placeholder: settings.images.placeholder,
     vision:       settings.content?.vision       || CONTENT_DEFAULTS.vision,
@@ -1056,6 +1057,7 @@ export default function SettingsManager() {
       email:    settings.email,
       phone:    settings.phone || '',
       logo:     settings.images.logo,
+      logoHeight: Number(settings.logoHeight) || 76,
       hero:     settings.images.hero,
       placeholder: settings.images.placeholder,
       vision:       settings.content?.vision       || CONTENT_DEFAULTS.vision,
@@ -1089,6 +1091,7 @@ export default function SettingsManager() {
         siteName: form.siteName,
         email:    form.email,
         phone:    form.phone,
+        logoHeight: form.logoHeight,
         images: {
           logo:        form.logo,
           hero:        form.hero,
@@ -1204,6 +1207,32 @@ export default function SettingsManager() {
                     onChange={(v) => setForm({ ...form, logo: v })}
                     disabled={savingSettings}
                   />
+
+                  <Field label="Ukuran Logo di Header" hint={`Tinggi logo: ${form.logoHeight}px (range 40–120px)`}>
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="range"
+                        min={40}
+                        max={120}
+                        step={2}
+                        value={form.logoHeight}
+                        onChange={e => setForm({ ...form, logoHeight: Number(e.target.value) })}
+                        disabled={savingSettings}
+                        className="flex-1 accent-orange-500"
+                      />
+                      <input
+                        type="number"
+                        min={40}
+                        max={120}
+                        value={form.logoHeight}
+                        onChange={e => setForm({ ...form, logoHeight: Math.min(120, Math.max(40, Number(e.target.value) || 76)) })}
+                        disabled={savingSettings}
+                        className="w-20 border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+                      />
+                      <span className="text-sm text-slate-400 shrink-0">px</span>
+                    </div>
+                  </Field>
+
                   <ImagePickerField
                     label="Gambar Hero"
                     hint="Latar belakang section Hero di Beranda & Entry."
