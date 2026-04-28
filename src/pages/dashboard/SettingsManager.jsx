@@ -1219,6 +1219,13 @@ export default function SettingsManager() {
                         onChange={e => setForm({ ...form, logoHeight: Number(e.target.value) })}
                         disabled={savingSettings}
                         className="flex-1 accent-orange-500"
+                        style={{
+                          background: `linear-gradient(to right, #f97316 0%, #f97316 ${((form.logoHeight - 40) / 80) * 100}%, #e2e8f0 ${((form.logoHeight - 40) / 80) * 100}%, #e2e8f0 100%)`,
+                          height: '6px',
+                          borderRadius: '4px',
+                          outline: 'none',
+                          cursor: 'pointer',
+                        }}
                       />
                       <input
                         type="number"

@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS = {
   content: { vision: '', aboutIntro: '', heroSubtitle: '' },
   hero: { cta1: { label: '', href: '' }, cta2: { label: '', href: '' } },
   social: { facebook: '', twitter: '', linkedin: '', instagram: '', youtube: '' },
+  logoHeight: 76,
 };
 
 // Local-only seed used until the API responds. Real values come from the DB.
@@ -60,6 +61,7 @@ function normalizeSettings(s) {
       instagram: s.social?.instagram ?? '',
       youtube:   s.social?.youtube   ?? '',
     },
+    logoHeight: typeof s.logoHeight === 'number' ? s.logoHeight : 76,
   };
 }
 
