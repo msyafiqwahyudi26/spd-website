@@ -5,6 +5,80 @@ import { INITIAL_PUBLIKASI } from '../data/publikasi';
 import Image from '../components/ui/Image';
 import { resolveMediaUrl } from '@/lib/media';
 
+/** Share buttons: WhatsApp, X, Facebook, copy link */
+function ShareBar({ title, url }) {
+  const [copied, setCopied] = useState(false);
+  const enc   = encodeURIComponent;
+  const waUrl = `https://wa.me/?text=${enc(title + '\n' + url)}`;
+  const xUrl  = `https://x.com/intent/tweet?text=${enc(title)}&url=${enc(url)}`;
+  const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`;
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest mr-1">Bagikan</span>
+
+      {/* WhatsApp */}
+      <a href={waUrl} target="_blank" rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-50 text-green-700 hover:bg-green-100 transition-colors border border-green-200"
+        aria-label="Bagikan ke WhatsApp">
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/>
+        </svg>
+        WhatsApp
+      </a>
+
+      {/* X / Twitter */}
+      <a href={xUrl} target="_blank" rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white hover:bg-slate-700 transition-colors"
+        aria-label="Bagikan ke X (Twitter)">
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+        X
+      </a>
+
+      {/* Facebook */}
+      <a href={fbUrl} target="_blank" rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+        aria-label="Bagikan ke Facebook">
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+        </svg>
+        Facebook
+      </a>
+
+      {/* Copy link */}
+      <button onClick={copyLink}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors border border-slate-200"
+        aria-label="Salin tautan">
+        {copied ? (
+          <>
+            <svg className="w-3.5 h-3.5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span className="text-green-600">Tersalin!</span>
+          </>
+        ) : (
+          <>
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            Salin tautan
+          </>
+        )}
+      </button>
+    </div>
+  );
+}
+
 const TYPE_LABEL = { article: 'Artikel', research: 'Riset', book: 'Buku' };
 
 /**
@@ -264,7 +338,7 @@ export default function PublikasiDetail() {
           {item.title}
         </h1>
 
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-500 pb-6 border-b border-slate-100">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-500 pb-5 border-b border-slate-100">
           {item.author && (
             <span className="flex items-center gap-1.5">
               <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -290,6 +364,14 @@ export default function PublikasiDetail() {
               {item.readTime}
             </span>
           )}
+        </div>
+
+        {/* Share bar — right below meta */}
+        <div className="pt-4 pb-2">
+          <ShareBar
+            title={item.title}
+            url={`https://spdindonesia.org/publikasi/${item.slug}`}
+          />
         </div>
       </header>
 

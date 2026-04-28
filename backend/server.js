@@ -138,6 +138,12 @@ app.get('/api', (req, res) => {
   return okResponse(res, { status: 'ok', message: 'SPD Backend is running', version: '1.1.0' });
 });
 
+// ── OG meta tag prerendering for social-media bots ─────────────────────
+// Must come BEFORE the /api/* routes so bot requests for content URLs
+// are handled here. Nginx routes bot UA traffic to Express via the
+// map + location block in nginx-spd.conf.
+app.use(require('./src/middlewares/ogMeta'));
+
 app.use('/api/auth',         require('./src/routes/auth'));
 app.use('/api/publications', require('./src/routes/publications'));
 app.use('/api/events',       require('./src/routes/events'));
