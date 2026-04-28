@@ -17,6 +17,7 @@ import PublikasiDetail from './pages/PublikasiDetail';
 import Event from './pages/Event';
 import EventDetail from './pages/EventDetail';
 import DataPemilu from './pages/DataPemilu';
+import InfografisDetail from './pages/InfografisDetail';
 import Kontak from './pages/Kontak';
 import NotFound from './pages/NotFound';
 
@@ -81,6 +82,7 @@ export default function App() {
 
             {/* Lainnya */}
             <Route path="/data-pemilu" element={<DataPemilu />} />
+            <Route path="/data-pemilu/infografis/:slug" element={<InfografisDetail />} />
             <Route path="/kontak" element={<Kontak />} />
 
             {/* Catch-all within the layout so unknown public URLs render

@@ -689,8 +689,14 @@ function InfografisSection() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {items.map((item) => {
               const src = item.imageUrl ? resolveMediaUrl(item.imageUrl) : null;
+              const hasSlides = Array.isArray(item.slides) && item.slides.filter(s => s.imageUrl).length > 0;
               return (
-                <div key={item.id} className="relative rounded-xl overflow-hidden group bg-slate-100">
+                <Link
+                  key={item.id}
+                  to={`/data-pemilu/infografis/${item.slug}`}
+                  className="relative rounded-xl overflow-hidden group bg-slate-100 block"
+                  aria-label={item.title}
+                >
                   {src ? (
                     <img src={src} alt={item.title}
                       className="w-full h-44 object-cover transition-transform duration-300 group-hover:scale-105" />
@@ -702,14 +708,27 @@ function InfografisSection() {
                       </svg>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/10 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/10 to-transparent" />
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-orange-500/0 group-hover:bg-orange-500/10 transition-colors" />
                   <div className="absolute bottom-0 left-0 right-0 p-3">
                     <span className="block text-xs font-semibold text-white leading-snug">{item.title}</span>
                     {item.caption && (
                       <span className="block text-[10px] text-slate-300 mt-0.5 leading-tight">{item.caption}</span>
                     )}
+                    {hasSlides && (
+                      <span className="inline-block mt-1.5 text-[9px] font-bold bg-orange-500 text-white px-1.5 py-0.5 rounded uppercase tracking-wide">
+                        {item.slides.filter(s => s.imageUrl).length} slide
+                      </span>
+                    )}
                   </div>
-                </div>
+                  {/* Arrow indicator */}
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/20 backdrop-blur-sm rounded-full p-1">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} className="w-3 h-3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
               );
             })}
           </div>

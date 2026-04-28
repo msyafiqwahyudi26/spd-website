@@ -354,13 +354,20 @@ model BlacklistedToken {
 // Infografis Pemilu — gambar-gambar visualisasi/infografis yang ditampilkan
 // di halaman Data Pemilu. Dikelola dari dashboard admin.
 model Infografis {
-  id        String   @id @default(cuid())
-  title     String
-  imageUrl  String
-  caption   String   @default("")
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  title       String
+  // URL-safe slug for detail page routing (auto-generated from title if not provided)
+  slug        String   @unique @default("")
+  imageUrl    String
+  caption     String   @default("")
+  // Short intro text shown on the detail page below the title
+  description String   @default("")
+  // JSON array of slide objects: [{ imageUrl, caption }]
+  // Each slide is a data visualization image with an explanatory caption
+  slides      String   @default("[]")
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([sortOrder])
 }
