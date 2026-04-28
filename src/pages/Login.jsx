@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import logo from '../assets/logo-spd.svg';
+import logo from '../assets/logo-spd-opt.webp';
 
 const REASON_MESSAGES = {
   idle:    'Sesi berakhir karena tidak ada aktivitas. Silakan masuk kembali.',

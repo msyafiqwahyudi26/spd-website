@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import logo from '../../assets/logo-spd.svg';
+import logo from '../../assets/logo-spd-opt.webp';
 import { useSettings } from '../../hooks/useSettings';
 import { resolveMedia } from '../../config/media';
 import { api } from '@/lib/api';

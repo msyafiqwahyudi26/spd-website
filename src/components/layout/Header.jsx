@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import logo from '../../assets/logo-spd.svg';
+import logo from '../../assets/logo-spd-opt.webp';
 import { resolveMedia } from '../../config/media';
 import { useSettings } from '../../hooks/useSettings';
 import { useI18n } from '../../i18n';
@@ -274,4 +274,3 @@ export default function Header() {
       )}
     </header>
   );
-}
