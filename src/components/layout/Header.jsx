@@ -203,7 +203,7 @@ export default function Header() {
               alt={settings.siteName || 'SPD Indonesia'}
               onError={(e) => { e.currentTarget.src = logo; }}
               className="w-auto object-contain"
-              style={{ height: '56px', maxHeight: '56px' }}
+              style={{ height: '72px', maxHeight: '72px' }}
             />
           </NavLink>
 
