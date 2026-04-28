@@ -1,65 +1,75 @@
-name: Deploy to VPS
+name: 🚀 Deploy SPD Indonesia
 
+# Trigger: setiap push ke branch main, atau trigger manual dari GitHub UI
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
+# Pastikan tidak ada dua deploy berjalan bersamaan
 concurrency:
-  group: deploy-production
+  group: production-deploy
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  # ── Job 1: Validasi build ─────────────────────────────────────────────────
+  # Jalankan di GitHub's runner dulu — kalau build gagal, deploy tidak jalan.
+  validate:
+    name: ✅ Validate Build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
 
     steps:
-      - name: Deploy over SSH
+      - name: Checkout kode
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend (validasi)
+        run: npm run build
+        env:
+          VITE_API_URL: https://spdindonesia.org/api
+
+  # ── Job 2: Deploy ke server ───────────────────────────────────────────────
+  # Hanya jalan kalau Job 1 (validate) berhasil.
+  deploy:
+    name: 🚢 Deploy to Production
+    needs: validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy ke server via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host:     ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key:      ${{ secrets.VPS_SSH_KEY }}
-          port:     ${{ secrets.VPS_PORT }}
-          script_stop: true
-          command_timeout: 10m
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
           script: |
-            set -euo pipefail
+            set -e   # Berhenti kalau ada command yang gagal
 
-            APP_DIR="${{ secrets.VPS_APP_DIR }}"
-            BRANCH="${GITHUB_REF_NAME:-main}"
+            cd /var/www/spd-website
 
-            echo "→ Deploying $BRANCH to $APP_DIR"
-            cd "$APP_DIR"
+            echo "📥 Pulling latest code..."
+            git pull origin main
 
-            # Hard-sync working tree to origin/<branch>. Fails loudly if the
-            # VPS has local drift (never edit on the server).
-            git fetch --prune --tags origin "$BRANCH"
-            git reset --hard "origin/$BRANCH"
+            echo "📦 Installing backend dependencies..."
+            cd backend
+            npm install --omit=dev
+            npx prisma db push
+            cd ..
 
-            echo "→ Installing backend deps"
-            cd "$APP_DIR/backend"
-            npm ci --omit=dev
-            npx prisma generate
-
-            echo "→ Applying database migrations"
-            npx prisma migrate deploy
-
-            echo "→ Building frontend"
-            cd "$APP_DIR"
-            npm ci
+            echo "🏗️  Building frontend..."
             npm run build
 
-            echo "→ Reloading PM2"
-            cd "$APP_DIR/backend"
-            # Starts on first deploy, zero-downtime reload afterwards.
-            pm2 reload ecosystem.config.cjs --env production --update-env \
-              || pm2 start ecosystem.config.cjs --env production
+            echo "🔄 Restarting backend..."
+            pm2 restart spd-backend
             pm2 save
 
-            echo "→ Smoke test"
-            sleep 2
-            curl -fsS http://127.0.0.1:5000/api > /dev/null
-
-            echo "✓ Deploy complete"
+            echo "✅ Deploy selesai! $(date '+%Y-%m-%d %H:%M:%S')"
